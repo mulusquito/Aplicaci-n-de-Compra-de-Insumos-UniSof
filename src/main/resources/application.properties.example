@@ -1,0 +1,19 @@
+spring.application.name=insumos
+
+spring.datasource.url=jdbc:postgresql://localhost:5432/unisof_db
+spring.datasource.username=postgres
+spring.datasource.password=TU_PASSWORD_POSTGRES
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+
+app.admin.email=tu-correo@ejemplo.com
+
+# SCRUM-35: SMTP - Copiar application.properties.example a application.properties
+app.mail.enabled=true
+spring.mail.host=smtp.gmail.com
+spring.mail.port=465
+spring.mail.username=tu-correo@gmail.com
+spring.mail.password=TU_CONTRASENA_APLICACION
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.ssl.enable=true
+spring.mail.properties.mail.smtp.starttls.enable=false

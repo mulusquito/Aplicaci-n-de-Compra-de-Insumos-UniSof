@@ -3,6 +3,7 @@ package com.unisof.insumos.config;
 import com.unisof.insumos.model.Usuario;
 import com.unisof.insumos.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -14,6 +15,9 @@ public class DataInitializer implements CommandLineRunner {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Value("${app.admin.email:admin@unisof.com}")
+    private String adminEmail;
+
     @Override
     public void run(String... args) {
         if (usuarioRepository.count() == 0) {
@@ -21,7 +25,7 @@ public class DataInitializer implements CommandLineRunner {
                     "admin",
                     passwordEncoder.encode("admin123"),
                     "Administrador",
-                    "admin@unisof.com"
+                    adminEmail
             );
             admin.setRol("ADMINISTRADOR");
             usuarioRepository.save(admin);

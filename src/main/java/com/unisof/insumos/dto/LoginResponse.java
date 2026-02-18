@@ -14,6 +14,8 @@ public class LoginResponse {
     private boolean valido;
     private String mensaje;
     private UsuarioResponse usuario;
+    /** SCRUM-35: true cuando se requiere verificacion en dos pasos */
+    private boolean requiereVerificacionDosPasos;
 
     @Data
     @NoArgsConstructor
