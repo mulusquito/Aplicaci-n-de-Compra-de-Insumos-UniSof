@@ -13,7 +13,14 @@ import java.time.Instant;
 import java.util.Optional;
 
 /**
- * SCRUM-35: Servicio para verificación en dos pasos mediante token enviado por correo
+ * SCRUM-35: Servicio para verificación en dos pasos (2FA) mediante token enviado por correo.
+ * <p>
+ * Genera tokens numéricos de 6 dígitos, los guarda con expiración de 10 minutos,
+ * invalida tokens anteriores del mismo usuario y delega el envío por email a {@link EmailService}.
+ * </p>
+ *
+ * @see EmailService
+ * @see AuthService
  */
 @Service
 @RequiredArgsConstructor
@@ -27,6 +34,13 @@ public class TokenVerificacionService {
     private final TokenVerificacionRepository tokenRepository;
     private final EmailService emailService;
 
+    /**
+     * Genera un token, lo guarda y lo envía por correo al usuario.
+     * Invalida cualquier token previo no usado del mismo usuario.
+     *
+     * @param usuario usuario que solicitó el login
+     * @return Optional con el token creado (siempre presente si se guardó)
+     */
     @Transactional
     public Optional<TokenVerificacion> generarYEnviarToken(Usuario usuario) {
         invalidarTokensAnteriores(usuario.getId());
@@ -46,6 +60,14 @@ public class TokenVerificacionService {
         return Optional.of(tokenVerificacion);
     }
 
+    /**
+     * Verifica que el token sea válido (no expirado, no usado).
+     * Si es correcto, marca el token como usado y retorna el usuario.
+     *
+     * @param usuarioNombre nombre de usuario
+     * @param token        código de 6 dígitos
+     * @return Optional con el usuario si el token es válido
+     */
     @Transactional
     public Optional<Usuario> verificarToken(String usuarioNombre, String token) {
         return tokenRepository.findByUsuario_UsuarioAndTokenAndUsadoFalse(usuarioNombre, token)

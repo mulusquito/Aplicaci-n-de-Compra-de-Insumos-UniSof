@@ -8,7 +8,14 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 /**
- * SCRUM-35: Envío de token de verificación por correo electrónico
+ * SCRUM-35: Servicio de envío de correos electrónicos.
+ * <p>
+ * Envía el token de verificación 2FA al correo del usuario.
+ * Si el correo está deshabilitado o no hay JavaMailSender configurado,
+ * registra el token en log para desarrollo.
+ * </p>
+ *
+ * @see TokenVerificacionService
  */
 @Service
 @Slf4j
@@ -23,6 +30,14 @@ public class EmailService {
     @Value("${app.mail.enabled:true}")
     private boolean emailHabilitado;
 
+    /**
+     * Envía el token de verificación 2FA por correo al usuario.
+     *
+     * @param correoDestino  dirección de correo del destinatario
+     * @param nombreUsuario  nombre del usuario (para personalizar el mensaje)
+     * @param token         código de 6 dígitos a enviar
+     * @return true si se envió correctamente o si el correo está deshabilitado (modo dev)
+     */
     public boolean enviarTokenVerificacion(String correoDestino, String nombreUsuario, String token) {
         if (!emailHabilitado || mailSender == null) {
             log.info("SCRUM-35 - Token de verificacion para {} ({}): {}", nombreUsuario, correoDestino, token);

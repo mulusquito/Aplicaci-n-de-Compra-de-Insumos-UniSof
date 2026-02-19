@@ -1,5 +1,8 @@
 spring.application.name=insumos
 
+# SCRUM-36: Sesion expira tras 1 min de inactividad
+server.servlet.session.timeout=60s
+
 spring.datasource.url=jdbc:postgresql://localhost:5432/unisof_db
 spring.datasource.username=postgres
 spring.datasource.password=TU_PASSWORD_POSTGRES

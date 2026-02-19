@@ -79,12 +79,39 @@
 
 ---
 
-## Resumen rápido
+## Paso 3: SCRUM-36 - Verificar sesion y timeout
 
-| # | Endpoint | Método | Body |
+Tras verify-token, Postman guarda la cookie JSESSIONID automaticamente. Esa sesion expira tras **1 minuto de inactividad**.
+
+### 3.1 Obtener usuario actual (GET /api/auth/me)
+
+| Campo | Valor |
+|-------|-------|
+| **Metodo** | `GET` |
+| **URL** | `http://localhost:8080/api/auth/me` |
+| **Nota** | Debe tener sesion activa (haber llamado verify-token antes) |
+
+**Respuesta 200:** Datos del usuario. **Respuesta 401:** Sesion expirada (esperar 1 min sin hacer requests).
+
+### 3.2 Cerrar sesion (POST /api/auth/logout)
+
+| Campo | Valor |
+|-------|-------|
+| **Metodo** | `POST` |
+| **URL** | `http://localhost:8080/api/auth/logout` |
+
+Invalida la sesion. Tras esto, GET /me retornara 401.
+
+---
+
+## Resumen rapido
+
+| # | Endpoint | Metodo | Body |
 |---|----------|--------|------|
 | 1 | `/api/auth/login` | POST | `{"usuario":"admin","contrasena":"admin123"}` |
 | 2 | `/api/auth/verify-token` | POST | `{"usuario":"admin","token":"CODIGO_6_DIGITOS"}` |
+| 3 | `/api/auth/me` | GET | (ninguno, usa cookie de sesion) |
+| 4 | `/api/auth/logout` | POST | (ninguno) |
 
 ---
 
