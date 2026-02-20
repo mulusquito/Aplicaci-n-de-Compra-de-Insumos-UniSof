@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Verificación en dos pasos - UNISOF</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="auth-page">
+
+    <div class="auth-container">
+        <a href="/" class="logo auth-logo">
+            <span class="logo-icon">U</span>
+            <span class="logo-text">UNISOF</span>
+        </a>
+
+        <h1 class="auth-title">Código de verificación</h1>
+        <p class="auth-subtitle">Ingresa el código de 6 dígitos que enviamos a tu correo</p>
+
+        <form id="form-token" class="auth-form">
+            <input type="hidden" id="usuario" name="usuario">
+            <div class="form-group">
+                <label for="token">Código de 6 dígitos</label>
+                <input type="text" id="token" name="token" required placeholder="123456" maxlength="6" pattern="[0-9]{6}" title="6 dígitos numéricos">
+            </div>
+            <div id="error-msg" class="error-msg" style="display:none"></div>
+            <button type="submit" class="btn-primary btn-block">Verificar</button>
+        </form>
+
+        <p class="auth-footer"><a href="/login.html">← Volver al login</a></p>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        const usuario = sessionStorage.getItem('loginUsuario');
+        if (!usuario) {
+            window.location.href = '/login.html';
+        }
+        document.getElementById('usuario').value = usuario;
+
+        document.getElementById('form-token').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const token = document.getElementById('token').value.trim();
+            const errorEl = document.getElementById('error-msg');
+
+            errorEl.style.display = 'none';
+            const result = await authApi.verifyToken(usuario, token);
+
+            if (result.ok) {
+                sessionStorage.removeItem('loginUsuario');
+                const rol = (result.data?.usuario?.rol || '').toUpperCase();
+                if (rol === 'ADMINISTRADOR') {
+                    window.location.href = '/panel-admin.html';
+                } else if (rol === 'VENDEDOR') {
+                    window.location.href = '/ventas.html';
+                } else if (rol === 'JEFE DE COMPRAS') {
+                    window.location.href = '/compras.html';
+                } else {
+                    window.location.href = '/';
+                }
+            } else {
+                errorEl.textContent = result.mensaje || 'Token inválido o expirado';
+                errorEl.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

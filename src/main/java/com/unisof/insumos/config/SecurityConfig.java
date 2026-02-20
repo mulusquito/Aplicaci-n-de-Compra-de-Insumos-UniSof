@@ -53,6 +53,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login", "/api/auth/verify-token").permitAll()
                         .requestMatchers("/api/auth/logout", "/api/auth/me").authenticated()
+                        .requestMatchers("/", "/index.html", "/login.html", "/verificar-token.html", "/recuperar-contrasena.html", "/panel-admin.html", "/ventas.html", "/compras.html", "/css/**", "/js/**", "/images/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .logout(logout -> logout

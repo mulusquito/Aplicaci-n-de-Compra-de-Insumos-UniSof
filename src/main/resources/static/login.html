@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar Sesión - UNISOF</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="auth-page">
+
+    <div class="auth-container">
+        <a href="/" class="logo auth-logo">
+            <span class="logo-icon">U</span>
+            <span class="logo-text">UNISOF</span>
+        </a>
+
+        <h1 class="auth-title">Iniciar Sesión</h1>
+        <p class="auth-subtitle">Ingresa tus credenciales para acceder</p>
+
+        <form id="form-login" class="auth-form">
+            <div class="form-group">
+                <label for="usuario">Usuario</label>
+                <input type="text" id="usuario" name="usuario" required placeholder="Ej: admin">
+            </div>
+            <div class="form-group">
+                <label for="contrasena">Contraseña</label>
+                <input type="password" id="contrasena" name="contrasena" required placeholder="••••••••">
+            </div>
+            <div id="error-msg" class="error-msg" style="display:none"></div>
+            <p class="auth-forgot"><a href="/recuperar-contrasena.html">¿Olvidaste la contraseña?</a></p>
+            <button type="submit" class="btn-primary btn-block">Iniciar Sesión</button>
+        </form>
+
+        <p class="auth-footer"><a href="/">← Volver al inicio</a></p>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        document.getElementById('form-login').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const usuario = document.getElementById('usuario').value.trim();
+            const contrasena = document.getElementById('contrasena').value;
+            const errorEl = document.getElementById('error-msg');
+
+            errorEl.style.display = 'none';
+            const result = await authApi.login(usuario, contrasena);
+
+            if (result.ok) {
+                if (result.data.requiereVerificacionDosPasos) {
+                    sessionStorage.setItem('loginUsuario', usuario);
+                    window.location.href = '/verificar-token.html';
+                } else {
+                    window.location.href = '/';
+                }
+            } else {
+                errorEl.textContent = result.mensaje || 'Credenciales inválidas';
+                errorEl.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Administrador - UNISOF</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <a href="/" class="link-atras">← Atrás</a>
+        <a href="/" class="logo">
+            <span class="logo-icon">U</span>
+            <span class="logo-text">UNISOF</span>
+        </a>
+        <div class="nav-user-info" id="nav-user-info">
+            <span class="user-name" id="user-name">—</span>
+            <span class="user-rol" id="user-rol">ADMINISTRADOR</span>
+        </div>
+        <button type="button" class="btn-logout btn-logout-nav" id="btn-logout">Cerrar Sesión</button>
+    </header>
+
+    <main class="panel-main">
+        <h1 class="panel-title">Panel de administración</h1>
+        <div class="panel-buttons">
+            <a href="#registrar-personal" class="panel-btn">
+                <span class="panel-btn-icon">👤</span>
+                <span class="panel-btn-text">Registrar personal</span>
+                <span class="panel-btn-hint">(Próximamente)</span>
+            </a>
+            <a href="#consultar-ordenes-compra" class="panel-btn">
+                <span class="panel-btn-icon">📋</span>
+                <span class="panel-btn-text">Consultar órdenes de compra</span>
+                <span class="panel-btn-hint">(Próximamente)</span>
+            </a>
+            <a href="#consultar-compras-insumos" class="panel-btn">
+                <span class="panel-btn-icon">📦</span>
+                <span class="panel-btn-text">Consultar compras insumos</span>
+                <span class="panel-btn-hint">(Próximamente)</span>
+            </a>
+            <a href="#consultar-inventario" class="panel-btn">
+                <span class="panel-btn-icon">📊</span>
+                <span class="panel-btn-text">Consultar inventario</span>
+                <span class="panel-btn-hint">(Próximamente)</span>
+            </a>
+        </div>
+    </main>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        (async () => {
+            const result = await authApi.getMe();
+            if (!result.ok) {
+                window.location.href = '/login.html';
+                return;
+            }
+            const rol = (result.usuario?.rol || '').toUpperCase();
+            if (rol !== 'ADMINISTRADOR') {
+                window.location.href = '/';
+                return;
+            }
+            document.getElementById('user-name').textContent = result.usuario?.nombre || result.usuario?.usuario;
+            document.getElementById('user-rol').textContent = result.usuario?.rol || 'ADMINISTRADOR';
+        })();
+
+        document.getElementById('btn-logout').addEventListener('click', async () => {
+            await authApi.logout();
+            window.location.href = '/';
+        });
+    </script>
+</body>
+</html>

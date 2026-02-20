@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>UNISOF</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <a href="/" class="logo">
+            <span class="logo-icon">U</span>
+            <span class="logo-text">UNISOF</span>
+        </a>
+
+        <div class="nav-actions">
+            <a href="/login.html" class="nav-icon nav-icon-user" id="btn-login" title="Iniciar Sesión">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </a>
+            <div class="nav-user-logged" id="nav-user-logged" style="display:none">
+                <button class="nav-icon nav-icon-user" id="btn-user-menu" title="Menú usuario">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </button>
+                <div class="dropdown-user" id="dropdown-user">
+                    <span class="dropdown-user-name" id="user-display-name"></span>
+                    <button class="dropdown-user-logout" id="btn-logout">Cerrar Sesión</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+
+        <div class="hero-left">
+            <span class="badge">★ Nueva Colección 2026</span>
+            <h1 class="hero-brand">UNISOF</h1>
+
+            <div class="buttons">
+                <div class="dropdown-catalogo">
+                    <button class="btn-secondary btn-catalogo">
+                        Ver Catálogo
+                        <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
+                    </button>
+                    <div class="dropdown-catalogo-menu">
+                        <a href="#catalogo-mujer">Mujer</a>
+                        <a href="#catalogo-hombre">Hombre</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-right">
+            <div class="card">
+                <img src="/images/dama.jpg" alt="Damas" onerror="this.src='https://images.unsplash.com/photo-1744616450441-8d1133f0004f?w=400'">
+                <span>Damas</span>
+            </div>
+
+            <div class="card">
+                <img src="/images/caballero.jpg" alt="Caballeros" onerror="this.src='https://images.unsplash.com/photo-1761522002071-67755dc6c820?w=400'">
+                <span>Caballeros</span>
+            </div>
+        </div>
+
+    </section>
+
+    <footer>
+        © 2026 UNISOF. Todos los derechos reservados.
+    </footer>
+
+    <script src="/js/auth.js"></script>
+    <script>
+        (async () => {
+            const result = await authApi.getMe();
+            if (result.ok) {
+                const rol = (result.usuario?.rol || '').toUpperCase();
+                if (rol === 'ADMINISTRADOR') {
+                    window.location.href = '/panel-admin.html';
+                    return;
+                }
+                if (rol === 'VENDEDOR') {
+                    window.location.href = '/ventas.html';
+                    return;
+                }
+                if (rol === 'JEFE DE COMPRAS') {
+                    window.location.href = '/compras.html';
+                    return;
+                }
+                document.getElementById('btn-login').style.display = 'none';
+                document.getElementById('nav-user-logged').style.display = 'flex';
+                document.getElementById('user-display-name').innerHTML = 'Hola, ' + (result.usuario?.nombre || result.usuario?.usuario) + '<br><small>' + (result.usuario?.rol || '') + '</small>';
+            }
+        })();
+
+        document.getElementById('btn-logout')?.addEventListener('click', async () => {
+            await authApi.logout();
+            window.location.href = '/';
+        });
+
+        document.getElementById('btn-user-menu')?.addEventListener('click', () => {
+            document.getElementById('dropdown-user').classList.toggle('open');
+        });
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.nav-user-logged')) {
+                document.getElementById('dropdown-user')?.classList.remove('open');
+            }
+        });
+
+        document.querySelector('.dropdown-catalogo')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (e.target.closest('.btn-catalogo')) {
+                document.querySelector('.dropdown-catalogo')?.classList.toggle('open');
+            }
+        });
+        document.addEventListener('click', () => {
+            document.querySelector('.dropdown-catalogo')?.classList.remove('open');
+        });
+    </script>
+</body>
+</html>
