@@ -4,9 +4,14 @@ import com.unisof.insumos.dto.LoginRequest;
 import com.unisof.insumos.dto.LoginResponse;
 import com.unisof.insumos.dto.VerifyTokenRequest;
 import com.unisof.insumos.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -23,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final SecurityContextRepository securityContextRepository;
 
     /**
      * Valida credenciales y envia token 2FA por correo si son correctas.
@@ -51,7 +57,11 @@ public class AuthController {
      * @return 200 OK con usuario si es correcto, o 401 si token invalido/expirado
      */
     @PostMapping("/verify-token")
-    public ResponseEntity<LoginResponse> verifyToken(@Valid @RequestBody VerifyTokenRequest request) {
+    public ResponseEntity<LoginResponse> verifyToken(
+            @Valid @RequestBody VerifyTokenRequest request,
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) {
+        httpRequest.getSession(true); // SCRUM-36: Garantiza sesión para persistir autenticación
         LoginResponse response = authService.validarToken2FA(
                 request.getUsuario(),
                 request.getToken(),
@@ -59,6 +69,9 @@ public class AuthController {
         );
 
         if (response.isValido()) {
+            // Spring Security 6: guardar contexto explícitamente para que persista en la sesión
+            SecurityContext context = SecurityContextHolder.getContext();
+            securityContextRepository.saveContext(context, httpRequest, httpResponse);
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.status(401).body(response);

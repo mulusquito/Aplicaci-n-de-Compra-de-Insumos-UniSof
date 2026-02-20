@@ -30,6 +30,10 @@ public class EmailService {
     @Value("${app.mail.enabled:true}")
     private boolean emailHabilitado;
 
+    /** Si true, ante fallo de envio imprime el token en consola para pruebas sin correo */
+    @Value("${app.mail.fallback-log-on-error:false}")
+    private boolean fallbackLogOnError;
+
     /**
      * Envía el token de verificación 2FA por correo al usuario.
      *
@@ -62,6 +66,10 @@ public class EmailService {
             return true;
         } catch (Exception e) {
             log.error("Error enviando token a {}: {}", correoDestino, e.getMessage());
+            if (fallbackLogOnError) {
+                log.info(">>> TOKEN PARA PRUEBAS (red bloquea correo): {}", token);
+                return true;
+            }
             return false;
         }
     }

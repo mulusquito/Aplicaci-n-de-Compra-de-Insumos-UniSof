@@ -1,13 +1,20 @@
 package com.unisof.insumos.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
+
+import java.util.Map;
 
 /**
  * Configuracion de Spring Security.
@@ -27,6 +34,12 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    /** Repositorio para persistir SecurityContext en HttpSession (SCRUM-36) */
+    @Bean
+    public SecurityContextRepository securityContextRepository() {
+        return new HttpSessionSecurityContextRepository();
+    }
+
     /** Cadena de filtros de seguridad HTTP */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -34,8 +47,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .formLogin(f -> f.disable())
                 .httpBasic(b -> b.disable())
-                .sessionManagement(session -> session
-                        .maximumSessions(1)
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(json401EntryPoint())
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login", "/api/auth/verify-token").permitAll()
@@ -49,5 +62,21 @@ public class SecurityConfig {
                         .logoutSuccessHandler((req, res, auth) -> res.setStatus(HttpServletResponse.SC_OK))
                 );
         return http.build();
+    }
+
+    /** SCRUM-36: Respuesta JSON en 401 (sesion expirada o no autenticado) */
+    @Bean
+    public AuthenticationEntryPoint json401EntryPoint() {
+        return (request, response, authException) -> {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            try {
+                response.getWriter().write(new ObjectMapper().writeValueAsString(
+                        Map.of("mensaje", "Sesion expirada o no autenticado. Inicie sesion nuevamente.")
+                ));
+            } catch (java.io.IOException e) {
+                throw new IllegalStateException("Error escribiendo respuesta 401", e);
+            }
+        };
     }
 }
