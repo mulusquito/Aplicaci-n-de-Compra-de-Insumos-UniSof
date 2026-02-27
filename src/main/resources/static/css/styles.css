@@ -1098,3 +1098,35 @@ footer {
 .welcome-toast.visible {
     transform: translate(-50%, 0);
 }
+
+/* Toast genérico para feedback (éxito, error, info) */
+.toast-feedback {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translate(-50%, 100px);
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 3000;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.toast-feedback.visible {
+    transform: translate(-50%, 0);
+    opacity: 1;
+}
+.toast-feedback.success {
+    background: #4caf50;
+    color: white;
+}
+.toast-feedback.error {
+    background: #e57373;
+    color: white;
+}
+.toast-feedback.info {
+    background: #2196f3;
+    color: white;
+}

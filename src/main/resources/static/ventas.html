@@ -367,27 +367,23 @@
             <p class="checkout-hint">Completa los datos para procesar el pago con Mercado Pago.</p>
             <form id="checkout-form" class="checkout-form">
                 <div class="form-row">
-                    <div class="form-group input-hint-group">
+                    <div class="form-group">
                         <label for="cliente-nombre">Nombre completo</label>
                         <input type="text" id="cliente-nombre" name="nombre" required placeholder="Ej: Juan Pérez">
-                        <span class="input-hint">Ej: Juan Pérez</span>
                     </div>
-                    <div class="form-group input-hint-group">
+                    <div class="form-group">
                         <label for="cliente-email">Correo electrónico</label>
                         <input type="email" id="cliente-email" name="email" required placeholder="cliente@ejemplo.com">
-                        <span class="input-hint">Ej: cliente@ejemplo.com</span>
                     </div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group input-hint-group">
+                    <div class="form-group">
                         <label for="cliente-telefono">Teléfono</label>
                         <input type="tel" id="cliente-telefono" name="telefono" required placeholder="+57 300 123 4567">
-                        <span class="input-hint">Ej: +57 300 123 4567</span>
                     </div>
-                    <div class="form-group input-hint-group">
+                    <div class="form-group">
                         <label for="cliente-direccion">Dirección de envío</label>
                         <input type="text" id="cliente-direccion" name="direccion" required placeholder="Calle, ciudad, país">
-                        <span class="input-hint">Ej: Calle, ciudad, país</span>
                     </div>
                 </div>
                 <div class="form-row">
@@ -400,10 +396,9 @@
                             <option value="TI">Tarjeta de identidad</option>
                         </select>
                     </div>
-                    <div class="form-group input-hint-group">
+                    <div class="form-group">
                         <label for="cliente-doc-numero">Número de documento</label>
                         <input type="text" id="cliente-doc-numero" name="docNumero" required placeholder="Ej: 123456789" pattern="[0-9\s\-\.]+" title="Solo números">
-                        <span class="input-hint">Ej: 123456789</span>
                     </div>
                 </div>
                 <div class="checkout-actions">
@@ -415,11 +410,22 @@
     </div>
 
     <script src="/js/auth.js"></script>
+    <script src="/js/toast.js"></script>
     <script src="/js/cart.js"></script>
     <script>
         (async () => {
-            const result = await authApi.getMe();
+            let result;
+            try {
+                result = await authApi.getMe();
+            } catch (err) {
+                Toast.error('Error de conexión. Verifica tu red.');
+                setTimeout(() => { window.location.href = '/login.html'; }, 2000);
+                return;
+            }
             if (!result.ok) {
+                if (result.mensaje && result.mensaje.includes('conexión')) {
+                    Toast.error(result.mensaje);
+                }
                 window.location.href = '/login.html';
                 return;
             }
@@ -444,13 +450,13 @@
             const payment = params.get('payment');
             if (payment === 'success') {
                 Cart.clear();
-                alert('¡Pago aprobado! Gracias por su compra.');
+                Toast.success('¡Pago aprobado! Gracias por su compra.', 4000);
                 window.history.replaceState({}, '', '/ventas.html');
             } else if (payment === 'failure') {
-                alert('El pago fue rechazado. Puede intentar nuevamente.');
+                Toast.error('El pago fue rechazado. Puede intentar nuevamente.');
                 window.history.replaceState({}, '', '/ventas.html');
             } else if (payment === 'pending') {
-                alert('El pago está pendiente. Se le notificará cuando se confirme.');
+                Toast.info('El pago está pendiente. Se le notificará cuando se confirme.');
                 window.history.replaceState({}, '', '/ventas.html');
             }
         })();
@@ -512,6 +518,7 @@
             btn.addEventListener('click', () => {
                 if (!pendingProduct) return;
                 Cart.addItem({ ...pendingProduct, size: btn.dataset.size });
+                Toast.success('Producto añadido al carrito');
                 pendingProduct = null;
                 document.getElementById('size-modal').classList.remove('open');
             });
@@ -645,7 +652,7 @@
                     throw new Error('No se recibió URL de pago');
                 }
             } catch (err) {
-                alert(err.message || 'Error al procesar. Verifica tu conexión.');
+                Toast.error(err.message || 'Error al procesar. Verifica tu conexión.');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Pagar con Mercado Pago';

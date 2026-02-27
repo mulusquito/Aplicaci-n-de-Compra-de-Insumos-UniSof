@@ -19,10 +19,9 @@
 
         <form id="form-token" class="auth-form">
             <input type="hidden" id="usuario" name="usuario">
-            <div class="form-group input-hint-group">
+            <div class="form-group">
                 <label for="token">Código de 6 dígitos</label>
                 <input type="text" id="token" name="token" required placeholder="123456" maxlength="6" pattern="[0-9]{6}" title="6 dígitos numéricos">
-                <span class="input-hint">Ej: 123456</span>
             </div>
             <div id="error-msg" class="error-msg" style="display:none"></div>
             <button type="submit" class="btn-primary btn-block">Verificar</button>
@@ -31,6 +30,7 @@
         <p class="auth-footer"><a href="/login.html">← Volver al login</a></p>
     </div>
 
+    <script src="/js/toast.js"></script>
     <script src="/js/auth.js"></script>
     <script>
         const usuario = sessionStorage.getItem('loginUsuario');
@@ -45,7 +45,15 @@
             const errorEl = document.getElementById('error-msg');
 
             errorEl.style.display = 'none';
-            const result = await authApi.verifyToken(usuario, token);
+            let result;
+            try {
+                result = await authApi.verifyToken(usuario, token);
+            } catch (err) {
+                Toast.error('Error de conexión. Verifica tu red.');
+                errorEl.textContent = 'Error de conexión con el servidor';
+                errorEl.style.display = 'block';
+                return;
+            }
 
             if (result.ok) {
                 sessionStorage.removeItem('loginUsuario');
@@ -60,6 +68,7 @@
                     window.location.href = '/';
                 }
             } else {
+                Toast.error(result.mensaje || 'Token inválido o expirado');
                 errorEl.textContent = result.mensaje || 'Token inválido o expirado';
                 errorEl.style.display = 'block';
             }

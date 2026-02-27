@@ -18,15 +18,13 @@
         <p class="auth-subtitle">Ingresa tus credenciales para acceder</p>
 
         <form id="form-login" class="auth-form">
-            <div class="form-group input-hint-group">
+            <div class="form-group">
                 <label for="usuario">Usuario</label>
                 <input type="text" id="usuario" name="usuario" required placeholder="Ej: admin">
-                <span class="input-hint">Ej: admin</span>
             </div>
-            <div class="form-group input-hint-group">
+            <div class="form-group">
                 <label for="contrasena">Contraseña</label>
                 <input type="password" id="contrasena" name="contrasena" required placeholder="Ej: tu contraseña">
-                <span class="input-hint">Ej: tu contraseña</span>
             </div>
             <div id="error-msg" class="error-msg" style="display:none"></div>
             <p class="auth-forgot"><a href="/recuperar-contrasena.html">¿Olvidaste la contraseña?</a></p>
@@ -36,6 +34,7 @@
         <p class="auth-footer"><a href="/">← Volver al inicio</a></p>
     </div>
 
+    <script src="/js/toast.js"></script>
     <script src="/js/auth.js"></script>
     <script>
         document.getElementById('form-login').addEventListener('submit', async (e) => {
@@ -45,16 +44,27 @@
             const errorEl = document.getElementById('error-msg');
 
             errorEl.style.display = 'none';
-            const result = await authApi.login(usuario, contrasena);
+            let result;
+            try {
+                result = await authApi.login(usuario, contrasena);
+            } catch (err) {
+                Toast.error('Error de conexión. Verifica tu red.');
+                errorEl.textContent = 'Error de conexión con el servidor';
+                errorEl.style.display = 'block';
+                return;
+            }
 
             if (result.ok) {
                 if (result.data.requiereVerificacionDosPasos) {
+                    Toast.success('Token enviado a tu correo. Revisa tu bandeja.');
                     sessionStorage.setItem('loginUsuario', usuario);
-                    window.location.href = '/verificar-token.html';
+                    setTimeout(() => { window.location.href = '/verificar-token.html'; }, 1500);
                 } else {
-                    window.location.href = '/';
+                    Toast.success('Inicio de sesión exitoso');
+                    setTimeout(() => { window.location.href = '/'; }, 800);
                 }
             } else {
+                Toast.error(result.mensaje || 'Credenciales inválidas');
                 errorEl.textContent = result.mensaje || 'Credenciales inválidas';
                 errorEl.style.display = 'block';
             }
