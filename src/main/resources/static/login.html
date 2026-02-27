@@ -18,13 +18,15 @@
         <p class="auth-subtitle">Ingresa tus credenciales para acceder</p>
 
         <form id="form-login" class="auth-form">
-            <div class="form-group">
+            <div class="form-group input-hint-group">
                 <label for="usuario">Usuario</label>
                 <input type="text" id="usuario" name="usuario" required placeholder="Ej: admin">
+                <span class="input-hint">Ej: admin</span>
             </div>
-            <div class="form-group">
+            <div class="form-group input-hint-group">
                 <label for="contrasena">Contraseña</label>
-                <input type="password" id="contrasena" name="contrasena" required placeholder="••••••••">
+                <input type="password" id="contrasena" name="contrasena" required placeholder="Ej: tu contraseña">
+                <span class="input-hint">Ej: tu contraseña</span>
             </div>
             <div id="error-msg" class="error-msg" style="display:none"></div>
             <p class="auth-forgot"><a href="/recuperar-contrasena.html">¿Olvidaste la contraseña?</a></p>

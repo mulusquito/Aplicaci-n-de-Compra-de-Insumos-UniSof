@@ -1,7 +1,9 @@
 package com.unisof.insumos;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.context.annotation.ComponentScan;
 
 /**
  * Clase principal de la aplicacion de Compra de Insumos UniSof.
@@ -9,7 +11,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * Spring Boot 3.x con autenticacion (SCRUM-7) y verificacion 2FA por correo (SCRUM-35).
  * </p>
  */
-@SpringBootApplication
+@SpringBootConfiguration
+@EnableAutoConfiguration
+@ComponentScan
 public class InsumosApplication {
 
     /**

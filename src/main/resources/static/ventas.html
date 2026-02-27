@@ -6,14 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/styles.css">
 </head>
-<body>
+<body class="has-fixed-nav">
 
-    <header class="navbar">
+    <div class="welcome-toast" id="welcome-toast">¡Bienvenido a UNISOF!</div>
+
+    <header class="navbar navbar-fixed">
         <a href="/" class="link-atras">← Atrás</a>
         <a href="/" class="logo">
             <span class="logo-icon">U</span>
             <span class="logo-text">UNISOF</span>
         </a>
+        <button type="button" class="nav-cart-btn" id="btn-cart" title="Ver carrito">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+            <span class="cart-badge" id="cart-badge">0</span>
+        </button>
         <div class="nav-user-info" id="nav-user-info">
             <span class="user-name" id="user-name">—</span>
             <span class="user-rol" id="user-rol">VENDEDOR</span>
@@ -23,10 +29,393 @@
 
     <main class="panel-main">
         <h1 class="panel-title">Ventas</h1>
-        <p class="panel-placeholder">Interfaz de ventas en desarrollo. Se implementará junto con el backend correspondiente.</p>
+        <div class="panel-buttons">
+            <a href="#consultar-clientes" class="panel-btn">
+                <span class="panel-btn-icon">👥</span>
+                <span class="panel-btn-text">Consultar clientes</span>
+                <span class="panel-btn-hint">(Próximamente)</span>
+            </a>
+            <a href="#consultar-pedidos" class="panel-btn">
+                <span class="panel-btn-icon">📋</span>
+                <span class="panel-btn-text">Consultar pedidos por número de orden</span>
+                <span class="panel-btn-hint">(Próximamente)</span>
+            </a>
+            <div class="panel-btn panel-btn-catalogo dropdown-catalogo">
+                <button type="button" class="panel-btn-inner btn-catalogo">
+                    <span class="panel-btn-icon">👕</span>
+                    <span class="panel-btn-text">Ver catálogo</span>
+                    <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
+                </button>
+                <div class="dropdown-catalogo-menu panel-dropdown-menu">
+                    <a href="#damas">Mujer</a>
+                    <a href="#caballeros">Hombre</a>
+                </div>
+            </div>
+        </div>
     </main>
 
+    <!-- CATÁLOGO CABALLEROS (solo visible al seleccionar Hombre) -->
+    <section id="caballeros" class="catalog-section catalog-hombre">
+        <h2 class="catalog-title">Caballeros</h2>
+        <p class="catalog-subtitle">Explora nuestra colección para hombre.</p>
+
+        <div class="catalog-category">
+            <h3 class="catalog-category-title">Blaizer</h3>
+            <div class="catalog-grid">
+                <div class="product-card">
+                    <img src="/images/catalogo/caballeros/blaizer/blaizer1.webp" alt="Blaizer clásico" onerror="this.src='https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Blaizer clásico</h4>
+                        <p class="product-price">429.000 COP</p>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <img src="/images/catalogo/caballeros/blaizer/blaizer2.webp" alt="Blaizer slim fit" onerror="this.src='https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Blaizer slim fit</h4>
+                        <p class="product-price">429.000 COP</p>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <img src="/images/catalogo/caballeros/blaizer/Blaizer3.jpg" alt="Blaizer clásico" onerror="this.src='https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Blaizer clásico</h4>
+                        <p class="product-price">429.000 COP</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="catalog-category">
+            <h3 class="catalog-category-title">Camisas</h3>
+            <div class="catalog-grid">
+                <div class="product-card">
+                    <img src="/images/catalogo/caballeros/camisas/camisa1.png" alt="Camisa" onerror="this.src='https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Camisa Estructura Easy Care</h4>
+                        <p class="product-price">199.000 COP</p>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <img src="/images/catalogo/caballeros/camisas/camisa2.png" alt="Camisa" onerror="this.src='https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Camisa Estructura Oxford</h4>
+                        <p class="product-price">270.999 COP</p>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <img src="/images/catalogo/caballeros/camisas/camisa3.png" alt="Camisa" onerror="this.src='https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Camisa Regular Fit Lino - Algodón</h4>
+                        <p class="product-price">159.999 COP</p>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <img src="/images/catalogo/caballeros/camisas/camisa4.png" alt="Camisa" onerror="this.src='https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Camisa Estructura Textura</h4>
+                        <p class="product-price">209.999 COP</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="catalog-category">
+            <h3 class="catalog-category-title">Chaquetas</h3>
+            <div class="catalog-grid">
+                <div class="product-card">
+                    <img src="/images/catalogo/caballeros/chaquetas/chaqueta1.png" alt="Chaqueta" onerror="this.src='https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Cazadora estructura espiga</h4>
+                        <p class="product-price">200.000 COP</p>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <img src="/images/catalogo/caballeros/chaquetas/chaqueta2.png" alt="Chaqueta" onerror="this.src='https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Cazadora efecto piel</h4>
+                        <p class="product-price">600.000 COP</p>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <img src="/images/catalogo/caballeros/chaquetas/chaqueta3.png" alt="Chaqueta" onerror="this.src='https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Cazadora técnica capucha</h4>
+                        <p class="product-price">429.999 COP</p>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <img src="/images/catalogo/caballeros/chaquetas/chaqueta4.png" alt="Chaqueta" onerror="this.src='https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Cazadora acolchada capucha</h4>
+                        <p class="product-price">382.999 COP</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="catalog-category">
+            <h3 class="catalog-category-title">Pantalones</h3>
+            <div class="catalog-grid">
+                <div class="product-card">
+                    <img src="/images/catalogo/caballeros/pantalones/pantalon1.png" alt="Pantalón" onerror="this.src='https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Pantalón Chino Estructura Confort</h4>
+                        <p class="product-price">249.000 COP</p>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <img src="/images/catalogo/caballeros/pantalones/pantalon2.png" alt="Pantalón" onerror="this.src='https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Pantalón Pana Baggy Fit Costuras Giradas</h4>
+                        <p class="product-price">199.000 COP</p>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <img src="/images/catalogo/caballeros/pantalones/pantalon3.png" alt="Pantalón" onerror="this.src='https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Pantalón Traje Raya Diplomática</h4>
+                        <p class="product-price">199.000 COP</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CATÁLOGO DAMAS (solo visible al seleccionar Mujer) -->
+    <section id="damas" class="catalog-section catalog-section-alt catalog-mujer catalog-hidden">
+        <h2 class="catalog-title">Damas</h2>
+        <p class="catalog-subtitle">Explora nuestra colección para damas.</p>
+
+        <div class="catalog-category">
+            <h3 class="catalog-category-title">Blaizer</h3>
+            <div class="catalog-grid">
+                <div class="product-card">
+                    <img src="/images/catalogo/damas/blaizer/Blaizer1.jpeg" alt="Blaizer clásico" onerror="this.src='https://images.unsplash.com/photo-1595776613215-fe04b78de7d0?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Blaizer clásico</h4>
+                        <p class="product-price">429.000 COP</p>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <img src="/images/catalogo/damas/blaizer/Blaizer2.jpg" alt="Blaizer slim fit" onerror="this.src='https://images.unsplash.com/photo-1595776613215-fe04b78de7d0?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Blaizer slim fit</h4>
+                        <p class="product-price">429.000 COP</p>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <img src="/images/catalogo/damas/blaizer/Blaizer3.jpeg" alt="Blaizer clásico" onerror="this.src='https://images.unsplash.com/photo-1595776613215-fe04b78de7d0?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Blaizer clásico</h4>
+                        <p class="product-price">429.000 COP</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="catalog-category">
+            <h3 class="catalog-category-title">Camisas</h3>
+            <div class="catalog-grid">
+                <div class="product-card">
+                    <img src="/images/catalogo/damas/camisas/camisa1.jpg" alt="Camisa" onerror="this.src='https://images.unsplash.com/photo-1564257631407-2f76eee0ca2a?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Camisa Estructura Easy Care</h4>
+                        <p class="product-price">199.000 COP</p>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <img src="/images/catalogo/damas/camisas/camisa2.jpg" alt="Camisa" onerror="this.src='https://images.unsplash.com/photo-1564257631407-2f76eee0ca2a?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Camisa Estructura Oxford</h4>
+                        <p class="product-price">270.999 COP</p>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <img src="/images/catalogo/damas/camisas/camisa3.jpg" alt="Camisa" onerror="this.src='https://images.unsplash.com/photo-1564257631407-2f76eee0ca2a?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Camisa Regular Fit Lino - Algodón</h4>
+                        <p class="product-price">159.999 COP</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="catalog-category">
+            <h3 class="catalog-category-title">Chaquetas</h3>
+            <div class="catalog-grid">
+                <div class="product-card">
+                    <img src="/images/catalogo/damas/chaquetas/chaqueta.jpg" alt="Chaqueta" onerror="this.src='https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Cazadora estructura espiga</h4>
+                        <p class="product-price">200.000 COP</p>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <img src="/images/catalogo/damas/chaquetas/chaqueta2.jpg" alt="Chaqueta" onerror="this.src='https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Cazadora efecto piel</h4>
+                        <p class="product-price">600.000 COP</p>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <img src="/images/catalogo/damas/chaquetas/chaqueta3.jpg" alt="Chaqueta" onerror="this.src='https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Cazadora técnica capucha</h4>
+                        <p class="product-price">429.999 COP</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="catalog-category">
+            <h3 class="catalog-category-title">Pantalones</h3>
+            <div class="catalog-grid">
+                <div class="product-card">
+                    <img src="/images/catalogo/damas/pantalones/pantalon1.jpg" alt="Pantalón" onerror="this.src='https://images.unsplash.com/photo-1584370848010-d7fe6bc767ec?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Pantalón Chino Estructura Confort</h4>
+                        <p class="product-price">249.000 COP</p>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <img src="/images/catalogo/damas/pantalones/pantalon2.jpg" alt="Pantalón" onerror="this.src='https://images.unsplash.com/photo-1584370848010-d7fe6bc767ec?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Pantalón Pana Baggy Fit Costuras Giradas</h4>
+                        <p class="product-price">199.000 COP</p>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <img src="/images/catalogo/damas/pantalones/pantalon3.jpg" alt="Pantalón" onerror="this.src='https://images.unsplash.com/photo-1584370848010-d7fe6bc767ec?w=400'">
+                    <button class="product-btn-add" title="Agregar al carrito">+</button>
+                    <div class="product-info">
+                        <h4 class="product-name">Pantalón Traje Raya Diplomática</h4>
+                        <p class="product-price">199.000 COP</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CARRITO (sidebar) -->
+    <div class="cart-overlay" id="cart-overlay"></div>
+    <aside class="cart-sidebar" id="cart-sidebar">
+        <div class="cart-header">
+            <h2>Carrito</h2>
+            <button type="button" class="cart-close" id="cart-close" aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="cart-items" id="cart-items">
+            <!-- Items se renderizan por JS -->
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <strong id="cart-total">0 COP</strong>
+            </div>
+            <button type="button" class="btn-cart-checkout" id="btn-checkout">Ir a pagar</button>
+        </div>
+    </aside>
+
+    <!-- MODAL SELECCIÓN DE TALLA -->
+    <div class="size-modal" id="size-modal">
+        <div class="size-modal-content">
+            <h3>Selecciona la talla</h3>
+            <div class="size-options" id="size-options">
+                <button type="button" class="size-btn" data-size="XS">XS</button>
+                <button type="button" class="size-btn" data-size="S">S</button>
+                <button type="button" class="size-btn" data-size="M">M</button>
+                <button type="button" class="size-btn" data-size="L">L</button>
+                <button type="button" class="size-btn" data-size="XL">XL</button>
+                <button type="button" class="size-btn" data-size="2XL">2XL</button>
+                <button type="button" class="size-btn" data-size="3XL">3XL</button>
+            </div>
+            <div class="size-modal-actions">
+                <button type="button" class="btn-secondary" id="size-modal-cancel">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CHECKOUT (datos cliente + Mercado Pago) -->
+    <div class="checkout-modal" id="checkout-modal">
+        <div class="checkout-modal-content">
+            <h2>Datos del cliente</h2>
+            <p class="checkout-hint">Completa los datos para procesar el pago con Mercado Pago.</p>
+            <form id="checkout-form" class="checkout-form">
+                <div class="form-row">
+                    <div class="form-group input-hint-group">
+                        <label for="cliente-nombre">Nombre completo</label>
+                        <input type="text" id="cliente-nombre" name="nombre" required placeholder="Ej: Juan Pérez">
+                        <span class="input-hint">Ej: Juan Pérez</span>
+                    </div>
+                    <div class="form-group input-hint-group">
+                        <label for="cliente-email">Correo electrónico</label>
+                        <input type="email" id="cliente-email" name="email" required placeholder="cliente@ejemplo.com">
+                        <span class="input-hint">Ej: cliente@ejemplo.com</span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group input-hint-group">
+                        <label for="cliente-telefono">Teléfono</label>
+                        <input type="tel" id="cliente-telefono" name="telefono" required placeholder="+57 300 123 4567">
+                        <span class="input-hint">Ej: +57 300 123 4567</span>
+                    </div>
+                    <div class="form-group input-hint-group">
+                        <label for="cliente-direccion">Dirección de envío</label>
+                        <input type="text" id="cliente-direccion" name="direccion" required placeholder="Calle, ciudad, país">
+                        <span class="input-hint">Ej: Calle, ciudad, país</span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cliente-doc-tipo">Tipo de documento</label>
+                        <select id="cliente-doc-tipo" name="docTipo">
+                            <option value="CC">Cédula de ciudadanía</option>
+                            <option value="CE">Cédula de extranjería</option>
+                            <option value="NIT">NIT</option>
+                            <option value="TI">Tarjeta de identidad</option>
+                        </select>
+                    </div>
+                    <div class="form-group input-hint-group">
+                        <label for="cliente-doc-numero">Número de documento</label>
+                        <input type="text" id="cliente-doc-numero" name="docNumero" required placeholder="Ej: 123456789" pattern="[0-9\s\-\.]+" title="Solo números">
+                        <span class="input-hint">Ej: 123456789</span>
+                    </div>
+                </div>
+                <div class="checkout-actions">
+                    <button type="button" class="btn-secondary" id="checkout-cancel">Cancelar</button>
+                    <button type="submit" class="btn-primary" id="checkout-submit">Pagar con Mercado Pago</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="/js/auth.js"></script>
+    <script src="/js/cart.js"></script>
     <script>
         (async () => {
             const result = await authApi.getMe();
@@ -41,11 +430,226 @@
             }
             document.getElementById('user-name').textContent = result.usuario?.nombre || result.usuario?.usuario;
             document.getElementById('user-rol').textContent = result.usuario?.rol || 'VENDEDOR';
+
+            // Mensaje de bienvenida al iniciar sesión
+            const welcomeMsg = document.getElementById('welcome-toast');
+            if (new URLSearchParams(window.location.search).get('welcome') === '1') {
+                welcomeMsg?.classList.add('visible');
+                window.history.replaceState({}, '', '/ventas.html');
+                setTimeout(() => welcomeMsg?.classList.remove('visible'), 3000);
+            }
+
+            // Mensaje al volver de Mercado Pago
+            const params = new URLSearchParams(window.location.search);
+            const payment = params.get('payment');
+            if (payment === 'success') {
+                Cart.clear();
+                alert('¡Pago aprobado! Gracias por su compra.');
+                window.history.replaceState({}, '', '/ventas.html');
+            } else if (payment === 'failure') {
+                alert('El pago fue rechazado. Puede intentar nuevamente.');
+                window.history.replaceState({}, '', '/ventas.html');
+            } else if (payment === 'pending') {
+                alert('El pago está pendiente. Se le notificará cuando se confirme.');
+                window.history.replaceState({}, '', '/ventas.html');
+            }
         })();
 
         document.getElementById('btn-logout').addEventListener('click', async () => {
             await authApi.logout();
             window.location.href = '/';
+        });
+
+        document.querySelector('.panel-btn-catalogo')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (e.target.closest('.btn-catalogo')) {
+                document.querySelector('.panel-btn-catalogo')?.classList.toggle('open');
+            }
+            const link = e.target.closest('.dropdown-catalogo-menu a');
+            if (link) {
+                e.preventDefault();
+                const targetId = link.getAttribute('href');
+                const target = document.querySelector(targetId);
+                const caballeros = document.getElementById('caballeros');
+                const damas = document.getElementById('damas');
+                if (targetId === '#caballeros' && caballeros && damas) {
+                    damas.classList.add('catalog-hidden');
+                    caballeros.classList.remove('catalog-hidden');
+                } else if (targetId === '#damas' && caballeros && damas) {
+                    caballeros.classList.add('catalog-hidden');
+                    damas.classList.remove('catalog-hidden');
+                }
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                document.querySelector('.panel-btn-catalogo')?.classList.remove('open');
+            }
+        });
+        document.addEventListener('click', () => {
+            document.querySelector('.panel-btn-catalogo')?.classList.remove('open');
+        });
+
+        // CARRITO: al hacer clic en +, abrir modal de talla
+        let pendingProduct = null;
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.product-btn-add');
+            if (!btn) return;
+            const card = btn.closest('.product-card');
+            if (!card) return;
+            const nameEl = card.querySelector('.product-name');
+            const priceEl = card.querySelector('.product-price');
+            const imgEl = card.querySelector('img');
+            if (!nameEl || !priceEl) return;
+            const name = nameEl.textContent.trim();
+            const unitPrice = Cart.parsePrice(priceEl.textContent);
+            const idBase = name.replace(/\s+/g, '-').toLowerCase() + '-' + unitPrice;
+            const imageUrl = imgEl?.src ? (imgEl.src.startsWith('http') ? imgEl.src : window.location.origin + imgEl.src) : '';
+            pendingProduct = { idBase, name, unitPrice, imageUrl };
+            document.getElementById('size-modal').classList.add('open');
+        });
+
+        document.getElementById('size-options').querySelectorAll('.size-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!pendingProduct) return;
+                Cart.addItem({ ...pendingProduct, size: btn.dataset.size });
+                pendingProduct = null;
+                document.getElementById('size-modal').classList.remove('open');
+            });
+        });
+        document.getElementById('size-modal-cancel').addEventListener('click', () => {
+            pendingProduct = null;
+            document.getElementById('size-modal').classList.remove('open');
+        });
+
+        // CARRITO: abrir/cerrar sidebar
+        function updateCartUI() {
+            const items = Cart.getItems();
+            const badge = document.getElementById('cart-badge');
+            badge.textContent = Cart.getCount();
+            badge.style.display = Cart.getCount() > 0 ? 'flex' : 'none';
+
+            const container = document.getElementById('cart-items');
+            container.innerHTML = items.length === 0
+                ? '<p class="cart-empty">El carrito está vacío</p>'
+                : items.map(item => {
+                    const subtotal = item.quantity * item.unitPrice;
+                    const sizes = ['XS','S','M','L','XL','2XL','3XL'];
+                    const sizeOpts = sizes.map(s => `<option value="${s}" ${(item.size || 'M') === s ? 'selected' : ''}>${s}</option>`).join('');
+                    return `
+                    <div class="cart-item" data-id="${item.id}">
+                        <div class="cart-item-info">
+                            <span class="cart-item-name">${item.name}</span>
+                            <select class="cart-item-size" data-id="${item.id}" title="Cambiar talla">${sizeOpts}</select>
+                            <span class="cart-item-price">${item.quantity} × ${item.unitPrice.toLocaleString('es-CO')} COP = ${subtotal.toLocaleString('es-CO')} COP</span>
+                        </div>
+                        <div class="cart-item-actions">
+                            <button type="button" class="cart-qty-btn" data-action="minus">−</button>
+                            <span class="cart-qty">${item.quantity}</span>
+                            <button type="button" class="cart-qty-btn" data-action="plus">+</button>
+                            <button type="button" class="cart-remove" title="Quitar">×</button>
+                        </div>
+                    </div>
+                `;
+                }).join('');
+
+            document.getElementById('cart-total').textContent = Cart.getTotal().toLocaleString('es-CO') + ' COP';
+
+            // Eventos para botones de cantidad y quitar
+            container.querySelectorAll('.cart-qty-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const itemId = btn.closest('.cart-item').dataset.id;
+                    const action = btn.dataset.action;
+                    const item = Cart.getItems().find(i => i.id === itemId);
+                    if (item) {
+                        Cart.updateQuantity(itemId, action === 'plus' ? item.quantity + 1 : item.quantity - 1);
+                    }
+                });
+            });
+            container.querySelectorAll('.cart-remove').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    Cart.removeItem(btn.closest('.cart-item').dataset.id);
+                });
+            });
+            container.querySelectorAll('.cart-item-size').forEach(sel => {
+                sel.addEventListener('change', () => {
+                    const itemId = sel.dataset.id;
+                    const newSize = sel.value;
+                    Cart.updateSize(itemId, newSize);
+                });
+            });
+        }
+
+        Cart.onUpdate = updateCartUI;
+        updateCartUI();
+
+        document.getElementById('btn-cart').addEventListener('click', () => {
+            document.getElementById('cart-sidebar').classList.add('open');
+            document.getElementById('cart-overlay').classList.add('open');
+        });
+        document.getElementById('cart-close').addEventListener('click', () => {
+            document.getElementById('cart-sidebar').classList.remove('open');
+            document.getElementById('cart-overlay').classList.remove('open');
+        });
+        document.getElementById('cart-overlay').addEventListener('click', () => {
+            document.getElementById('cart-sidebar').classList.remove('open');
+            document.getElementById('cart-overlay').classList.remove('open');
+        });
+
+        // CHECKOUT: Ir a pagar
+        document.getElementById('btn-checkout').addEventListener('click', () => {
+            if (Cart.getCount() === 0) return;
+            document.getElementById('checkout-modal').classList.add('open');
+        });
+        document.getElementById('checkout-cancel').addEventListener('click', () => {
+            document.getElementById('checkout-modal').classList.remove('open');
+        });
+
+        // CHECKOUT: enviar con Mercado Pago
+        document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('checkout-submit');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Procesando...';
+            try {
+                const items = Cart.getItems().map(i => ({
+                    id: i.id,
+                    title: i.size ? `${i.name} (Talla ${i.size})` : i.name,
+                    quantity: i.quantity,
+                    unit_price: i.unitPrice,
+                    currency_id: 'COP'
+                }));
+                const cliente = {
+                    nombre: document.getElementById('cliente-nombre').value.trim(),
+                    email: document.getElementById('cliente-email').value.trim(),
+                    telefono: document.getElementById('cliente-telefono').value.trim(),
+                    direccion: document.getElementById('cliente-direccion').value.trim(),
+                    docTipo: document.getElementById('cliente-doc-tipo').value,
+                    docNumero: document.getElementById('cliente-doc-numero').value.trim()
+                };
+                const res = await fetch('/api/checkout/create-preference', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ items, cliente })
+                });
+                let data = {};
+                try {
+                    data = await res.json();
+                } catch (_) {
+                    throw new Error('Error al conectar con el servidor. Revisa que la aplicación esté corriendo.');
+                }
+                if (!res.ok) throw new Error(data.mensaje || 'Error al crear el pago');
+                if (data.init_point) {
+                    window.location.href = data.init_point;
+                } else {
+                    throw new Error('No se recibió URL de pago');
+                }
+            } catch (err) {
+                alert(err.message || 'Error al procesar. Verifica tu conexión.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Pagar con Mercado Pago';
+            }
         });
     </script>
 </body>

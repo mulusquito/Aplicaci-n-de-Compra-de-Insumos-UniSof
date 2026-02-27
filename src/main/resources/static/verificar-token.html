@@ -19,9 +19,10 @@
 
         <form id="form-token" class="auth-form">
             <input type="hidden" id="usuario" name="usuario">
-            <div class="form-group">
+            <div class="form-group input-hint-group">
                 <label for="token">Código de 6 dígitos</label>
                 <input type="text" id="token" name="token" required placeholder="123456" maxlength="6" pattern="[0-9]{6}" title="6 dígitos numéricos">
+                <span class="input-hint">Ej: 123456</span>
             </div>
             <div id="error-msg" class="error-msg" style="display:none"></div>
             <button type="submit" class="btn-primary btn-block">Verificar</button>
@@ -50,11 +51,11 @@
                 sessionStorage.removeItem('loginUsuario');
                 const rol = (result.data?.usuario?.rol || '').toUpperCase();
                 if (rol === 'ADMINISTRADOR') {
-                    window.location.href = '/panel-admin.html';
+                    window.location.href = '/panel-admin.html?welcome=1';
                 } else if (rol === 'VENDEDOR') {
-                    window.location.href = '/ventas.html';
+                    window.location.href = '/ventas.html?welcome=1';
                 } else if (rol === 'JEFE DE COMPRAS') {
-                    window.location.href = '/compras.html';
+                    window.location.href = '/compras.html?welcome=1';
                 } else {
                     window.location.href = '/';
                 }

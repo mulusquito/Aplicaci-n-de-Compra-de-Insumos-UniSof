@@ -8,6 +8,8 @@
 </head>
 <body>
 
+    <div class="welcome-toast" id="welcome-toast">¡Bienvenido a UNISOF!</div>
+
     <header class="navbar">
         <a href="/" class="link-atras">← Atrás</a>
         <a href="/" class="logo">
@@ -41,6 +43,13 @@
             }
             document.getElementById('user-name').textContent = result.usuario?.nombre || result.usuario?.usuario;
             document.getElementById('user-rol').textContent = result.usuario?.rol || 'JEFE DE COMPRAS';
+
+            const welcomeMsg = document.getElementById('welcome-toast');
+            if (new URLSearchParams(window.location.search).get('welcome') === '1') {
+                welcomeMsg?.classList.add('visible');
+                window.history.replaceState({}, '', '/compras.html');
+                setTimeout(() => welcomeMsg?.classList.remove('visible'), 3000);
+            }
         })();
 
         document.getElementById('btn-logout').addEventListener('click', async () => {
