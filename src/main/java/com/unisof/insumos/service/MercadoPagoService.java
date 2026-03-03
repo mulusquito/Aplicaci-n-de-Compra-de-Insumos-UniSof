@@ -1,28 +1,28 @@
 package com.unisof.insumos.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mercadopago.client.common.IdentificationRequest;
+import com.mercadopago.client.preference.*;
+import com.mercadopago.exceptions.MPApiException;
+import com.mercadopago.exceptions.MPException;
+import com.mercadopago.resources.preference.Preference;
 import com.unisof.insumos.dto.CheckoutRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 
+import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
- * Servicio para integrar con la API de Mercado Pago.
- * Crea preferencias de pago (Checkout Pro) y obtiene la URL para que el cliente pague.
+ * Servicio para integrar con Mercado Pago usando el SDK oficial.
+ * Crea preferencias de pago (Checkout Pro) y retorna la URL para que el cliente pague.
+ *
+ * @see <a href="https://github.com/mercadopago/sdk-java">Mercado Pago SDK Java</a>
+ * @see <a href="https://www.mercadopago.com.ar/developers/es/docs/checkout-pro">Checkout Pro</a>
  */
 @Service
 @Slf4j
 public class MercadoPagoService {
-
-    private static final String MP_API = "https://api.mercadopago.com/checkout/preferences";
 
     @Value("${mercadopago.access-token:}")
     private String accessToken;
@@ -30,12 +30,11 @@ public class MercadoPagoService {
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
 
-    private final RestTemplate restTemplate = new RestTemplate();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final PreferenceClient preferenceClient = new PreferenceClient();
 
     /**
      * Crea una preferencia de pago en Mercado Pago.
-     * Retorna el init_point (URL) para redirigir al cliente al checkout de MP.
+     * Retorna el init_point (o sandbox_init_point) para redirigir al cliente al checkout.
      */
     public String createPreference(CheckoutRequest request) {
         if (accessToken == null || accessToken.isBlank()) {
@@ -43,15 +42,15 @@ public class MercadoPagoService {
                     "Mercado Pago no está configurado. Agrega mercadopago.access-token en application.properties");
         }
 
-        List<Map<String, Object>> items = request.items().stream()
-                .map(item -> Map.<String, Object>of(
-                        "id", item.id(),
-                        "title", item.title(),
-                        "quantity", item.quantity(),
-                        "unit_price", item.unit_price(),
-                        "currency_id", item.currency_id() != null && !item.currency_id().isBlank() ? item.currency_id() : "COP"
-                ))
-                .collect(Collectors.toList());
+        List<PreferenceItemRequest> items = request.items().stream()
+                .map(item -> PreferenceItemRequest.builder()
+                        .id(item.id())
+                        .title(item.title())
+                        .quantity(item.quantity())
+                        .unitPrice(BigDecimal.valueOf(item.unit_price()))
+                        .currencyId(item.currency_id() != null && !item.currency_id().isBlank() ? item.currency_id() : "COP")
+                        .build())
+                .toList();
 
         double totalAmount = request.items().stream()
                 .mapToDouble(item -> item.unit_price() * item.quantity())
@@ -60,93 +59,82 @@ public class MercadoPagoService {
             throw new IllegalStateException("El total debe ser mayor a cero. Revisa los precios de los productos.");
         }
 
-        // Payer con identificación para Mercado Pago
-        Map<String, Object> payer = new java.util.HashMap<>(Map.of(
-                "email", request.cliente().email(),
-                "name", request.cliente().nombre()
-        ));
+        PreferencePayerRequest.PreferencePayerRequestBuilder payerBuilder = PreferencePayerRequest.builder()
+                .email(request.cliente().email())
+                .name(request.cliente().nombre());
+
         if (request.cliente().docNumero() != null && !request.cliente().docNumero().isBlank()) {
             String docTipo = request.cliente().docTipo() != null ? request.cliente().docTipo() : "CC";
-            payer.put("identification", Map.of("type", docTipo, "number", request.cliente().docNumero().replaceAll("[^0-9]", "")));
+            String docNumero = request.cliente().docNumero().replaceAll("[^0-9]", "");
+            payerBuilder.identification(
+                    IdentificationRequest.builder()
+                            .type(docTipo)
+                            .number(docNumero)
+                            .build()
+            );
         }
 
-        // back_urls: URLs completas (Mercado Pago puede rechazar localhost en algunos casos)
         String successUrl = baseUrl + "/ventas.html?payment=success";
         String failureUrl = baseUrl + "/ventas.html?payment=failure";
         String pendingUrl = baseUrl + "/ventas.html?payment=pending";
+        String notificationUrl = baseUrl + "/api/webhooks/mercadopago";
 
-        Map<String, Object> backUrls = Map.of(
-                "success", successUrl,
-                "failure", failureUrl,
-                "pending", pendingUrl
-        );
+        log.info("Mercado Pago - back_urls: success={}, failure={}, pending={}, total={}",
+                successUrl, failureUrl, pendingUrl, totalAmount);
 
-        Map<String, Object> body = new java.util.HashMap<>(Map.of(
-                "items", items,
-                "payer", payer,
-                "back_urls", backUrls,
-                "auto_return", "approved"
-        ));
-        body.put("notification_url", baseUrl + "/api/webhooks/mercadopago");
+        PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
+                .success(successUrl)
+                .failure(failureUrl)
+                .pending(pendingUrl)
+                .build();
 
-        log.info(">>> Mercado Pago - Request back_urls: success={}, failure={}, pending={}, total_calculado={}", successUrl, failureUrl, pendingUrl, totalAmount);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.parseMediaType("application/json;charset=UTF-8"));
-        headers.set("Authorization", "Bearer " + accessToken);
-
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+        PreferenceRequest preferenceRequest = PreferenceRequest.builder()
+                .items(items)
+                .payer(payerBuilder.build())
+                .backUrls(backUrls)
+                .autoReturn("approved")
+                .notificationUrl(notificationUrl)
+                .build();
 
         try {
-            ResponseEntity<String> response = restTemplate.exchange(
-                    MP_API,
-                    HttpMethod.POST,
-                    entity,
-                    String.class
-            );
+            Preference preference = preferenceClient.create(preferenceRequest);
 
-            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-                throw new IllegalStateException("Error al crear preferencia en Mercado Pago");
+            String initPoint = preference.getSandboxInitPoint();
+            if (initPoint == null || initPoint.isBlank()) {
+                initPoint = preference.getInitPoint();
+            }
+            if (initPoint == null || initPoint.isBlank()) {
+                throw new IllegalStateException("Mercado Pago no devolvió URL de pago");
             }
 
-            String responseBody = response.getBody();
-            log.info(">>> Mercado Pago - Respuesta completa: {}", responseBody);
-
-            try {
-                return extractInitPoint(responseBody);
-            } catch (Exception ex) {
-                throw new IllegalStateException("Error al procesar respuesta: " + ex.getMessage());
-            }
-        } catch (HttpClientErrorException e) {
-            String errorMsg = e.getResponseBodyAsString();
-            throw new IllegalStateException(
-                    "Mercado Pago rechazó la solicitud: " + parseMpError(errorMsg));
+            log.info("Mercado Pago - Preferencia creada: id={}", preference.getId());
+            return initPoint;
+        } catch (MPApiException e) {
+            String msg = parseApiError(e);
+            throw new IllegalStateException("Mercado Pago rechazó la solicitud: " + msg);
+        } catch (MPException e) {
+            throw new IllegalStateException("Error al comunicarse con Mercado Pago: " + e.getMessage());
         }
     }
 
-    private String parseMpError(String body) {
-        try {
-            JsonNode root = objectMapper.readTree(body);
-            JsonNode msg = root.path("message");
-            if (!msg.isMissingNode()) return msg.asText();
-            JsonNode cause = root.path("cause");
-            if (!cause.isMissingNode() && cause.isArray() && cause.size() > 0) {
-                return cause.get(0).path("description").asText("");
+    private String parseApiError(MPApiException e) {
+        if (e.getApiResponse() != null && e.getApiResponse().getContent() != null) {
+            String content = e.getApiResponse().getContent();
+            if (content.contains("\"message\"")) {
+                int start = content.indexOf("\"message\":\"") + 10;
+                int end = content.indexOf("\"", start);
+                if (start > 9 && end > start) {
+                    return content.substring(start, end);
+                }
             }
-        } catch (Exception ignored) { }
-        return "Revisa los datos del cliente y los productos.";
-    }
-
-    private String extractInitPoint(String body) throws Exception {
-        JsonNode root = objectMapper.readTree(body);
-        JsonNode initPoint = root.path("sandbox_init_point");
-        if (initPoint.isMissingNode() || initPoint.asText().isEmpty()) {
-            initPoint = root.path("init_point");
+            if (content.contains("\"description\"")) {
+                int start = content.indexOf("\"description\":\"") + 15;
+                int end = content.indexOf("\"", start);
+                if (start > 14 && end > start) {
+                    return content.substring(start, end);
+                }
+            }
         }
-        String url = initPoint.asText();
-        if (url.isEmpty()) {
-            throw new IllegalStateException("Mercado Pago no devolvió URL de pago");
-        }
-        return url;
+        return e.getMessage();
     }
 }
