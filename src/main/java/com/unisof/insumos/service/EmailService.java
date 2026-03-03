@@ -4,16 +4,23 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.MailException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.Map;
 
 /**
  * SCRUM-35: Servicio de envío de correos electrónicos.
  * <p>
- * Envía el token de verificación 2FA al correo del usuario con diseño HTML y logo UNISOF.
+ * Usa Resend API (cuando RESEND_API_KEY está configurado) para entornos cloud donde SMTP está bloqueado.
+ * Fallback a JavaMailSender (Gmail SMTP) para desarrollo local.
  * </p>
  *
  * @see TokenVerificacionService
@@ -22,8 +29,12 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class EmailService {
 
+    private static final String RESEND_API_URL = "https://api.resend.com/emails";
+
     @Autowired(required = false)
     private JavaMailSender mailSender;
+
+    private final RestTemplate restTemplate = new RestTemplate();
 
     @Value("${spring.mail.username:no-reply@unisof.com}")
     private String remitente;
@@ -34,34 +45,77 @@ public class EmailService {
     @Value("${app.mail.fallback-log-on-error:false}")
     private boolean fallbackLogOnError;
 
+    @Value("${RESEND_API_KEY:}")
+    private String resendApiKey;
+
+    @Value("${app.resend.from:UNISOF <onboarding@resend.dev>}")
+    private String resendFrom;
+
     /**
      * Envía el token de verificación 2FA por correo con diseño HTML y logo UNISOF.
+     * Prioridad: Resend (si API key configurada) > JavaMailSender > log fallback.
      */
     public boolean enviarTokenVerificacion(String correoDestino, String nombreUsuario, String token) {
-        if (!emailHabilitado || mailSender == null) {
+        if (!emailHabilitado) {
             log.info("SCRUM-35 - Token de verificacion para {} ({}): {}", nombreUsuario, correoDestino, token);
             return true;
         }
 
-        try {
-            MimeMessage mensaje = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mensaje, true, "UTF-8");
-            helper.setFrom(remitente);
-            helper.setTo(correoDestino);
-            helper.setSubject("Tu código de verificación - UNISOF");
-
-            String html = buildHtmlTokenEmail(nombreUsuario, token);
-            helper.setText(html, true);
-
-            mailSender.send(mensaje);
-            log.info("Token enviado a {}", correoDestino);
-            return true;
-        } catch (MessagingException | MailException e) {
-            log.error("Error enviando token a {}: {}", correoDestino, e.getMessage());
-            if (fallbackLogOnError) {
-                log.info(">>> TOKEN PARA PRUEBAS (red bloquea correo): {}", token);
+        // 1. Intentar Resend (funciona en Render y otros cloud)
+        if (resendApiKey != null && !resendApiKey.isBlank()) {
+            if (enviarViaResend(correoDestino, "Tu código de verificación - UNISOF", buildHtmlTokenEmail(nombreUsuario, token))) {
+                log.info("Token enviado a {} (Resend)", correoDestino);
                 return true;
             }
+        }
+
+        // 2. Intentar JavaMailSender (SMTP - funciona en local)
+        if (mailSender != null) {
+            try {
+                MimeMessage mensaje = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(mensaje, true, "UTF-8");
+                helper.setFrom(remitente);
+                helper.setTo(correoDestino);
+                helper.setSubject("Tu código de verificación - UNISOF");
+                helper.setText(buildHtmlTokenEmail(nombreUsuario, token), true);
+                mailSender.send(mensaje);
+                log.info("Token enviado a {} (SMTP)", correoDestino);
+                return true;
+            } catch (MessagingException | MailException e) {
+                log.error("Error enviando token a {} (SMTP): {}", correoDestino, e.getMessage());
+            }
+        }
+
+        // 3. Fallback: mostrar token en logs
+        if (fallbackLogOnError) {
+            log.info(">>> TOKEN PARA PRUEBAS (red bloquea correo): {}", token);
+            return true;
+        }
+        log.warn("No se pudo enviar el token por correo a {}", correoDestino);
+        return false;
+    }
+
+    /**
+     * Envía correo usando la API REST de Resend (HTTP, no bloqueado en cloud).
+     */
+    private boolean enviarViaResend(String correoDestino, String subject, String html) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(resendApiKey.trim());
+
+            Map<String, Object> body = Map.of(
+                    "from", resendFrom,
+                    "to", new String[]{correoDestino},
+                    "subject", subject,
+                    "html", html
+            );
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+            restTemplate.postForEntity(RESEND_API_URL, request, Map.class);
+            return true;
+        } catch (Exception e) {
+            log.error("Error enviando correo via Resend a {}: {}", correoDestino, e.getMessage());
             return false;
         }
     }
@@ -72,32 +126,45 @@ public class EmailService {
     public boolean enviarRecibo(String correoDestino, String nombreCliente, String cedula, String correoCliente,
                                String telefono, String direccion, String numeroRecibo, String itemsHtml,
                                String totalFormateado, String estado, String fechaFormateada, String fechaEntregaFormateada) {
-        if (!emailHabilitado || mailSender == null) {
+        if (!emailHabilitado) {
             log.info("Recibo {} para {} ({}): total {} - {}", numeroRecibo, nombreCliente, correoDestino, totalFormateado, estado);
             return true;
         }
-        try {
-            MimeMessage mensaje = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mensaje, true, "UTF-8");
-            helper.setFrom(remitente);
-            helper.setTo(correoDestino);
-            helper.setSubject("Recibo Nº " + numeroRecibo + " - UNISOF");
 
-            String html = buildHtmlReciboEmail(nombreCliente, cedula, correoCliente, telefono, direccion,
-                    numeroRecibo, itemsHtml, totalFormateado, estado, fechaFormateada, fechaEntregaFormateada);
-            helper.setText(html, true);
+        String html = buildHtmlReciboEmail(nombreCliente, cedula, correoCliente, telefono, direccion,
+                numeroRecibo, itemsHtml, totalFormateado, estado, fechaFormateada, fechaEntregaFormateada);
+        String subject = "Recibo Nº " + numeroRecibo + " - UNISOF";
 
-            mailSender.send(mensaje);
-            log.info("Recibo enviado a {}", correoDestino);
-            return true;
-        } catch (MessagingException | MailException e) {
-            log.error("Error enviando recibo a {}: {}", correoDestino, e.getMessage());
-            if (fallbackLogOnError) {
-                log.info(">>> RECIBO {} PARA PRUEBAS: total {}", numeroRecibo, totalFormateado);
+        // 1. Intentar Resend
+        if (resendApiKey != null && !resendApiKey.isBlank()) {
+            if (enviarViaResend(correoDestino, subject, html)) {
+                log.info("Recibo enviado a {} (Resend)", correoDestino);
                 return true;
             }
-            return false;
         }
+
+        // 2. Intentar JavaMailSender
+        if (mailSender != null) {
+            try {
+                MimeMessage mensaje = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(mensaje, true, "UTF-8");
+                helper.setFrom(remitente);
+                helper.setTo(correoDestino);
+                helper.setSubject(subject);
+                helper.setText(html, true);
+                mailSender.send(mensaje);
+                log.info("Recibo enviado a {} (SMTP)", correoDestino);
+                return true;
+            } catch (MessagingException | MailException e) {
+                log.error("Error enviando recibo a {} (SMTP): {}", correoDestino, e.getMessage());
+            }
+        }
+
+        if (fallbackLogOnError) {
+            log.info(">>> RECIBO {} PARA PRUEBAS: total {}", numeroRecibo, totalFormateado);
+            return true;
+        }
+        return false;
     }
 
     private String buildHtmlReciboEmail(String nombreCliente, String cedula, String correoCliente,
