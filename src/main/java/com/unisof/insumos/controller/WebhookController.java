@@ -47,4 +47,14 @@ public class WebhookController {
                 body != null ? body.substring(0, Math.min(200, body.length())) : "empty");
         return ResponseEntity.ok().build();
     }
+
+    /**
+     * Recibe eventos de Stripe (checkout.session.completed, etc.).
+     * Configura la URL en Stripe Dashboard: Developers → Webhooks.
+     */
+    @PostMapping("/stripe")
+    public ResponseEntity<Void> stripe(@RequestBody(required = false) String body) {
+        log.info(">>> Stripe webhook: {}", body != null ? body.substring(0, Math.min(300, body.length())) : "empty");
+        return ResponseEntity.ok().build();
+    }
 }
