@@ -57,6 +57,32 @@ const Cart = {
         }
     },
 
+    /** Agrega otra línea del mismo producto con una talla distinta (ej: 2M + 1S). */
+    addItemVariant(productIdBase) {
+        const items = this.getItems();
+        const existing = items.find(i => (i.idBase || i.id?.replace(/-[^-]*$/, '')) === productIdBase);
+        if (!existing) return;
+        const sizes = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
+        const usedSizes = items.filter(i => (i.idBase || i.id?.replace(/-[^-]*$/, '')) === productIdBase).map(i => i.size);
+        const freeSize = sizes.find(s => !usedSizes.includes(s)) || 'M';
+        const id = productIdBase + '-' + freeSize;
+        const variant = items.find(i => i.id === id);
+        if (variant) {
+            variant.quantity += 1;
+        } else {
+            items.push({
+                idBase: productIdBase,
+                id,
+                name: existing.name,
+                unitPrice: existing.unitPrice,
+                imageUrl: existing.imageUrl || '',
+                size: freeSize,
+                quantity: 1
+            });
+        }
+        this.saveItems(items);
+    },
+
     /** Cambia la talla de un ítem. Si ya existe el mismo producto con la nueva talla, suma cantidades. */
     updateSize(oldId, newSize) {
         const items = this.getItems();

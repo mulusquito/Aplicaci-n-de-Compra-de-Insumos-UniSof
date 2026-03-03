@@ -66,6 +66,88 @@ public class EmailService {
         }
     }
 
+    /**
+     * Envía el recibo por correo al cliente.
+     */
+    public boolean enviarRecibo(String correoDestino, String nombreCliente, String cedula, String correoCliente,
+                               String telefono, String direccion, String numeroRecibo, String itemsHtml,
+                               String totalFormateado, String estado, String fechaFormateada, String fechaEntregaFormateada) {
+        if (!emailHabilitado || mailSender == null) {
+            log.info("Recibo {} para {} ({}): total {} - {}", numeroRecibo, nombreCliente, correoDestino, totalFormateado, estado);
+            return true;
+        }
+        try {
+            MimeMessage mensaje = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mensaje, true, "UTF-8");
+            helper.setFrom(remitente);
+            helper.setTo(correoDestino);
+            helper.setSubject("Recibo Nº " + numeroRecibo + " - UNISOF");
+
+            String html = buildHtmlReciboEmail(nombreCliente, cedula, correoCliente, telefono, direccion,
+                    numeroRecibo, itemsHtml, totalFormateado, estado, fechaFormateada, fechaEntregaFormateada);
+            helper.setText(html, true);
+
+            mailSender.send(mensaje);
+            log.info("Recibo enviado a {}", correoDestino);
+            return true;
+        } catch (MessagingException | MailException e) {
+            log.error("Error enviando recibo a {}: {}", correoDestino, e.getMessage());
+            if (fallbackLogOnError) {
+                log.info(">>> RECIBO {} PARA PRUEBAS: total {}", numeroRecibo, totalFormateado);
+                return true;
+            }
+            return false;
+        }
+    }
+
+    private String buildHtmlReciboEmail(String nombreCliente, String cedula, String correoCliente,
+                                        String telefono, String direccion, String numeroRecibo,
+                                        String itemsHtml, String totalFormateado, String estado,
+                                        String fechaFormateada, String fechaEntregaFormateada) {
+        String clienteHtml = """
+            <p style="margin:4px 0;font-size:13px;">Nombre: %s</p>
+            <p style="margin:4px 0;font-size:13px;">Cédula: %s</p>
+            <p style="margin:4px 0;font-size:13px;">Correo: %s</p>
+            <p style="margin:4px 0;font-size:13px;">Teléfono: %s</p>
+            <p style="margin:4px 0;font-size:13px;">Dirección: %s</p>
+            """.formatted(nombreCliente != null ? nombreCliente : "—",
+                    cedula != null && !cedula.isBlank() ? cedula : "—",
+                    correoCliente != null && !correoCliente.isBlank() ? correoCliente : "—",
+                    telefono != null && !telefono.isBlank() ? telefono : "—",
+                    direccion != null && !direccion.isBlank() ? direccion : "—");
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head><meta charset="UTF-8"></head>
+            <body style="margin:0;font-family:Arial,sans-serif;background:#f5f5f5;padding:20px;">
+            <div style="max-width:480px;margin:0 auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+            <div style="background:#f5a623;color:#1a1a1a;padding:24px;text-align:center;">
+            <span style="font-size:28px;font-weight:bold;display:inline-block;width:48px;height:48px;line-height:48px;background:#1a1a1a;color:#f5a623;border-radius:8px;margin:0 8px 0 0;">U</span>
+            <span style="font-size:24px;font-weight:bold;letter-spacing:2px;">UNISOF</span>
+            </div>
+            <div style="padding:24px;">
+            <p style="text-align:center;color:#666;font-size:12px;margin:0 0 8px;">Orden de compra</p>
+            <p style="text-align:center;font-size:18px;font-weight:bold;margin:0 0 20px;">Nº %s</p>
+            <p style="font-size:12px;color:#555;margin:0 0 4px;"><strong>Fecha:</strong> %s</p>
+            <p style="font-size:12px;color:#555;margin:0 0 16px;"><strong>Fecha de entrega:</strong> %s</p>
+            <h3 style="font-size:14px;margin:0 0 8px;">Cliente</h3>
+            %s
+            <h3 style="font-size:14px;margin:16px 0 8px;">Productos</h3>
+            <table style="width:100%%;border-collapse:collapse;font-size:12px;">
+            <thead><tr style="border-bottom:1px solid #ddd;"><th style="text-align:left;padding:6px 0;">Prendas de vestir</th><th>Talla</th><th>Cant.</th><th>P.Unit</th><th>Subtotal</th></tr></thead>
+            <tbody>%s</tbody>
+            </table>
+            <p style="text-align:right;font-size:16px;font-weight:bold;margin-top:16px;color:#f5a623;">Total: %s COP</p>
+            </div>
+            <div style="background:#f8f8f8;padding:16px;text-align:center;font-size:12px;color:#888;">
+            Sistema de Insumos UNISOF
+            </div>
+            </div>
+            </body>
+            </html>
+            """.formatted(numeroRecibo, fechaFormateada, fechaEntregaFormateada, clienteHtml, itemsHtml, totalFormateado);
+    }
+
     private String buildHtmlTokenEmail(String nombreUsuario, String token) {
         return """
             <!DOCTYPE html>

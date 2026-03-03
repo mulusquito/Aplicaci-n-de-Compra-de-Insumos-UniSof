@@ -64,10 +64,22 @@ Luego, cuando llegues a la página de pago de Mercado Pago:
 
 ---
 
-## 5. Resumen de verificación
+## 5. Error "Permission denied" o "requestStorageAccessFor"
+
+Si en la consola del navegador ves `requestStorageAccessFor: Permission denied`:
+
+1. **No uses modo incógnito** – suele bloquear cookies más estrictamente.
+2. **Antes de pagar**, abre tu URL de ngrok (ej: `https://xxx.ngrok-free.dev`) y si sale el aviso de ngrok, haz clic en **"Visit Site"**.
+3. **Cookies de terceros**: En Chrome → Configuración → Privacidad → Cookies → permite temporalmente "Cookies de terceros" para pruebas.
+4. Prueba en una **ventana normal** (no incógnito).
+
+---
+
+## 6. Resumen de verificación
 
 - [ ] Access Token es de **Credenciales de prueba** (no producción)
 - [ ] La app es tipo Pagos online / Checkout Pro
 - [ ] app.base-url tiene la URL de ngrok (https://...)
 - [ ] Probaste iniciando sesión con cuenta comprador de prueba
 - [ ] Usaste nombre "APRO" en la tarjeta
+- [ ] No usas modo incógnito; aceptaste "Visit Site" en ngrok si apareció

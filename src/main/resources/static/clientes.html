@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Consultar clientes - UNISOF</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .crud-section { max-width: 900px; margin: 0 auto; padding: 24px; }
+        .crud-toolbar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+        .crud-toolbar input, .crud-toolbar select { padding: 10px 14px; border-radius: 8px; border: 1px solid #444; background: #222; color: white; font-size: 14px; }
+        .crud-toolbar .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: bold; }
+        .btn-primary-crud { background: #f5a623; color: #1a1a1a; }
+        .btn-primary-crud:hover { background: #e09520; }
+        .btn-secondary { background: #333; color: white; border: 1px solid #555; }
+        .btn-secondary:hover { background: #444; }
+        .btn-danger { background: #c0392b; color: white; }
+        .btn-danger:hover { background: #a93226; }
+        .crud-table { width: 100%; border-collapse: collapse; background: #1a1a1a; border-radius: 8px; overflow: hidden; }
+        .crud-table th, .crud-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #333; }
+        .crud-table th { background: #222; color: #f5a623; font-weight: bold; }
+        .crud-table tr:hover { background: #252525; }
+        .crud-table .actions { display: flex; gap: 8px; }
+        .crud-table .actions button { padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: pointer; border: none; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-overlay.hidden { display: none; }
+        .modal-box { background: #1a1a1a; border-radius: 12px; padding: 24px; min-width: 400px; max-width: 500px; border: 1px solid #333; }
+        .modal-box h3 { margin-bottom: 20px; color: #f5a623; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 6px; color: #aaa; font-size: 13px; }
+        .form-group input { width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid #444; background: #222; color: white; }
+        .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+        .empty-msg { text-align: center; padding: 40px; color: #888; }
+    </style>
+</head>
+<body class="has-fixed-nav">
+
+    <header class="navbar navbar-fixed">
+        <a href="/ventas.html" class="link-atras">← Atrás</a>
+        <a href="/" class="logo">
+            <span class="logo-icon">U</span>
+            <span class="logo-text">UNISOF</span>
+        </a>
+        <div class="nav-user-info" id="nav-user-info">
+            <span class="user-name" id="user-name">—</span>
+            <span class="user-rol" id="user-rol">VENDEDOR</span>
+        </div>
+        <button type="button" class="btn-logout btn-logout-nav" id="btn-logout">Cerrar Sesión</button>
+    </header>
+
+    <main class="panel-main">
+        <h1 class="panel-title">Consultar clientes</h1>
+        <div class="crud-section">
+            <div class="crud-toolbar">
+                <input type="text" id="buscar-cedula" placeholder="Buscar por cédula" style="width: 200px;">
+                <button type="button" class="btn btn-secondary" id="btn-buscar-cedula">Buscar</button>
+                <button type="button" class="btn btn-primary-crud" id="btn-crear">Crear cliente</button>
+                <button type="button" class="btn btn-secondary" id="btn-listar-todos">Listar todos</button>
+            </div>
+            <div id="tabla-container">
+                <table class="crud-table" id="tabla-clientes">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Cédula</th>
+                            <th>Correo</th>
+                            <th>Teléfono</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-body">
+                    </tbody>
+                </table>
+                <p class="empty-msg" id="empty-msg" style="display:none;">No hay clientes. Haz clic en "Crear cliente" para agregar uno.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Crear/Editar -->
+    <div class="modal-overlay" id="modal-cliente">
+        <div class="modal-box">
+            <h3 id="modal-titulo">Crear cliente</h3>
+            <form id="form-cliente">
+                <input type="hidden" id="form-id">
+                <div class="form-group">
+                    <label for="form-nombre">Nombre completo *</label>
+                    <input type="text" id="form-nombre" required placeholder="Ej: Juan Pérez">
+                </div>
+                <div class="form-group">
+                    <label for="form-cedula">Cédula *</label>
+                    <input type="text" id="form-cedula" required placeholder="Ej: 123456789" pattern="[0-9\s\-\.]+">
+                </div>
+                <div class="form-group">
+                    <label for="form-correo">Correo electrónico *</label>
+                    <input type="email" id="form-correo" required placeholder="cliente@ejemplo.com">
+                </div>
+                <div class="form-group">
+                    <label for="form-telefono">Teléfono</label>
+                    <input type="tel" id="form-telefono" placeholder="+57 300 123 4567">
+                </div>
+                <div class="form-group">
+                    <label for="form-direccion">Dirección</label>
+                    <input type="text" id="form-direccion" placeholder="Calle, ciudad, país">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="btn-cerrar-modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary-crud">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/toast.js"></script>
+    <script>
+        (async () => {
+            const result = await authApi.getMe();
+            if (!result.ok) { window.location.href = '/login.html'; return; }
+            const rol = (result.usuario?.rol || '').toUpperCase();
+            if (rol !== 'VENDEDOR') { window.location.href = '/'; return; }
+            document.getElementById('user-name').textContent = result.usuario?.nombre || result.usuario?.usuario;
+            document.getElementById('user-rol').textContent = result.usuario?.rol || 'VENDEDOR';
+        })();
+
+        document.getElementById('btn-logout').addEventListener('click', async () => {
+            await authApi.logout();
+            window.location.href = '/';
+        });
+
+        const modal = document.getElementById('modal-cliente');
+        const form = document.getElementById('form-cliente');
+
+        async function listarTodos() {
+            try {
+                const res = await fetch('/api/clientes', { credentials: 'include' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.mensaje || 'Error al listar');
+                renderTabla(Array.isArray(data) ? data : [data]);
+            } catch (err) {
+                Toast.error(err.message || 'Error al cargar clientes');
+                renderTabla([]);
+            }
+        }
+
+        document.getElementById('btn-listar-todos').addEventListener('click', listarTodos);
+
+        document.getElementById('btn-buscar-cedula').addEventListener('click', async () => {
+            const cedula = document.getElementById('buscar-cedula').value.trim();
+            if (!cedula) { Toast.error('Ingresa una cédula'); return; }
+            try {
+                const res = await fetch('/api/clientes/buscar?cedula=' + encodeURIComponent(cedula), { credentials: 'include' });
+                const data = await res.json();
+                if (data.encontrado && data.cliente) {
+                    renderTabla([data.cliente]);
+                } else {
+                    Toast.info('Cliente no encontrado');
+                    renderTabla([]);
+                }
+            } catch (err) {
+                Toast.error('Error al buscar');
+                renderTabla([]);
+            }
+        });
+
+        function renderTabla(clientes) {
+            const tbody = document.getElementById('tabla-body');
+            const emptyMsg = document.getElementById('empty-msg');
+            tbody.innerHTML = '';
+            if (clientes.length === 0) {
+                document.getElementById('tabla-clientes').style.display = 'none';
+                emptyMsg.style.display = 'block';
+                return;
+            }
+            document.getElementById('tabla-clientes').style.display = 'table';
+            emptyMsg.style.display = 'none';
+            clientes.forEach(c => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${escapeHtml(c.nombre)}</td>
+                    <td>${escapeHtml(c.cedula)}</td>
+                    <td>${escapeHtml(c.correo)}</td>
+                    <td>${escapeHtml(c.telefono || '—')}</td>
+                    <td>
+                        <div class="actions">
+                            <button type="button" class="btn btn-secondary btn-editar" data-id="${c.id}">Editar</button>
+                            <button type="button" class="btn btn-danger btn-eliminar" data-id="${c.id}">Eliminar</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            tbody.querySelectorAll('.btn-editar').forEach(btn => {
+                btn.addEventListener('click', () => abrirEditar(btn.dataset.id));
+            });
+            tbody.querySelectorAll('.btn-eliminar').forEach(btn => {
+                btn.addEventListener('click', () => eliminarCliente(btn.dataset.id));
+            });
+        }
+
+        function escapeHtml(s) {
+            if (s == null) return '';
+            const div = document.createElement('div');
+            div.textContent = s;
+            return div.innerHTML;
+        }
+
+        document.getElementById('btn-crear').addEventListener('click', () => {
+            document.getElementById('modal-titulo').textContent = 'Crear cliente';
+            document.getElementById('form-id').value = '';
+            form.reset();
+            modal.classList.remove('hidden');
+        });
+
+        document.getElementById('btn-cerrar-modal').addEventListener('click', () => modal.classList.add('hidden'));
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
+
+        async function abrirEditar(id) {
+            try {
+                const res = await fetch('/api/clientes/' + id, { credentials: 'include' });
+                if (!res.ok) throw new Error('Cliente no encontrado');
+                const c = await res.json();
+                document.getElementById('modal-titulo').textContent = 'Editar cliente';
+                document.getElementById('form-id').value = c.id;
+                document.getElementById('form-nombre').value = c.nombre;
+                document.getElementById('form-cedula').value = c.cedula;
+                document.getElementById('form-correo').value = c.correo;
+                document.getElementById('form-telefono').value = c.telefono || '';
+                document.getElementById('form-direccion').value = c.direccion || '';
+                modal.classList.remove('hidden');
+            } catch (err) {
+                Toast.error(err.message);
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('form-id').value;
+            const body = {
+                nombre: document.getElementById('form-nombre').value.trim(),
+                cedula: document.getElementById('form-cedula').value.trim(),
+                correo: document.getElementById('form-correo').value.trim(),
+                telefono: document.getElementById('form-telefono').value.trim(),
+                direccion: document.getElementById('form-direccion').value.trim()
+            };
+            try {
+                const url = id ? '/api/clientes/' + id : '/api/clientes';
+                const method = id ? 'PUT' : 'POST';
+                const res = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.mensaje || 'Error al guardar');
+                Toast.success(id ? 'Cliente actualizado' : 'Cliente creado');
+                modal.classList.add('hidden');
+                listarTodos();
+            } catch (err) {
+                Toast.error(err.message);
+            }
+        });
+
+        async function eliminarCliente(id) {
+            if (!confirm('¿Eliminar este cliente?')) return;
+            try {
+                const res = await fetch('/api/clientes/' + id, { method: 'DELETE', credentials: 'include' });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data.mensaje || 'Error al eliminar');
+                Toast.success('Cliente eliminado');
+                listarTodos();
+            } catch (err) {
+                Toast.error(err.message);
+            }
+        }
+
+        listarTodos();
+    </script>
+</body>
+</html>

@@ -7,7 +7,9 @@
 En el checkout de Mercado Pago, **elige "Pagar con tarjeta"** (o "Otro medio de pago" → Tarjeta).  
 **No** uses "Pagar con Mercado Pago" si estás logueado con tu cuenta real: en sandbox eso suele fallar.
 
-### 2. Usa tarjetas de prueba exactas
+### 2. Usa tarjetas de prueba exactas (OBLIGATORIO)
+
+> ⚠️ Si usas otra tarjeta (ej. una que termine en 3866), el pago **siempre** fallará.
 
 | Tarjeta | Número | CVV | Vencimiento |
 |---------|--------|-----|-------------|

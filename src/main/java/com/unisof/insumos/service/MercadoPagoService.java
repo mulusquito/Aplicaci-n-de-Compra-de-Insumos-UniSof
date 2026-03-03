@@ -49,9 +49,16 @@ public class MercadoPagoService {
                         "title", item.title(),
                         "quantity", item.quantity(),
                         "unit_price", item.unit_price(),
-                        "currency_id", item.currency_id()
+                        "currency_id", item.currency_id() != null && !item.currency_id().isBlank() ? item.currency_id() : "COP"
                 ))
                 .collect(Collectors.toList());
+
+        double totalAmount = request.items().stream()
+                .mapToDouble(item -> item.unit_price() * item.quantity())
+                .sum();
+        if (totalAmount <= 0) {
+            throw new IllegalStateException("El total debe ser mayor a cero. Revisa los precios de los productos.");
+        }
 
         // Payer con identificación para Mercado Pago
         Map<String, Object> payer = new java.util.HashMap<>(Map.of(
@@ -82,10 +89,10 @@ public class MercadoPagoService {
         ));
         body.put("notification_url", baseUrl + "/api/webhooks/mercadopago");
 
-        log.info(">>> Mercado Pago - Request back_urls: success={}, failure={}, pending={}", successUrl, failureUrl, pendingUrl);
+        log.info(">>> Mercado Pago - Request back_urls: success={}, failure={}, pending={}, total_calculado={}", successUrl, failureUrl, pendingUrl, totalAmount);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setContentType(MediaType.parseMediaType("application/json;charset=UTF-8"));
         headers.set("Authorization", "Bearer " + accessToken);
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
