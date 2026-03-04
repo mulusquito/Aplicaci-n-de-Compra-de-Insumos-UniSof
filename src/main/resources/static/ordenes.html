@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Consultar órdenes de compra - UNISOF</title>
+    <title>Consultar pedidos - UNISOF</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/styles.css">
     <style>
@@ -55,7 +55,7 @@
     </header>
 
     <main class="panel-main">
-        <h1 class="panel-title">Consultar órdenes de compra</h1>
+        <h1 class="panel-title">Consultar pedidos</h1>
         <div class="crud-section">
             <div class="crud-toolbar">
                 <div class="search-group">
@@ -84,45 +84,15 @@
                             <th>Fecha</th>
                             <th>Total</th>
                             <th>Estado</th>
-                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="tabla-body">
                     </tbody>
                 </table>
-                <p class="empty-msg" id="empty-msg" style="display:none;">No hay órdenes. Las órdenes se crean desde el carrito en Ventas.</p>
+                <p class="empty-msg" id="empty-msg" style="display:none;">No hay pedidos. Los pedidos se crean desde el carrito en Ventas.</p>
             </div>
         </div>
     </main>
-
-    <!-- Modal Editar orden de compra -->
-    <div class="modal-overlay hidden" id="modal-editar">
-        <div class="modal-box">
-            <h3>Editar orden de compra</h3>
-            <form id="form-editar">
-                <input type="hidden" id="edit-id">
-                <div class="form-group">
-                    <label>Nº orden</label>
-                    <input type="text" id="edit-numero" disabled>
-                </div>
-                <div class="form-group">
-                    <label for="edit-cliente">Cliente</label>
-                    <select id="edit-cliente"></select>
-                </div>
-                <div class="form-group">
-                    <label for="edit-estado">Estado</label>
-                    <select id="edit-estado">
-                        <option value="PENDIENTE">Pendiente por pagar</option>
-                        <option value="PAGADO">Pagado</option>
-                    </select>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" id="btn-cerrar-modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary-crud">Guardar</button>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <script src="/js/auth.js"></script>
     <script src="/js/toast.js"></script>
@@ -140,9 +110,6 @@
             await authApi.logout();
             window.location.href = '/';
         });
-
-        const modal = document.getElementById('modal-editar');
-        const formEdit = document.getElementById('form-editar');
 
         function formatFecha(isoStr) {
             if (!isoStr) return '—';
@@ -192,7 +159,6 @@
         });
 
         function renderTabla(ordenes) {
-            window.ordenesActuales = ordenes;
             const tbody = document.getElementById('tabla-body');
             const emptyMsg = document.getElementById('empty-msg');
             tbody.innerHTML = '';
@@ -204,29 +170,15 @@
             document.getElementById('tabla-ordenes').style.display = 'table';
             emptyMsg.style.display = 'none';
             ordenes.forEach(o => {
-                const estClass = (o.estado || '').toUpperCase() === 'PAGADO' ? 'estado-pagado' : 'estado-pendiente';
-                const estLabel = (o.estado || '').toUpperCase() === 'PAGADO' ? 'Pagado' : 'Pendiente';
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><strong>${o.numeroFormateado || ('00' + o.numero).slice(-3)}</strong></td>
                     <td>${escapeHtml(o.clienteNombre || '—')}</td>
                     <td>${formatFecha(o.fecha)}</td>
                     <td>${formatTotal(o.total)}</td>
-                    <td><span class="estado-badge ${estClass}">${estLabel}</span></td>
-                    <td>
-                        <div class="actions">
-                            <button type="button" class="btn btn-secondary btn-editar" data-id="${o.id}">Editar</button>
-                            <button type="button" class="btn btn-danger btn-eliminar" data-id="${o.id}">Eliminar</button>
-                        </div>
-                    </td>
+                    <td><span class="estado-badge estado-pagado">Pagado</span></td>
                 `;
                 tbody.appendChild(tr);
-            });
-            tbody.querySelectorAll('.btn-editar').forEach(btn => {
-                btn.addEventListener('click', () => abrirEditar(btn.dataset.id));
-            });
-            tbody.querySelectorAll('.btn-eliminar').forEach(btn => {
-                btn.addEventListener('click', () => eliminarOrden(btn.dataset.id));
             });
         }
 
@@ -235,70 +187,6 @@
             const div = document.createElement('div');
             div.textContent = s;
             return div.innerHTML;
-        }
-
-        async function abrirEditar(id) {
-            const orden = window.ordenesActuales?.find(o => o.id == id);
-            if (!orden) { Toast.error('Orden no encontrada'); return; }
-            document.getElementById('edit-id').value = id;
-            document.getElementById('edit-numero').value = orden.numeroFormateado || ('00' + orden.numero).slice(-3);
-            document.getElementById('edit-estado').value = (orden.estado || 'PENDIENTE').toUpperCase();
-            const selCliente = document.getElementById('edit-cliente');
-            selCliente.innerHTML = '';
-            try {
-                const res = await fetch('/api/clientes', { credentials: 'include' });
-                const clientes = await res.json();
-                if (Array.isArray(clientes)) {
-                    clientes.forEach(c => {
-                        const opt = document.createElement('option');
-                        opt.value = c.id;
-                        opt.textContent = c.nombre + ' (' + (c.cedula || '') + ')';
-                        if (c.id == orden.clienteId) opt.selected = true;
-                        selCliente.appendChild(opt);
-                    });
-                }
-            } catch (_) { selCliente.innerHTML = '<option value="">Error al cargar clientes</option>'; }
-            modal.classList.remove('hidden');
-        }
-
-        document.getElementById('btn-cerrar-modal').addEventListener('click', () => modal.classList.add('hidden'));
-        modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
-
-        formEdit.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('edit-id').value;
-            const estado = document.getElementById('edit-estado').value;
-            const clienteId = document.getElementById('edit-cliente').value;
-            const body = { estado };
-            if (clienteId) body.clienteId = parseInt(clienteId, 10);
-            try {
-                const res = await fetch('/api/recibos/' + id, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify(body)
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.mensaje || 'Error al actualizar');
-                Toast.success('Orden actualizada');
-                modal.classList.add('hidden');
-                cargarOrdenes();
-            } catch (err) {
-                Toast.error(err.message);
-            }
-        });
-
-        async function eliminarOrden(id) {
-            if (!confirm('¿Eliminar esta orden? Esta acción no se puede deshacer.')) return;
-            try {
-                const res = await fetch('/api/recibos/' + id, { method: 'DELETE', credentials: 'include' });
-                const data = await res.json().catch(() => ({}));
-                if (!res.ok) throw new Error(data.mensaje || 'Error al eliminar');
-                Toast.success('Orden eliminada');
-                cargarOrdenes();
-            } catch (err) {
-                Toast.error(err.message);
-            }
         }
 
         cargarOrdenes();

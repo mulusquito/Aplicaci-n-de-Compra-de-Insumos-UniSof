@@ -183,7 +183,6 @@
                     <td>
                         <div class="actions">
                             <button type="button" class="btn btn-secondary btn-editar" data-id="${c.id}">Editar</button>
-                            <button type="button" class="btn btn-danger btn-eliminar" data-id="${c.id}">Eliminar</button>
                         </div>
                     </td>
                 `;
@@ -191,9 +190,6 @@
             });
             tbody.querySelectorAll('.btn-editar').forEach(btn => {
                 btn.addEventListener('click', () => abrirEditar(btn.dataset.id));
-            });
-            tbody.querySelectorAll('.btn-eliminar').forEach(btn => {
-                btn.addEventListener('click', () => eliminarCliente(btn.dataset.id));
             });
         }
 
@@ -260,19 +256,6 @@
                 Toast.error(err.message);
             }
         });
-
-        async function eliminarCliente(id) {
-            if (!confirm('¿Eliminar este cliente?')) return;
-            try {
-                const res = await fetch('/api/clientes/' + id, { method: 'DELETE', credentials: 'include' });
-                const data = await res.json().catch(() => ({}));
-                if (!res.ok) throw new Error(data.mensaje || 'Error al eliminar');
-                Toast.success('Cliente eliminado');
-                listarTodos();
-            } catch (err) {
-                Toast.error(err.message);
-            }
-        }
 
         listarTodos();
     </script>

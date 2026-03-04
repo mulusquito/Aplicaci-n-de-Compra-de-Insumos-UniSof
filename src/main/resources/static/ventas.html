@@ -36,7 +36,7 @@
             </a>
             <a href="/ordenes.html" class="panel-btn">
                 <span class="panel-btn-icon">📋</span>
-                <span class="panel-btn-text">Consultar pedidos por número de orden</span>
+                <span class="panel-btn-text">Consultar pedidos</span>
             </a>
             <div class="panel-btn panel-btn-catalogo dropdown-catalogo">
                 <button type="button" class="panel-btn-inner btn-catalogo">
@@ -384,7 +384,6 @@
                 <span>Total:</span>
                 <strong id="cart-total">0 COP</strong>
             </div>
-            <button type="button" class="btn-cart-receipt" id="btn-enviar-recibo">Enviar recibo por correo</button>
             <button type="button" class="btn-cart-checkout" id="btn-checkout">Ir a pagar</button>
         </div>
     </aside>
@@ -425,17 +424,46 @@
                 setTimeout(() => welcomeMsg?.classList.remove('visible'), 3000);
             }
 
-            // Mensaje al volver de Mercado Pago
+            // Al volver de pago exitoso (Stripe/Mercado Pago): crear recibo, enviar emails, notificar
             const params = new URLSearchParams(window.location.search);
             const payment = params.get('payment');
             if (payment === 'success') {
+                const pendingData = sessionStorage.getItem('unisof_pending_checkout');
+                if (pendingData) {
+                    try {
+                        const { items, cliente, clienteId } = JSON.parse(pendingData);
+                        const total = items.reduce((s, i) => s + (i.precioUnit * i.cantidad), 0);
+                        const body = clienteId
+                            ? { clienteId, items, total, enviarPorCorreo: true, enviarACopias: true, estado: 'APROBADO' }
+                            : { cliente, items, total, enviarPorCorreo: true, enviarACopias: true, estado: 'APROBADO' };
+                        const res = await fetch('/api/recibos', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify(body)
+                        });
+                        const data = await res.json();
+                        sessionStorage.removeItem('unisof_pending_checkout');
+                        if (res.ok) {
+                            const num = data.numeroFormateado || String(data.numero || 0).padStart(3, '0');
+                            Toast.success('¡Pago aprobado! Recibo Nº ' + num + ' enviado al cliente y a UNISOF.', 5000);
+                        } else {
+                            Toast.success('¡Pago aprobado! Gracias por su compra.', 4000);
+                        }
+                    } catch (err) {
+                        Toast.success('¡Pago aprobado! Gracias por su compra.', 4000);
+                    }
+                } else {
+                    Toast.success('¡Pago aprobado! Gracias por su compra.', 4000);
+                }
                 Cart.clear();
-                Toast.success('¡Pago aprobado! Gracias por su compra.', 4000);
                 window.history.replaceState({}, '', '/ventas.html');
             } else if (payment === 'failure') {
+                sessionStorage.removeItem('unisof_pending_checkout');
                 Toast.error('El pago fue rechazado. Puede intentar nuevamente.');
                 window.history.replaceState({}, '', '/ventas.html');
             } else if (payment === 'pending') {
+                sessionStorage.removeItem('unisof_pending_checkout');
                 Toast.info('El pago está pendiente. Se le notificará cuando se confirme.');
                 window.history.replaceState({}, '', '/ventas.html');
             }
@@ -736,6 +764,16 @@
                 }
                 if (!res.ok) throw new Error(data.mensaje || 'Error al crear el pago');
                 if (data.init_point) {
+                    const cartItems = Cart.getItems();
+                    const itemsPayload = cartItems.map(i => {
+                        const subtotal = i.quantity * i.unitPrice;
+                        return { nombre: i.name, talla: i.size || 'M', cantidad: i.quantity, precioUnit: i.unitPrice, subtotal };
+                    });
+                    sessionStorage.setItem('unisof_pending_checkout', JSON.stringify({
+                        items: itemsPayload,
+                        cliente: { nombre: c.nombre, cedula: c.cedula, correo: c.correo, telefono: c.telefono, direccion: c.direccion },
+                        clienteId: clienteEncontrado?.id || null
+                    }));
                     window.location.href = data.init_point;
                 } else {
                     throw new Error('No se recibió URL de pago');
@@ -748,39 +786,6 @@
             }
         });
 
-        // Generar e imprimir recibo (guarda en BD: cliente si es nuevo, recibo con numero incremental)
-        async function generarRecibo() {
-            const items = Cart.getItems();
-            if (items.length === 0) {
-                Toast.error('El carrito está vacío');
-                return;
-            }
-            if (!validarCliente()) return;
-            const c = getClienteData();
-            const total = Cart.getTotal();
-            const itemsPayload = items.map(i => {
-                const subtotal = i.quantity * i.unitPrice;
-                return { nombre: i.name, talla: i.size || 'M', cantidad: i.quantity, precioUnit: i.unitPrice, subtotal };
-            });
-            const body = clienteEncontrado && clienteEncontrado.id
-                ? { clienteId: clienteEncontrado.id, items: itemsPayload, total, enviarPorCorreo: true, estado: 'PENDIENTE' }
-                : { cliente: { nombre: c.nombre, cedula: c.cedula, correo: c.correo, telefono: c.telefono, direccion: c.direccion }, items: itemsPayload, total, enviarPorCorreo: true, estado: 'PENDIENTE' };
-            try {
-                const res = await fetch('/api/recibos', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify(body)
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.mensaje || 'Error al crear recibo');
-                const numeroRecibo = data.numeroFormateado || String(data.numero || 0).padStart(3, '0');
-                Toast.success('Recibo Nº ' + numeroRecibo + ' enviado al correo del cliente');
-            } catch (err) {
-                Toast.error(err.message || 'Error al guardar recibo');
-            }
-        }
-        document.getElementById('btn-enviar-recibo').addEventListener('click', generarRecibo);
     </script>
 </body>
 </html>

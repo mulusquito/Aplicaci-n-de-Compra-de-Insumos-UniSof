@@ -7,6 +7,7 @@ import com.unisof.insumos.model.Recibo;
 import com.unisof.insumos.repository.ClienteRepository;
 import com.unisof.insumos.repository.ReciboRepository;
 import com.unisof.insumos.service.EmailService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +34,9 @@ public class ReciboController {
     private final ClienteRepository clienteRepository;
     private final EmailService emailService;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Value("${app.copias.emails:}")
+    private String copiasEmails;
 
     public ReciboController(ReciboRepository reciboRepository, ClienteRepository clienteRepository, EmailService emailService) {
         this.reciboRepository = reciboRepository;
@@ -154,46 +158,26 @@ public class ReciboController {
             if (items == null || items.isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of("mensaje", "Debe incluir al menos un producto"));
             }
-            Object totalObj = body.get("total");
-            BigDecimal total = totalObj instanceof Number
+            final Object totalObj = body.get("total");
+            final BigDecimal total = (totalObj instanceof Number)
                     ? BigDecimal.valueOf(((Number) totalObj).doubleValue())
                     : new BigDecimal(totalObj.toString());
 
-            String itemsAsJson = objectMapper.writeValueAsString(items);
-            int nextNumero = (reciboRepository.findMaxNumero() == null ? 0 : reciboRepository.findMaxNumero()) + 1;
-            String estado = body.containsKey("estado") ? body.get("estado").toString() : "PENDIENTE";
+            final String itemsAsJson = objectMapper.writeValueAsString(items);
+            final int nextNumero = (reciboRepository.findMaxNumero() == null ? 0 : reciboRepository.findMaxNumero()) + 1;
+            final String estado = body.containsKey("estado") ? body.get("estado").toString() : "PENDIENTE";
+            final Recibo recibo = reciboRepository.save(new Recibo(nextNumero, cliente, total, itemsAsJson, estado));
+            final String numeroReciboStr = String.format("%03d", recibo.getNumero());
 
-            Recibo recibo = new Recibo(nextNumero, cliente, total, itemsAsJson, estado);
-            recibo = reciboRepository.save(recibo);
-
-            String numeroReciboStr = String.format("%03d", recibo.getNumero());
-
-            Boolean enviarPorCorreo = body.get("enviarPorCorreo") == Boolean.TRUE
+            boolean enviarPorCorreo = Boolean.TRUE.equals(body.get("enviarPorCorreo"))
                     || Boolean.parseBoolean(String.valueOf(body.get("enviarPorCorreo")));
-            if (enviarPorCorreo && cliente.getCorreo() != null && !cliente.getCorreo().isBlank()) {
-                String itemsHtml = buildItemsHtml(items);
-                String totalStr = String.format("%,d", total.intValue()).replace(",", ".");
-                ZoneId zone = ZoneId.systemDefault();
-                DateTimeFormatter fmtFecha = DateTimeFormatter.ofPattern("d/M/yyyy, h:mm:ss a", new Locale("es", "CO"));
-                DateTimeFormatter fmtEntrega = DateTimeFormatter.ofPattern("d/M/yyyy", new Locale("es", "CO"));
-                ZonedDateTime fechaZ = recibo.getFecha().atZone(zone);
-                String fechaStr = fmtFecha.format(fechaZ);
-                String fechaEntregaStr = fmtEntrega.format(fechaZ.plusDays(15));
-                boolean enviado = emailService.enviarRecibo(
-                        cliente.getCorreo(),
-                        cliente.getNombre(),
-                        cliente.getCedula(),
-                        cliente.getCorreo(),
-                        cliente.getTelefono() != null ? cliente.getTelefono() : "",
-                        cliente.getDireccion() != null ? cliente.getDireccion() : "",
-                        numeroReciboStr,
-                        itemsHtml,
-                        totalStr,
-                        estado,
-                        fechaStr,
-                        fechaEntregaStr);
-                if (!enviado) {
-                    return ResponseEntity.status(500).body(Map.of("mensaje", "Recibo creado pero no se pudo enviar el correo"));
+            boolean enviarACopias = Boolean.TRUE.equals(body.get("enviarACopias"))
+                    || Boolean.parseBoolean(String.valueOf(body.get("enviarACopias")));
+
+            if (enviarPorCorreo || enviarACopias) {
+                ResponseEntity<?> resp = enviarRecibosPorCorreo(cliente, recibo, items, numeroReciboStr, estado, total, enviarPorCorreo, enviarACopias);
+                if (resp != null) {
+                    return resp;
                 }
             }
 
@@ -210,6 +194,62 @@ public class ReciboController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("mensaje", e.getMessage()));
         }
+    }
+
+    private ResponseEntity<?> enviarRecibosPorCorreo(Cliente cliente, Recibo recibo, List<Map<String, Object>> items,
+            String numeroReciboStr, String estado, BigDecimal total, boolean enviarPorCorreo, boolean enviarACopias) {
+        String itemsHtml = buildItemsHtml(items);
+        String totalStr = String.format("%,d", total.intValue()).replace(",", ".");
+        ZoneId zone = ZoneId.systemDefault();
+        DateTimeFormatter fmtFecha = DateTimeFormatter.ofPattern("d/M/yyyy, h:mm:ss a", new Locale("es", "CO"));
+        DateTimeFormatter fmtEntrega = DateTimeFormatter.ofPattern("d/M/yyyy", new Locale("es", "CO"));
+        ZonedDateTime fechaZ = recibo.getFecha().atZone(zone);
+        String fechaStr = fmtFecha.format(fechaZ);
+        String fechaEntregaStr = fmtEntrega.format(fechaZ.plusDays(15));
+
+        if (enviarPorCorreo && cliente.getCorreo() != null && !cliente.getCorreo().isBlank()) {
+            boolean enviado = emailService.enviarRecibo(
+                    cliente.getCorreo(),
+                    cliente.getNombre(),
+                    cliente.getCedula(),
+                    cliente.getCorreo(),
+                    cliente.getTelefono() != null ? cliente.getTelefono() : "",
+                    cliente.getDireccion() != null ? cliente.getDireccion() : "",
+                    numeroReciboStr,
+                    itemsHtml,
+                    totalStr,
+                    estado,
+                    fechaStr,
+                    fechaEntregaStr);
+            if (!enviado) {
+                return ResponseEntity.status(500).body(Map.of("mensaje", "Recibo creado pero no se pudo enviar el correo al cliente"));
+            }
+        }
+        if (enviarACopias && copiasEmails != null && !copiasEmails.isBlank()) {
+            java.util.Set<String> copias = new java.util.LinkedHashSet<>();
+            for (String e : copiasEmails.split("[,;]")) {
+                String t = e.trim();
+                if (!t.isEmpty()) {
+                    copias.add(t);
+                }
+            }
+            for (String email : copias) {
+                emailService.enviarRecibo(
+                        email,
+                        cliente.getNombre(),
+                        cliente.getCedula(),
+                        cliente.getCorreo(),
+                        cliente.getTelefono() != null ? cliente.getTelefono() : "",
+                        cliente.getDireccion() != null ? cliente.getDireccion() : "",
+                        numeroReciboStr,
+                        itemsHtml,
+                        totalStr,
+                        estado,
+                        fechaStr,
+                        fechaEntregaStr);
+            }
+        }
+        return null;
     }
 
     private Cliente obtenerOCrearCliente(Map<String, Object> body) {
