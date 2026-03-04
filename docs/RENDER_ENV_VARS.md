@@ -17,7 +17,11 @@ Para que funcione el envío de tokens y recibos por correo:
 
 ### Desarrollo local
 
-Para probar en local, define la variable de entorno `SPRING_MAIL_PASSWORD` con tu contraseña de aplicación (en la configuración de ejecución de tu IDE o en la terminal antes de ejecutar).
+Para probar en local, define estas variables de entorno (en la configuración de ejecución de tu IDE o en un archivo `.env`):
+
+- `SPRING_MAIL_PASSWORD` – contraseña de aplicación de Gmail
+- `STRIPE_SECRET_KEY` – clave secreta de Stripe (sk_test_...)
+- `MERCADOPAGO_ACCESS_TOKEN` – token de Mercado Pago (si lo usas)
 
 ## Otras variables típicas
 

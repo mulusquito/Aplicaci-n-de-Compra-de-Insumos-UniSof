@@ -226,6 +226,11 @@ public class ReciboController {
             }
         }
         if (enviarACopias && copiasEmails != null && !copiasEmails.isBlank()) {
+            try {
+                Thread.sleep(600); // Pausa tras envío al cliente: Resend permite máx 2 req/seg
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+            }
             java.util.Set<String> copias = new java.util.LinkedHashSet<>();
             for (String e : copiasEmails.split("[,;]")) {
                 String t = e.trim();
@@ -234,6 +239,11 @@ public class ReciboController {
                 }
             }
             for (String email : copias) {
+                try {
+                    Thread.sleep(600); // Resend: máx 2 req/seg; pausa para evitar 429 Too Many Requests
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                }
                 emailService.enviarRecibo(
                         email,
                         cliente.getNombre(),
