@@ -14,28 +14,29 @@
             <span class="logo-text">UNISOF</span>
         </a>
 
-        <h1 class="auth-title">Iniciar Sesión</h1>
-        <p class="auth-subtitle">Ingresa tus credenciales para acceder</p>
+        <h1 class="auth-title" data-i18n-key="auth.title">Iniciar Sesión</h1>
+        <p class="auth-subtitle" data-i18n-key="auth.subtitle">Ingresa tus credenciales para acceder</p>
 
         <form id="form-login" class="auth-form">
             <div class="form-group">
-                <label for="usuario">Usuario</label>
-                <input type="text" id="usuario" name="usuario" required placeholder="Ej: admin">
+                <label for="usuario" data-i18n-key="auth.user">Usuario</label>
+                <input type="text" id="usuario" name="usuario" required data-i18n-placeholder="auth.userPlaceholder" placeholder="Ej: admin">
             </div>
             <div class="form-group">
-                <label for="contrasena">Contraseña</label>
-                <input type="password" id="contrasena" name="contrasena" required placeholder="Ej: tu contraseña">
+                <label for="contrasena" data-i18n-key="auth.password">Contraseña</label>
+                <input type="password" id="contrasena" name="contrasena" required data-i18n-placeholder="auth.passPlaceholder" placeholder="Ej: tu contraseña">
             </div>
             <div id="error-msg" class="error-msg" style="display:none"></div>
-            <p class="auth-forgot"><a href="/recuperar-contrasena.html">¿Olvidaste la contraseña?</a></p>
-            <button type="submit" class="btn-primary btn-block">Iniciar Sesión</button>
+            <p class="auth-forgot"><a href="/recuperar-contrasena.html" data-i18n-key="auth.forgot">¿Olvidaste la contraseña?</a></p>
+            <button type="submit" class="btn-primary btn-block" data-i18n-key="auth.submit">Iniciar Sesión</button>
         </form>
 
-        <p class="auth-footer"><a href="/">← Volver al inicio</a></p>
+        <p class="auth-footer"><a href="/" data-i18n-key="auth.back">← Volver al inicio</a></p>
     </div>
 
     <script src="/js/toast.js"></script>
     <script src="/js/auth.js"></script>
+    <script src="/js/accessibility.js"></script>
     <script>
         document.getElementById('form-login').addEventListener('submit', async (e) => {
             e.preventDefault();

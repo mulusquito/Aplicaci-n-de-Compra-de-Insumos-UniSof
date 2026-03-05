@@ -45,11 +45,13 @@ public class ReciboController {
     }
 
     /**
-     * Busca órdenes. GET /api/recibos?numero=001 | ?fecha=2026-02-28 | ?mes=2026-02
+     * Busca órdenes.
+     * GET /api/recibos?numero=001 | ?cedula=123456789 | ?fecha=2026-02-28 | ?mes=2026-02
      */
     @GetMapping
     public ResponseEntity<?> buscar(
             @RequestParam(required = false) String numero,
+            @RequestParam(required = false) String cedula,
             @RequestParam(required = false) String fecha,
             @RequestParam(required = false) String mes) {
         ZoneId zone = ZoneId.systemDefault();
@@ -61,6 +63,8 @@ public class ReciboController {
             } catch (NumberFormatException e) {
                 // número inválido, lista vacía
             }
+        } else if (cedula != null && !cedula.isBlank()) {
+            recibos = reciboRepository.findByClienteCedulaOrderByFechaDesc(cedula.trim());
         } else if (fecha != null && !fecha.isBlank()) {
             LocalDate d = LocalDate.parse(fecha);
             Instant inicio = d.atStartOfDay(zone).toInstant();

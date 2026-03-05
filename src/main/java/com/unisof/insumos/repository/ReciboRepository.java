@@ -20,4 +20,6 @@ public interface ReciboRepository extends JpaRepository<Recibo, Long> {
 
     @Query("SELECT r FROM Recibo r WHERE r.fecha >= :inicio AND r.fecha < :fin ORDER BY r.fecha DESC")
     List<Recibo> findByFechaBetween(Instant inicio, Instant fin);
+
+    List<Recibo> findByClienteCedulaOrderByFechaDesc(String cedula);
 }

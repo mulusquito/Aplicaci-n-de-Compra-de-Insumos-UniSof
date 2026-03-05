@@ -21,25 +21,25 @@
         <nav class="admin-nav">
             <a href="/panel-admin.html" class="admin-nav-item active" data-section="dashboard">
                 <span class="admin-nav-icon">📊</span>
-                <span class="admin-nav-text">Dashboard</span>
+                <span class="admin-nav-text" data-i18n-key="nav.dashboard">Dashboard</span>
             </a>
             <a href="/personal.html" class="admin-nav-item" data-section="personal">
                 <span class="admin-nav-icon">👤</span>
-                <span class="admin-nav-text">Personal</span>
+                <span class="admin-nav-text" data-i18n-key="nav.personal">Personal</span>
             </a>
             <a href="#ordenes-compra" class="admin-nav-item admin-nav-item--disabled" data-section="ordenes">
                 <span class="admin-nav-icon">📋</span>
-                <span class="admin-nav-text">Consultar órdenes de compra</span>
+                <span class="admin-nav-text" data-i18n-key="nav.orders">Consultar órdenes de compra</span>
                 <span class="admin-nav-hint">(Próximamente)</span>
             </a>
             <a href="#compras-insumos" class="admin-nav-item admin-nav-item--disabled" data-section="compras">
                 <span class="admin-nav-icon">📦</span>
-                <span class="admin-nav-text">Consultar compras insumos</span>
+                <span class="admin-nav-text" data-i18n-key="nav.purchases">Consultar compras insumos</span>
                 <span class="admin-nav-hint">(Próximamente)</span>
             </a>
             <a href="#inventario" class="admin-nav-item admin-nav-item--disabled" data-section="inventario">
                 <span class="admin-nav-icon">📁</span>
-                <span class="admin-nav-text">Consultar inventario</span>
+                <span class="admin-nav-text" data-i18n-key="nav.inventory">Consultar inventario</span>
                 <span class="admin-nav-hint">(Próximamente)</span>
             </a>
         </nav>
@@ -48,21 +48,13 @@
                 <span class="admin-user-name" id="user-name">—</span>
                 <span class="admin-user-rol" id="user-rol">ADMINISTRADOR</span>
             </div>
-            <a href="/" class="admin-link-inicio">← Inicio</a>
-            <button type="button" class="admin-btn-logout" id="btn-logout">Cerrar sesión</button>
+            <button type="button" class="admin-btn-logout" id="btn-logout" data-i18n-key="common.logout">Cerrar sesión</button>
         </div>
     </aside>
 
     <div class="admin-main-wrap">
         <header class="admin-topbar">
-            <h1 class="admin-topbar-title">Dashboard</h1>
-            <div class="admin-topbar-actions">
-                <div class="admin-topbar-user-info">
-                    <span class="admin-topbar-user-name" id="admin-topbar-user-name">—</span>
-                    <span class="admin-topbar-user-rol" id="admin-topbar-user-rol">ADMINISTRADOR</span>
-                </div>
-                <button type="button" class="admin-btn-logout admin-btn-logout--top" id="btn-logout-top">Cerrar sesión</button>
-            </div>
+            <h1 class="admin-topbar-title" data-i18n-key="nav.dashboard">Dashboard</h1>
         </header>
 
         <main class="admin-dashboard">
@@ -141,6 +133,7 @@
     <button type="button" class="admin-sidebar-toggle" id="admin-sidebar-toggle" aria-label="Abrir menú">☰</button>
 
     <script src="/js/auth.js"></script>
+    <script src="/js/accessibility.js"></script>
     <script>
         (async () => {
             const result = await authApi.getMe();
@@ -156,8 +149,6 @@
             const userName = result.usuario?.nombre || result.usuario?.usuario || '—';
             document.getElementById('user-name').textContent = userName;
             document.getElementById('user-rol').textContent = result.usuario?.rol || 'ADMINISTRADOR';
-            document.getElementById('admin-topbar-user-name').textContent = userName;
-            document.getElementById('admin-topbar-user-rol').textContent = result.usuario?.rol || 'ADMINISTRADOR';
 
             const welcomeMsg = document.getElementById('welcome-toast');
             if (new URLSearchParams(window.location.search).get('welcome') === '1') {
@@ -177,7 +168,6 @@
         })();
 
         document.getElementById('btn-logout').addEventListener('click', () => logout());
-        document.getElementById('btn-logout-top').addEventListener('click', () => logout());
         async function logout() {
             const confirmar = window.confirm('¿Desea cerrar sesión?');
             if (!confirmar) return;

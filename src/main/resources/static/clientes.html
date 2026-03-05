@@ -29,82 +29,114 @@
         .form-group { margin-bottom: 16px; }
         .form-group label { display: block; margin-bottom: 6px; color: #aaa; font-size: 13px; }
         .form-group input { width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid #444; background: #222; color: white; }
-        .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+        .modal-actions { display: flex; gap: 12px; justify-content: space-between; margin-top: 24px; }
+        .modal-actions .btn { flex: 1; text-align: center; padding: 10px 0; border-radius: 8px; font-size: 14px; }
         .empty-msg { text-align: center; padding: 40px; color: #888; }
     </style>
 </head>
-<body class="has-fixed-nav">
+<body class="panel-admin-body">
 
-    <header class="navbar navbar-fixed">
-        <a href="/ventas.html" class="link-atras">← Atrás</a>
-        <a href="/" class="logo">
-            <span class="logo-icon">U</span>
-            <span class="logo-text">UNISOF</span>
-        </a>
-        <div class="nav-user-info" id="nav-user-info">
-            <span class="user-name" id="user-name">—</span>
-            <span class="user-rol" id="user-rol">VENDEDOR</span>
+    <aside class="admin-sidebar" id="admin-sidebar">
+        <div class="admin-sidebar-header">
+            <a href="/" class="admin-logo">
+                <span class="admin-logo-icon">U</span>
+                <span class="admin-logo-text">UNISOF</span>
+            </a>
         </div>
-        <button type="button" class="btn-logout btn-logout-nav" id="btn-logout">Cerrar Sesión</button>
-    </header>
+        <nav class="admin-nav">
+            <a href="/ventas.html" class="admin-nav-item" data-section="ventas">
+                <span class="admin-nav-icon">💼</span>
+                <span class="admin-nav-text" data-i18n-key="nav.sales">Ventas</span>
+            </a>
+            <a href="/clientes.html" class="admin-nav-item active" data-section="clientes">
+                <span class="admin-nav-icon">👥</span>
+                <span class="admin-nav-text" data-i18n-key="nav.clients">Clientes</span>
+            </a>
+            <a href="/ordenes.html" class="admin-nav-item" data-section="ordenes">
+                <span class="admin-nav-icon">📋</span>
+                <span class="admin-nav-text" data-i18n-key="nav.requests">Pedidos</span>
+            </a>
+        </nav>
+        <div class="admin-sidebar-footer">
+            <div class="admin-user-info" id="admin-sidebar-user">
+                <span class="admin-user-name" id="user-name">—</span>
+                <span class="admin-user-rol" id="user-rol">VENDEDOR</span>
+            </div>
+            <button type="button" class="admin-btn-logout" id="btn-logout" data-i18n-key="common.logout">Cerrar sesión</button>
+        </div>
+    </aside>
 
-    <main class="panel-main">
-        <h1 class="panel-title">Consultar clientes</h1>
+        <div class="admin-main-wrap">
+            <header class="admin-topbar">
+                <h1 class="admin-topbar-title" data-i18n-key="title.clients">Clientes</h1>
+            </header>
+
+        <main class="admin-dashboard">
+        <div class="panel-main">
+        <h1 class="panel-title" data-i18n-key="title.clients">Consultar clientes</h1>
         <div class="crud-section">
             <div class="crud-toolbar">
-                <input type="text" id="buscar-cedula" placeholder="Buscar por cédula" style="width: 200px;">
-                <button type="button" class="btn btn-secondary" id="btn-buscar-cedula">Buscar</button>
-                <button type="button" class="btn btn-primary-crud" id="btn-crear">Crear cliente</button>
-                <button type="button" class="btn btn-secondary" id="btn-listar-todos">Listar todos</button>
+                <input type="text" id="buscar-cedula" data-i18n-placeholder="clients.search" placeholder="Buscar por cédula" style="width: 200px;">
+                <button type="button" class="btn btn-secondary" id="btn-buscar-cedula" data-i18n-key="clients.searchBtn">Buscar</button>
+                <button type="button" class="btn btn-primary-crud" id="btn-crear" data-i18n-key="clients.create">Crear cliente</button>
+                <button type="button" class="btn btn-secondary" id="btn-listar-todos" data-i18n-key="clients.listAll">Listar todos</button>
             </div>
             <div id="tabla-container">
                 <table class="crud-table" id="tabla-clientes">
                     <thead>
                         <tr>
-                            <th>Nombre</th>
-                            <th>Cédula</th>
-                            <th>Correo</th>
-                            <th>Teléfono</th>
-                            <th>Acciones</th>
+                            <th data-i18n-key="clients.name">Nombre</th>
+                            <th data-i18n-key="clients.cedula">Cédula</th>
+                            <th data-i18n-key="clients.email">Correo</th>
+                            <th data-i18n-key="clients.phone">Teléfono</th>
+                            <th data-i18n-key="clients.actions">Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="tabla-body">
                     </tbody>
                 </table>
-                <p class="empty-msg" id="empty-msg" style="display:none;">No hay clientes. Haz clic en "Crear cliente" para agregar uno.</p>
+                <p class="empty-msg" id="empty-msg" style="display:none;" data-i18n-key="clients.empty">No hay clientes. Haz clic en "Crear cliente" para agregar uno.</p>
+            </div>
+            <div class="clientes-actions-bar">
+                <span id="clientes-seleccion-info" data-i18n-key="clients.noSelection">Ningún cliente seleccionado.</span>
+                <button type="button" class="btn btn-secondary" id="btn-limpiar-clientes" data-i18n-key="clients.clearFields">Limpiar campos</button>
             </div>
         </div>
-    </main>
+        </div>
+        </main>
+    </div>
+
+    <button type="button" class="admin-sidebar-toggle" id="admin-sidebar-toggle" aria-label="Abrir menú">☰</button>
 
     <!-- Modal Crear/Editar -->
     <div class="modal-overlay" id="modal-cliente">
         <div class="modal-box">
-            <h3 id="modal-titulo">Crear cliente</h3>
+            <h3 id="modal-titulo" data-i18n-key="clients.modalCreate">Crear cliente</h3>
             <form id="form-cliente">
                 <input type="hidden" id="form-id">
                 <div class="form-group">
-                    <label for="form-nombre">Nombre completo *</label>
+                    <label for="form-nombre" data-i18n-key="clients.fullName">Nombre completo *</label>
                     <input type="text" id="form-nombre" required placeholder="Ej: Juan Pérez">
                 </div>
                 <div class="form-group">
-                    <label for="form-cedula">Cédula *</label>
+                    <label for="form-cedula" data-i18n-key="clients.cedulaLabel">Cédula *</label>
                     <input type="text" id="form-cedula" required placeholder="Ej: 123456789" pattern="[0-9\s\-\.]+">
                 </div>
                 <div class="form-group">
-                    <label for="form-correo">Correo electrónico *</label>
+                    <label for="form-correo" data-i18n-key="clients.emailLabel">Correo electrónico *</label>
                     <input type="email" id="form-correo" required placeholder="cliente@ejemplo.com">
                 </div>
                 <div class="form-group">
-                    <label for="form-telefono">Teléfono</label>
+                    <label for="form-telefono" data-i18n-key="clients.phoneLabel">Teléfono</label>
                     <input type="tel" id="form-telefono" placeholder="+57 300 123 4567">
                 </div>
                 <div class="form-group">
-                    <label for="form-direccion">Dirección</label>
+                    <label for="form-direccion" data-i18n-key="clients.address">Dirección</label>
                     <input type="text" id="form-direccion" placeholder="Calle, ciudad, país">
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" id="btn-cerrar-modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary-crud">Guardar</button>
+                    <button type="button" class="btn btn-secondary" id="btn-cerrar-modal" data-i18n-key="clients.cancel">Cancelar</button>
+                    <button type="submit" class="btn btn-primary-crud" data-i18n-key="clients.save">Guardar</button>
                 </div>
             </form>
         </div>
@@ -112,6 +144,7 @@
 
     <script src="/js/auth.js"></script>
     <script src="/js/toast.js"></script>
+    <script src="/js/accessibility.js"></script>
     <script>
         (async () => {
             const result = await authApi.getMe();
@@ -123,12 +156,49 @@
         })();
 
         document.getElementById('btn-logout').addEventListener('click', async () => {
+            const confirmar = window.confirm('¿Desea cerrar sesión?');
+            if (!confirmar) return;
             await authApi.logout();
             window.location.href = '/';
         });
 
+        // Sidebar móvil igual que en ventas/panel-admin
+        const sidebar = document.getElementById('admin-sidebar');
+        const toggle = document.getElementById('admin-sidebar-toggle');
+        if (toggle && sidebar) {
+            toggle.addEventListener('click', () => {
+                sidebar.classList.toggle('open');
+                toggle.setAttribute('aria-label', sidebar.classList.contains('open') ? 'Cerrar menú' : 'Abrir menú');
+            });
+        }
+
+        // Resaltar opción activa del menú lateral
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.admin-nav-item[href]').forEach(link => {
+            const href = link.getAttribute('href');
+            if (href && href !== '#' && !href.startsWith('#') && currentPath.indexOf(href) !== -1) {
+                link.classList.add('active');
+            } else if (link.getAttribute('href') === '/clientes.html' && currentPath === '/clientes.html') {
+                link.classList.add('active');
+            } else if (!link.classList.contains('admin-nav-item--disabled')) {
+                link.classList.remove('active');
+            }
+        });
+
         const modal = document.getElementById('modal-cliente');
         const form = document.getElementById('form-cliente');
+        const infoSeleccion = document.getElementById('clientes-seleccion-info');
+        const inputBuscarCedula = document.getElementById('buscar-cedula');
+        let clienteSeleccionadoId = null;
+
+        function limpiarSeleccion() {
+            clienteSeleccionadoId = null;
+            const filas = document.querySelectorAll('#tabla-body tr');
+            filas.forEach(fila => fila.classList.remove('usuarios-row-selected'));
+            if (infoSeleccion) {
+                infoSeleccion.textContent = 'Ningún cliente seleccionado.';
+            }
+        }
 
         async function listarTodos() {
             try {
@@ -143,6 +213,14 @@
         }
 
         document.getElementById('btn-listar-todos').addEventListener('click', listarTodos);
+
+        document.getElementById('btn-limpiar-clientes').addEventListener('click', () => {
+            if (inputBuscarCedula) {
+                inputBuscarCedula.value = '';
+            }
+            limpiarSeleccion();
+            renderTabla([]);
+        });
 
         document.getElementById('btn-buscar-cedula').addEventListener('click', async () => {
             const cedula = document.getElementById('buscar-cedula').value.trim();
@@ -163,6 +241,7 @@
         });
 
         function renderTabla(clientes) {
+            limpiarSeleccion();
             const tbody = document.getElementById('tabla-body');
             const emptyMsg = document.getElementById('empty-msg');
             tbody.innerHTML = '';
@@ -175,6 +254,7 @@
             emptyMsg.style.display = 'none';
             clientes.forEach(c => {
                 const tr = document.createElement('tr');
+                tr.dataset.id = c.id;
                 tr.innerHTML = `
                     <td>${escapeHtml(c.nombre)}</td>
                     <td>${escapeHtml(c.cedula)}</td>
@@ -182,15 +262,38 @@
                     <td>${escapeHtml(c.telefono || '—')}</td>
                     <td>
                         <div class="actions">
-                            <button type="button" class="btn btn-secondary btn-editar" data-id="${c.id}">Editar</button>
+                            <button type="button" class="btn btn-secondary btn-editar" data-id="${c.id}" data-i18n-key="clients.edit">Editar</button>
                         </div>
                     </td>
                 `;
+                tr.addEventListener('click', (event) => {
+                    // Evitar que el click en el botón "Editar" dispare la selección de fila
+                    if (event.target.closest('button')) return;
+                    seleccionarFilaCliente(tr, c);
+                });
                 tbody.appendChild(tr);
             });
             tbody.querySelectorAll('.btn-editar').forEach(btn => {
                 btn.addEventListener('click', () => abrirEditar(btn.dataset.id));
             });
+        }
+
+        function seleccionarFilaCliente(tr, cliente) {
+            const tbody = document.getElementById('tabla-body');
+            if (!tbody) return;
+
+            const yaSeleccionada = tr.classList.contains('usuarios-row-selected');
+            limpiarSeleccion();
+
+            if (!yaSeleccionada) {
+                tr.classList.add('usuarios-row-selected');
+                clienteSeleccionadoId = cliente.id;
+                if (infoSeleccion) {
+                    const nombre = cliente.nombre || '—';
+                    const cedula = cliente.cedula || '—';
+                    infoSeleccion.textContent = `Seleccionado: ${nombre} (${cedula})`;
+                }
+            }
         }
 
         function escapeHtml(s) {
@@ -201,7 +304,7 @@
         }
 
         document.getElementById('btn-crear').addEventListener('click', () => {
-            document.getElementById('modal-titulo').textContent = 'Crear cliente';
+            document.getElementById('modal-titulo').textContent = (typeof __a11yTranslate === 'function' ? __a11yTranslate('clients.modalCreate') : 'Crear cliente');
             document.getElementById('form-id').value = '';
             form.reset();
             modal.classList.remove('hidden');
@@ -215,7 +318,7 @@
                 const res = await fetch('/api/clientes/' + id, { credentials: 'include' });
                 if (!res.ok) throw new Error('Cliente no encontrado');
                 const c = await res.json();
-                document.getElementById('modal-titulo').textContent = 'Editar cliente';
+                document.getElementById('modal-titulo').textContent = (typeof __a11yTranslate === 'function' ? __a11yTranslate('clients.modalEdit') : 'Editar cliente');
                 document.getElementById('form-id').value = c.id;
                 document.getElementById('form-nombre').value = c.nombre;
                 document.getElementById('form-cedula').value = c.cedula;

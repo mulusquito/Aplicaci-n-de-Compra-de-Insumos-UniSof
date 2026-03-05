@@ -15,7 +15,7 @@
         </a>
 
         <div class="nav-actions">
-            <a href="/login.html" class="nav-icon nav-icon-user" id="btn-login" title="Iniciar Sesión">
+            <a href="/login.html" class="nav-icon nav-icon-user" id="btn-login" data-i18n-title="home.loginTitle" title="Iniciar Sesión">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
             </a>
             <div class="nav-user-logged" id="nav-user-logged" style="display:none">
@@ -33,18 +33,18 @@
     <section class="hero">
 
         <div class="hero-left">
-            <span class="badge">★ Nueva Colección 2026</span>
+            <span class="badge" data-i18n-key="home.badge">★ Nueva Colección 2026</span>
             <h1 class="hero-brand">UNISOF</h1>
 
             <div class="buttons">
                 <div class="dropdown-catalogo">
-                    <button class="btn-secondary btn-catalogo">
+                    <button class="btn-secondary btn-catalogo" data-i18n-key="home.catalog">
                         Ver Catálogo
                         <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
                     </button>
                     <div class="dropdown-catalogo-menu">
-                        <a href="#damas">Mujer</a>
-                        <a href="#caballeros">Hombre</a>
+                        <a href="#damas" data-i18n-key="home.woman">Mujer</a>
+                        <a href="#caballeros" data-i18n-key="home.man">Hombre</a>
                     </div>
                 </div>
             </div>
@@ -66,8 +66,8 @@
 
     <!-- CATÁLOGO CABALLEROS -->
     <section id="caballeros" class="catalog-section">
-        <h2 class="catalog-title">Caballeros</h2>
-        <p class="catalog-subtitle">Explora nuestra colección para hombre.</p>
+        <h2 class="catalog-title" data-i18n-key="home.catalogTitle">Caballeros</h2>
+        <p class="catalog-subtitle" data-i18n-key="home.catalogSubtitle">Explora nuestra colección para hombre.</p>
 
         <div class="catalog-category">
             <h3 class="catalog-category-title">Blaizer</h3>
@@ -332,11 +332,12 @@
         </div>
     </section>
 
-    <footer>
+    <footer data-i18n-key="home.footer">
         © 2026 UNISOF. Todos los derechos reservados.
     </footer>
 
     <script src="/js/auth.js"></script>
+    <script src="/js/accessibility.js"></script>
     <script>
         (async () => {
             const result = await authApi.getMe();

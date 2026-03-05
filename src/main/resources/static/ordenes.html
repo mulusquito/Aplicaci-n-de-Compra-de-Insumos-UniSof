@@ -39,63 +39,96 @@
         .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
     </style>
 </head>
-<body class="has-fixed-nav">
+<body class="panel-admin-body">
 
-    <header class="navbar navbar-fixed">
-        <a href="/ventas.html" class="link-atras">← Atrás</a>
-        <a href="/" class="logo">
-            <span class="logo-icon">U</span>
-            <span class="logo-text">UNISOF</span>
-        </a>
-        <div class="nav-user-info" id="nav-user-info">
-            <span class="user-name" id="user-name">—</span>
-            <span class="user-rol" id="user-rol">VENDEDOR</span>
+    <aside class="admin-sidebar" id="admin-sidebar">
+        <div class="admin-sidebar-header">
+            <a href="/" class="admin-logo">
+                <span class="admin-logo-icon">U</span>
+                <span class="admin-logo-text">UNISOF</span>
+            </a>
         </div>
-        <button type="button" class="btn-logout btn-logout-nav" id="btn-logout">Cerrar Sesión</button>
-    </header>
+        <nav class="admin-nav">
+            <a href="/ventas.html" class="admin-nav-item" data-section="ventas">
+                <span class="admin-nav-icon">💼</span>
+                <span class="admin-nav-text" data-i18n-key="nav.sales">Ventas</span>
+            </a>
+            <a href="/clientes.html" class="admin-nav-item" data-section="clientes">
+                <span class="admin-nav-icon">👥</span>
+                <span class="admin-nav-text" data-i18n-key="nav.clients">Clientes</span>
+            </a>
+            <a href="/ordenes.html" class="admin-nav-item active" data-section="ordenes">
+                <span class="admin-nav-icon">📋</span>
+                <span class="admin-nav-text" data-i18n-key="nav.requests">Pedidos</span>
+            </a>
+        </nav>
+        <div class="admin-sidebar-footer">
+            <div class="admin-user-info" id="admin-sidebar-user">
+                <span class="admin-user-name" id="user-name">—</span>
+                <span class="admin-user-rol" id="user-rol">VENDEDOR</span>
+            </div>
+            <button type="button" class="admin-btn-logout" id="btn-logout" data-i18n-key="common.logout">Cerrar sesión</button>
+        </div>
+    </aside>
 
-    <main class="panel-main">
-        <h1 class="panel-title">Consultar pedidos</h1>
+        <div class="admin-main-wrap">
+        <header class="admin-topbar">
+            <h1 class="admin-topbar-title" data-i18n-key="title.orders">Pedidos</h1>
+        </header>
+
+        <main class="admin-dashboard">
+        <div class="panel-main">
+        <h1 class="panel-title" data-i18n-key="orders.consultTitle">Consultar pedidos</h1>
         <div class="crud-section">
             <div class="crud-toolbar">
                 <div class="search-group">
-                    <label>Nº orden:</label>
+                    <label data-i18n-key="orders.orderNo">Nº orden:</label>
                     <input type="text" id="buscar-numero" placeholder="001, 002, 003..." style="width: 100px;">
-                    <button type="button" class="btn btn-secondary" id="btn-buscar-numero">Buscar</button>
+                    <button type="button" class="btn btn-secondary" id="btn-buscar-numero" data-i18n-key="orders.searchByNo">Buscar</button>
                 </div>
                 <div class="search-group">
-                    <label>Fecha:</label>
+                    <label data-i18n-key="orders.cedula">Cédula:</label>
+                    <input type="text" id="buscar-cedula" data-i18n-placeholder="orders.idPlaceholder" placeholder="Número de identificación" style="width: 160px;">
+                    <button type="button" class="btn btn-secondary" id="btn-buscar-cedula" data-i18n-key="orders.byCedula">Por cédula</button>
+                </div>
+                <div class="search-group">
+                    <label data-i18n-key="orders.date">Fecha:</label>
                     <input type="date" id="buscar-fecha" style="width: 160px;">
-                    <button type="button" class="btn btn-secondary" id="btn-buscar-fecha">Por fecha</button>
+                    <button type="button" class="btn btn-secondary" id="btn-buscar-fecha" data-i18n-key="orders.byDate">Por fecha</button>
                 </div>
                 <div class="search-group">
-                    <label>Mes:</label>
+                    <label data-i18n-key="orders.month">Mes:</label>
                     <input type="month" id="buscar-mes" style="width: 160px;">
-                    <button type="button" class="btn btn-secondary" id="btn-buscar-mes">Por mes</button>
+                    <button type="button" class="btn btn-secondary" id="btn-buscar-mes" data-i18n-key="orders.byMonth">Por mes</button>
                 </div>
-                <button type="button" class="btn btn-primary-crud" id="btn-listar-todos">Listar todas</button>
+                <button type="button" class="btn btn-primary-crud" id="btn-listar-todos" data-i18n-key="orders.listAll">Listar todas</button>
             </div>
             <div id="tabla-container">
                 <table class="crud-table" id="tabla-ordenes">
                     <thead>
                         <tr>
                             <th>Nº</th>
-                            <th>Cliente</th>
-                            <th>Fecha</th>
-                            <th>Total</th>
-                            <th>Estado</th>
+                            <th data-i18n-key="orders.client">Cliente</th>
+                            <th data-i18n-key="orders.date">Fecha</th>
+                            <th data-i18n-key="orders.total">Total</th>
+                            <th data-i18n-key="orders.status">Estado</th>
                         </tr>
                     </thead>
                     <tbody id="tabla-body">
                     </tbody>
                 </table>
-                <p class="empty-msg" id="empty-msg" style="display:none;">No hay pedidos. Los pedidos se crean desde el carrito en Ventas.</p>
+                <p class="empty-msg" id="empty-msg" style="display:none;" data-i18n-key="orders.empty">No hay pedidos. Los pedidos se crean desde el carrito en Ventas.</p>
             </div>
         </div>
-    </main>
+        </div>
+        </main>
+    </div>
+
+    <button type="button" class="admin-sidebar-toggle" id="admin-sidebar-toggle" aria-label="Abrir menú">☰</button>
 
     <script src="/js/auth.js"></script>
     <script src="/js/toast.js"></script>
+    <script src="/js/accessibility.js"></script>
     <script>
         (async () => {
             const result = await authApi.getMe();
@@ -107,9 +140,21 @@
         })();
 
         document.getElementById('btn-logout').addEventListener('click', async () => {
+            const confirmar = window.confirm('¿Desea cerrar sesión?');
+            if (!confirmar) return;
             await authApi.logout();
             window.location.href = '/';
         });
+
+        // Sidebar móvil igual que en ventas/panel-admin
+        const sidebar = document.getElementById('admin-sidebar');
+        const toggle = document.getElementById('admin-sidebar-toggle');
+        if (toggle && sidebar) {
+            toggle.addEventListener('click', () => {
+                sidebar.classList.toggle('open');
+                toggle.setAttribute('aria-label', sidebar.classList.contains('open') ? 'Cerrar menú' : 'Abrir menú');
+            });
+        }
 
         function formatFecha(isoStr) {
             if (!isoStr) return '—';
@@ -144,6 +189,12 @@
             const num = document.getElementById('buscar-numero').value.trim();
             if (!num) { Toast.error('Ingresa un número de orden'); return; }
             cargarOrdenes({ numero: num });
+        });
+
+        document.getElementById('btn-buscar-cedula').addEventListener('click', () => {
+            const cedula = document.getElementById('buscar-cedula').value.trim();
+            if (!cedula) { Toast.error('Ingresa una cédula'); return; }
+            cargarOrdenes({ cedula });
         });
 
         document.getElementById('btn-buscar-fecha').addEventListener('click', () => {

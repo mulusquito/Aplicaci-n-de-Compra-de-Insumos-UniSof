@@ -6,51 +6,113 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/styles.css">
 </head>
-<body class="has-fixed-nav">
+<body class="panel-admin-body">
 
     <div class="welcome-toast" id="welcome-toast">¡Bienvenido a UNISOF!</div>
 
-    <header class="navbar navbar-fixed">
-        <a href="/" class="link-atras">← Atrás</a>
-        <a href="/" class="logo">
-            <span class="logo-icon">U</span>
-            <span class="logo-text">UNISOF</span>
-        </a>
-        <button type="button" class="nav-cart-btn" id="btn-cart" title="Ver carrito">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
-            <span class="cart-badge" id="cart-badge">0</span>
-        </button>
-        <div class="nav-user-info" id="nav-user-info">
-            <span class="user-name" id="user-name">—</span>
-            <span class="user-rol" id="user-rol">VENDEDOR</span>
+    <aside class="admin-sidebar" id="admin-sidebar">
+        <div class="admin-sidebar-header">
+            <a href="/" class="admin-logo">
+                <span class="admin-logo-icon">U</span>
+                <span class="admin-logo-text">UNISOF</span>
+            </a>
         </div>
-        <button type="button" class="btn-logout btn-logout-nav" id="btn-logout">Cerrar Sesión</button>
-    </header>
-
-    <main class="panel-main">
-        <h1 class="panel-title">Ventas</h1>
-        <div class="panel-buttons">
-            <a href="/clientes.html" class="panel-btn">
-                <span class="panel-btn-icon">👥</span>
-                <span class="panel-btn-text">Consultar clientes</span>
+        <nav class="admin-nav">
+            <a href="/ventas.html" class="admin-nav-item active" data-section="ventas">
+                <span class="admin-nav-icon">💼</span>
+                <span class="admin-nav-text" data-i18n-key="nav.sales">Ventas</span>
             </a>
-            <a href="/ordenes.html" class="panel-btn">
-                <span class="panel-btn-icon">📋</span>
-                <span class="panel-btn-text">Consultar pedidos</span>
+            <a href="/clientes.html" class="admin-nav-item" data-section="clientes">
+                <span class="admin-nav-icon">👥</span>
+                <span class="admin-nav-text" data-i18n-key="nav.clients">Clientes</span>
             </a>
-            <div class="panel-btn panel-btn-catalogo dropdown-catalogo">
-                <button type="button" class="panel-btn-inner btn-catalogo">
-                    <span class="panel-btn-icon">👕</span>
-                    <span class="panel-btn-text">Ver catálogo</span>
-                    <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
-                </button>
-                <div class="dropdown-catalogo-menu panel-dropdown-menu">
-                    <a href="#damas">Mujer</a>
-                    <a href="#caballeros">Hombre</a>
-                </div>
+            <a href="/ordenes.html" class="admin-nav-item" data-section="ordenes">
+                <span class="admin-nav-icon">📋</span>
+                <span class="admin-nav-text" data-i18n-key="nav.requests">Pedidos</span>
+            </a>
+        </nav>
+        <div class="admin-sidebar-footer">
+            <div class="admin-user-info" id="admin-sidebar-user">
+                <span class="admin-user-name" id="user-name">—</span>
+                <span class="admin-user-rol" id="user-rol">VENDEDOR</span>
             </div>
+            <button type="button" class="admin-btn-logout" id="btn-logout" data-i18n-key="common.logout">Cerrar sesión</button>
         </div>
-    </main>
+    </aside>
+
+    <div class="admin-main-wrap">
+        <header class="admin-topbar">
+            <h1 class="admin-topbar-title" data-i18n-key="title.sales">Ventas</h1>
+            <div class="admin-topbar-actions">
+                <button type="button" class="nav-cart-btn" id="btn-cart" title="Ver carrito">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                    <span class="cart-badge" id="cart-badge">0</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="admin-dashboard">
+            <div class="panel-main">
+                <h1 class="panel-title">Resumen de ventas</h1>
+                <section class="dashboard-cards" id="resumen-ventas">
+                    <article class="dashboard-card">
+                        <div class="dashboard-card-header">
+                            <h3 class="dashboard-card-title">Ventas de hoy</h3>
+                        </div>
+                        <div class="dashboard-card-body">
+                            <p class="dashboard-card-value" id="ventas-hoy-total">—</p>
+                            <p class="dashboard-card-label">Total vendido (COP)</p>
+                        </div>
+                    </article>
+                    <article class="dashboard-card">
+                        <div class="dashboard-card-header">
+                            <h3 class="dashboard-card-title">Pedidos de hoy</h3>
+                        </div>
+                        <div class="dashboard-card-body">
+                            <p class="dashboard-card-value" id="ventas-hoy-pedidos">—</p>
+                            <p class="dashboard-card-label">Órdenes generadas</p>
+                        </div>
+                    </article>
+                    <article class="dashboard-card">
+                        <div class="dashboard-card-header">
+                            <h3 class="dashboard-card-title">Ticket promedio</h3>
+                        </div>
+                        <div class="dashboard-card-body">
+                            <p class="dashboard-card-value" id="ventas-hoy-promedio">—</p>
+                            <p class="dashboard-card-label">Promedio por pedido</p>
+                        </div>
+                    </article>
+                </section>
+
+                <section class="dashboard-section">
+                <h2 class="dashboard-section-title">Accesos rápidos</h2>
+                    <div class="panel-buttons">
+                        <a href="#resumen-ventas" class="panel-btn">
+                            <span class="panel-btn-icon">📊</span>
+                            <span class="panel-btn-text">Ventas</span>
+                        </a>
+                        <a href="/clientes.html" class="panel-btn">
+                            <span class="panel-btn-icon">👥</span>
+                            <span class="panel-btn-text">Clientes</span>
+                        </a>
+                        <a href="/ordenes.html" class="panel-btn">
+                            <span class="panel-btn-icon">📋</span>
+                            <span class="panel-btn-text">Pedidos</span>
+                        </a>
+                        <div class="panel-btn panel-btn-catalogo dropdown-catalogo">
+                            <button type="button" class="panel-btn-inner btn-catalogo">
+                                <span class="panel-btn-icon">👕</span>
+                                <span class="panel-btn-text">Ver catálogo</span>
+                                <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
+                            </button>
+                            <div class="dropdown-catalogo-menu panel-dropdown-menu">
+                                <a href="#damas">Mujer</a>
+                                <a href="#caballeros">Hombre</a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
 
     <!-- CATÁLOGO CABALLEROS (solo visible al seleccionar Hombre) -->
     <section id="caballeros" class="catalog-section catalog-hombre">
@@ -319,6 +381,10 @@
             </div>
         </div>
     </section>
+        </main>
+    </div>
+
+    <button type="button" class="admin-sidebar-toggle" id="admin-sidebar-toggle" aria-label="Abrir menú">☰</button>
 
     <!-- CARRITO (sidebar) -->
     <div class="cart-overlay" id="cart-overlay"></div>
@@ -391,6 +457,7 @@
     <script src="/js/auth.js"></script>
     <script src="/js/toast.js"></script>
     <script src="/js/cart.js"></script>
+    <script src="/js/accessibility.js"></script>
     <script>
         (async () => {
             let result;
@@ -415,6 +482,38 @@
             }
             document.getElementById('user-name').textContent = result.usuario?.nombre || result.usuario?.usuario;
             document.getElementById('user-rol').textContent = result.usuario?.rol || 'VENDEDOR';
+
+            // Estadísticas diarias de ventas
+            try {
+                const hoy = new Date();
+                const fecha = hoy.toISOString().slice(0, 10); // yyyy-MM-dd
+                const res = await fetch('/api/recibos?fecha=' + fecha, { credentials: 'include' });
+                if (res.ok) {
+                    const data = await res.json();
+                    let total = 0;
+                    let count = 0;
+                    if (Array.isArray(data)) {
+                        data.forEach(r => {
+                            if (r && r.total != null) {
+                                const valor = typeof r.total === 'number' ? r.total : Number(r.total);
+                                if (!Number.isNaN(valor)) {
+                                    total += valor;
+                                    count += 1;
+                                }
+                            }
+                        });
+                    }
+                    const formatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+                    const totalEl = document.getElementById('ventas-hoy-total');
+                    const pedidosEl = document.getElementById('ventas-hoy-pedidos');
+                    const promedioEl = document.getElementById('ventas-hoy-promedio');
+                    if (totalEl) totalEl.textContent = formatter.format(total);
+                    if (pedidosEl) pedidosEl.textContent = count;
+                    if (promedioEl) promedioEl.textContent = count > 0 ? formatter.format(total / count) : '—';
+                }
+            } catch (_) {
+                // Silencioso: si falla, dejamos los valores por defecto
+            }
 
             // Mensaje de bienvenida al iniciar sesión
             const welcomeMsg = document.getElementById('welcome-toast');
@@ -474,6 +573,29 @@
             if (!confirmar) return;
             await authApi.logout();
             window.location.href = '/';
+        });
+
+        // Sidebar móvil igual que en panel-admin
+        const sidebar = document.getElementById('admin-sidebar');
+        const toggle = document.getElementById('admin-sidebar-toggle');
+        if (toggle && sidebar) {
+            toggle.addEventListener('click', () => {
+                sidebar.classList.toggle('open');
+                toggle.setAttribute('aria-label', sidebar.classList.contains('open') ? 'Cerrar menú' : 'Abrir menú');
+            });
+        }
+
+        // Resaltar opción activa del menú lateral
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.admin-nav-item[href]').forEach(link => {
+            const href = link.getAttribute('href');
+            if (href && href !== '#' && !href.startsWith('#') && currentPath.indexOf(href) !== -1) {
+                link.classList.add('active');
+            } else if (link.getAttribute('href') === '/ventas.html' && currentPath === '/ventas.html') {
+                link.classList.add('active');
+            } else if (!link.classList.contains('admin-nav-item--disabled')) {
+                link.classList.remove('active');
+            }
         });
 
         document.querySelector('.panel-btn-catalogo')?.addEventListener('click', (e) => {

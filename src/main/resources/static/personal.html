@@ -6,30 +6,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/styles.css">
 </head>
-<body>
+<body class="panel-admin-body">
 
 <div class="welcome-toast" id="welcome-toast">Gestión de personal UNISOF</div>
 <div class="registro-success-toast" id="registro-success-toast" aria-live="polite"></div>
 
-<header class="navbar">
-    <a href="/panel-admin.html" class="link-atras">← Panel admin</a>
-    <a href="/" class="logo">
-        <span class="logo-icon">U</span>
-        <span class="logo-text">UNISOF</span>
-    </a>
-    <div class="nav-user-info" id="nav-user-info">
-        <span class="user-name" id="user-name">—</span>
-        <span class="user-rol" id="user-rol">ADMINISTRADOR</span>
+<aside class="admin-sidebar" id="admin-sidebar">
+    <div class="admin-sidebar-header">
+        <a href="/" class="admin-logo">
+            <span class="admin-logo-icon">U</span>
+            <span class="admin-logo-text">UNISOF</span>
+        </a>
     </div>
-    <button type="button" class="btn-logout btn-logout-nav" id="btn-logout">Cerrar Sesión</button>
-</header>
+    <nav class="admin-nav">
+        <a href="/panel-admin.html" class="admin-nav-item" data-section="dashboard">
+            <span class="admin-nav-icon">📊</span>
+            <span class="admin-nav-text" data-i18n-key="nav.dashboard">Dashboard</span>
+        </a>
+        <a href="/personal.html" class="admin-nav-item active" data-section="personal">
+            <span class="admin-nav-icon">👤</span>
+            <span class="admin-nav-text" data-i18n-key="nav.personal">Personal</span>
+        </a>
+        <a href="#ordenes-compra" class="admin-nav-item admin-nav-item--disabled" data-section="ordenes">
+            <span class="admin-nav-icon">📋</span>
+            <span class="admin-nav-text" data-i18n-key="nav.orders">Consultar órdenes de compra</span>
+            <span class="admin-nav-hint">(Próximamente)</span>
+        </a>
+        <a href="#compras-insumos" class="admin-nav-item admin-nav-item--disabled" data-section="compras">
+            <span class="admin-nav-icon">📦</span>
+            <span class="admin-nav-text" data-i18n-key="nav.purchases">Consultar compras insumos</span>
+            <span class="admin-nav-hint">(Próximamente)</span>
+        </a>
+        <a href="#inventario" class="admin-nav-item admin-nav-item--disabled" data-section="inventario">
+            <span class="admin-nav-icon">📁</span>
+            <span class="admin-nav-text" data-i18n-key="nav.inventory">Consultar inventario</span>
+            <span class="admin-nav-hint">(Próximamente)</span>
+        </a>
+    </nav>
+    <div class="admin-sidebar-footer">
+        <div class="admin-user-info" id="admin-sidebar-user">
+            <span class="admin-user-name" id="user-name">—</span>
+            <span class="admin-user-rol" id="user-rol">ADMINISTRADOR</span>
+        </div>
+        <button type="button" class="admin-btn-logout" id="btn-logout" data-i18n-key="common.logout">Cerrar sesión</button>
+    </div>
+</aside>
 
-<main class="panel-main">
-    <h1 class="panel-title">Gestión de personal UNISOF</h1>
+<div class="admin-main-wrap">
+    <header class="admin-topbar">
+        <h1 class="admin-topbar-title" data-i18n-key="title.personal">Gestión de personal</h1>
+    </header>
+
+    <main class="admin-dashboard">
+        <div class="panel-main">
+            <h1 class="panel-title" data-i18n-key="title.personal">Gestión de personal UNISOF</h1>
 
     <div class="modal-registro-tabs">
-        <button type="button" class="modal-registro-tab active" data-tab="registrar" id="tab-registrar">Registrar</button>
-        <button type="button" class="modal-registro-tab" data-tab="gestionar" id="tab-gestionar">Gestionar</button>
+        <button type="button" class="modal-registro-tab active" data-tab="registrar" id="tab-registrar" data-i18n-key="personal.register">Registrar</button>
+        <button type="button" class="modal-registro-tab" data-tab="gestionar" id="tab-gestionar" data-i18n-key="personal.manage">Gestionar</button>
     </div>
 
     <div class="modal-registro-alert" id="registro-alert" role="alert" hidden></div>
@@ -46,42 +80,42 @@
         <!-- Tab Registrar -->
         <form id="form-registro-usuario" class="form-registro modal-registro-tab-panel" data-tab-panel="registrar">
             <div class="form-group">
-                <label for="reg-nombre">Nombre completo</label>
+                <label for="reg-nombre" data-i18n-key="personal.fullName">Nombre completo</label>
                 <input type="text" id="reg-nombre" name="nombreCompleto" autocomplete="name" required>
             </div>
             <div class="form-group">
-                <label for="reg-usuario">Usuario (para inicio de sesión)</label>
+                <label for="reg-usuario" data-i18n-key="personal.userLogin">Usuario (para inicio de sesión)</label>
                 <input type="text" id="reg-usuario" name="usuario" autocomplete="username" required placeholder="Ej: jperez">
                 <span class="input-hint-small">Con este usuario y su clave ingresará al sistema</span>
             </div>
             <div class="form-group">
-                <label for="reg-identificacion">Número de identificación</label>
+                <label for="reg-identificacion" data-i18n-key="personal.idNumber">Número de identificación</label>
                 <input type="text" id="reg-identificacion" name="numeroIdentificacion" required>
             </div>
             <div class="form-group">
-                <label for="reg-correo">Correo electrónico</label>
+                <label for="reg-correo" data-i18n-key="personal.email">Correo electrónico</label>
                 <input type="email" id="reg-correo" name="correo" autocomplete="email" required>
             </div>
             <div class="form-group">
-                <label for="reg-celular">Celular</label>
+                <label for="reg-celular" data-i18n-key="personal.cell">Celular</label>
                 <input type="tel" id="reg-celular" name="celular" required>
             </div>
             <div class="form-group">
-                <label for="reg-clave">Clave de acceso</label>
+                <label for="reg-clave" data-i18n-key="personal.password">Clave de acceso</label>
                 <input type="password" id="reg-clave" name="clave" autocomplete="new-password" required>
                 <span class="input-hint-small" id="reg-clave-hint" hidden>Dejar en blanco para mantener la contraseña actual.</span>
             </div>
             <div class="form-group">
-                <label for="reg-confirmar-clave">Confirmar clave</label>
+                <label for="reg-confirmar-clave" data-i18n-key="personal.confirmPassword">Confirmar clave</label>
                 <input type="password" id="reg-confirmar-clave" name="confirmarClave" autocomplete="new-password" required>
             </div>
             <div class="form-group">
-                <label for="reg-rol">Rol</label>
+                <label for="reg-rol" data-i18n-key="personal.role">Rol</label>
                 <select id="reg-rol" name="rol" required>
-                    <option value="">Seleccione un rol</option>
-                    <option value="VENDEDOR">Vendedor</option>
-                    <option value="JEFE DE VENTAS">Jefe de ventas</option>
-                    <option value="ADMINISTRADOR">Administrador</option>
+                    <option value="" data-i18n-key="personal.selectRole">Seleccione un rol</option>
+                    <option value="VENDEDOR" data-i18n-key="personal.vendedor">Vendedor</option>
+                    <option value="JEFE DE VENTAS" data-i18n-key="personal.jefeVentas">Jefe de ventas</option>
+                    <option value="ADMINISTRADOR" data-i18n-key="personal.administrador">Administrador</option>
                 </select>
             </div>
             <div class="form-group form-group-terminos" id="form-registro-terminos">
@@ -91,8 +125,8 @@
                 </label>
             </div>
             <div class="modal-registro-actions">
-                <button type="reset" class="btn-registro-cancelar" id="btn-form-secundario">Limpiar</button>
-                <button type="submit" class="btn-registro-enviar" id="btn-registrar-guardar">Registrar</button>
+                <button type="reset" class="btn-registro-cancelar" id="btn-form-secundario" data-i18n-key="personal.clear">Limpiar</button>
+                <button type="submit" class="btn-registro-enviar" id="btn-registrar-guardar" data-i18n-key="personal.register">Registrar</button>
             </div>
         </form>
 
@@ -100,19 +134,19 @@
         <section class="modal-registro-tab-panel" data-tab-panel="gestionar" hidden>
             <div class="usuarios-search-bar">
                 <div class="form-group">
-                    <label for="search-tipo">Tipo de búsqueda</label>
+                    <label for="search-tipo" data-i18n-key="personal.searchType">Tipo de búsqueda</label>
                     <select id="search-tipo">
-                        <option value="nombre">Por nombre completo</option>
-                        <option value="identificacion">Por número de identificación</option>
+                        <option value="nombre" data-i18n-key="personal.searchByName">Por nombre completo</option>
+                        <option value="identificacion" data-i18n-key="personal.searchById">Por número de identificación</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="search-criterio" id="search-criterio-label">Dato a buscar</label>
+                    <label for="search-criterio" id="search-criterio-label" data-i18n-key="personal.searchData">Dato a buscar</label>
                     <input type="text" id="search-criterio" placeholder="Escriba el nombre completo">
                 </div>
                 <div class="usuarios-search-actions">
-                    <button type="button" class="btn-registro-enviar" id="btn-buscar-usuarios">Buscar</button>
-                    <button type="button" class="btn-registro-cancelar" id="btn-listar-todos">Listar todos</button>
+                    <button type="button" class="btn-registro-enviar" id="btn-buscar-usuarios" data-i18n-key="personal.searchBtn">Buscar</button>
+                    <button type="button" class="btn-registro-cancelar" id="btn-listar-todos" data-i18n-key="personal.listAll">Listar todos</button>
                 </div>
             </div>
 
@@ -137,18 +171,22 @@
             </div>
 
             <div class="usuarios-actions-bar">
-                <span id="usuarios-seleccion-info">Ningún usuario seleccionado.</span>
+                <span id="usuarios-seleccion-info" data-i18n-key="personal.noUserSelected">Ningún usuario seleccionado.</span>
                 <div class="usuarios-actions-buttons">
-                    <button type="button" class="btn-usuario-editar" id="btn-editar-usuario" disabled>Actualizar usuario</button>
-                    <button type="button" class="btn-usuario-eliminar" id="btn-eliminar-usuario" disabled>Eliminar usuario</button>
-                    <button type="button" class="btn-usuario-limpiar" id="btn-limpiar-campos">Limpiar campos</button>
+                    <button type="button" class="btn-usuario-editar" id="btn-editar-usuario" disabled data-i18n-key="personal.updateUser">Actualizar usuario</button>
+                    <button type="button" class="btn-usuario-eliminar" id="btn-eliminar-usuario" disabled data-i18n-key="personal.deleteUser">Eliminar usuario</button>
+                    <button type="button" class="btn-usuario-limpiar" id="btn-limpiar-campos" data-i18n-key="clients.clearFields">Limpiar campos</button>
                 </div>
             </div>
         </section>
     </div>
-</main>
+    </main>
+</div>
+
+<button type="button" class="admin-sidebar-toggle" id="admin-sidebar-toggle" aria-label="Abrir menú">☰</button>
 
 <script src="/js/auth.js"></script>
+<script src="/js/accessibility.js"></script>
 <script>
     (async () => {
         const result = await authApi.getMe();
@@ -170,6 +208,29 @@
         if (!confirmar) return;
         await authApi.logout();
         window.location.href = '/';
+    });
+
+    // Sidebar móvil (mismo comportamiento que panel-admin)
+    const sidebar = document.getElementById('admin-sidebar');
+    const toggle = document.getElementById('admin-sidebar-toggle');
+    if (toggle && sidebar) {
+        toggle.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            toggle.setAttribute('aria-label', sidebar.classList.contains('open') ? 'Cerrar menú' : 'Abrir menú');
+        });
+    }
+
+    // Resaltar opción activa en el menú lateral
+    const currentPath = window.location.pathname;
+    document.querySelectorAll('.admin-nav-item[href]').forEach(link => {
+        const href = link.getAttribute('href');
+        if (href && href !== '#' && !href.startsWith('#') && currentPath.indexOf(href) !== -1) {
+            link.classList.add('active');
+        } else if (link.getAttribute('href') === '/personal.html' && currentPath === '/personal.html') {
+            link.classList.add('active');
+        } else if (!link.classList.contains('admin-nav-item--disabled')) {
+            link.classList.remove('active');
+        }
     });
 
     const registroAlert = document.getElementById('registro-alert');

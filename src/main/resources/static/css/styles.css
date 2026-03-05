@@ -739,16 +739,11 @@ button.panel-btn:hover {
 @media (max-width: 480px) {
     .panel-main {
         padding: 20px 12px;
+        max-width: 100%;
     }
     .panel-title {
         font-size: 20px;
         margin-bottom: 20px;
-    }
-    .panel-btn {
-        padding: 20px 16px;
-    }
-    .panel-btn-icon {
-        font-size: 32px;
     }
 }
 
@@ -1084,16 +1079,23 @@ button.panel-btn:hover {
     }
 }
 @media (max-width: 480px) {
+    .panel-admin-body,
+    .admin-main-wrap,
+    .admin-dashboard,
+    .panel-main {
+        overflow-x: hidden;
+    }
     .admin-dashboard {
         padding: 16px;
     }
     .admin-topbar {
-        padding: 16px;
-        flex-wrap: wrap;
-        gap: 12px;
+        padding: 28px;
+        justify-content: center;
     }
     .admin-topbar-title {
         font-size: 18px;
+        text-align: center;
+        width: 100%;
     }
 }
 
@@ -1388,8 +1390,9 @@ button.panel-btn:hover {
     background: #f5a623;
     color: black;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     font-weight: bold;
+    font-size: 14px;
     cursor: pointer;
 }
 .cart-cliente-search .btn-buscar:hover {
@@ -1515,6 +1518,17 @@ button.panel-btn:hover {
 }
 .btn-cart-checkout:hover {
     background: #e09520;
+}
+
+@media (max-width: 768px) {
+    .cart-cliente-search {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .cart-cliente-search .btn-buscar {
+        width: 100%;
+        text-align: center;
+    }
 }
 
 /* MODAL SELECCIÓN DE TALLA */
@@ -1814,6 +1828,11 @@ button.panel-btn:hover {
 .modal-registro-tab-panel[hidden] {
     display: none !important;
 }
+@media (max-width: 480px) {
+    .modal-registro-tabs {
+        flex-direction: column;
+    }
+}
 /* Mensaje de éxito centrado en el panel de registro */
 .modal-registro-success-center {
     display: flex;
@@ -1937,6 +1956,16 @@ button.panel-btn:hover {
 .terminos-label a:hover {
     color: #e09520;
 }
+
+@media (max-width: 480px) {
+    .form-registro input,
+    .form-registro select {
+        font-size: 15px;
+        padding: 12px 14px;
+        min-height: 44px;
+        box-sizing: border-box;
+    }
+}
 .modal-registro-actions {
     display: flex;
     gap: 12px;
@@ -2013,6 +2042,18 @@ button.panel-btn:hover {
         grid-template-columns: 1fr;
     }
 }
+@media (max-width: 480px) {
+    .usuarios-search-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .usuarios-search-actions .btn-registro-enviar,
+    .usuarios-search-actions .btn-registro-cancelar {
+        width: 100%;
+        text-align: center;
+    }
+}
 .usuarios-table-wrapper {
     border-radius: 10px;
     border: 1px solid #333;
@@ -2055,6 +2096,18 @@ button.panel-btn:hover {
     font-size: 15px;
     font-weight: 500;
     background: rgba(224, 160, 64, 0.08);
+}
+
+@media (max-width: 768px) {
+    .usuarios-table-wrapper {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .usuarios-table {
+        min-width: 700px;
+    }
 }
 .usuarios-busqueda-alert {
     display: flex;
@@ -2103,6 +2156,14 @@ button.panel-btn:hover {
     display: flex;
     gap: 8px;
 }
+.clientes-actions-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    font-size: 13px;
+    color: #ccc;
+}
 .usuarios-row-selected {
     background: rgba(245, 166, 35, 0.28);
     box-shadow: inset 0 0 0 2px rgba(245, 166, 35, 0.5);
@@ -2135,4 +2196,271 @@ button.panel-btn:hover {
 .btn-usuario-limpiar:hover {
     border-color: #666;
     color: #fff;
+}
+
+/* ===========================
+   Accesibilidad global (web + móvil)
+   =========================== */
+
+.a11y-widget-toggle {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid rgba(245, 166, 35, 0.7);
+    background: radial-gradient(circle at 30% 20%, #f5a623, #d48514);
+    color: #111;
+    font-weight: 800;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.55);
+    z-index: 1400;
+}
+.a11y-widget-toggle span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.a11y-widget-panel {
+    position: fixed;
+    right: 16px;
+    left: auto;
+    bottom: 72px;
+    width: 290px;
+    max-width: calc(100% - 32px);
+    background: #111;
+    border-radius: 16px;
+    border: 1px solid #333;
+    padding: 16px 16px 14px;
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.75);
+    color: #f5f5f5;
+    font-size: 13px;
+    z-index: 1399;
+}
+.a11y-widget-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.a11y-widget-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #f5a623;
+}
+.a11y-widget-close {
+    background: transparent;
+    border: none;
+    color: #bbb;
+    font-size: 16px;
+    cursor: pointer;
+}
+.a11y-widget-section {
+    margin-bottom: 10px;
+}
+.a11y-widget-section:last-child {
+    margin-bottom: 0;
+}
+.a11y-widget-label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 500;
+    color: #ddd;
+}
+.a11y-widget-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.a11y-chip {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 8px;
+    border-radius: 999px;
+    border: 1px solid #333;
+    background: #1c1c1c;
+    color: #e0e0e0;
+    font-size: 12px;
+    text-align: center;
+    cursor: pointer;
+}
+.a11y-chip--active {
+    border-color: #f5a623;
+    background: #2b210f;
+    color: #ffd58a;
+}
+.a11y-widget-select {
+    width: 100%;
+    padding: 7px 10px;
+    border-radius: 10px;
+    border: 1px solid #333;
+    background: #1b1b1b;
+    color: #f0f0f0;
+    font-size: 12px;
+}
+.a11y-widget-note {
+    margin-top: 6px;
+    font-size: 11px;
+    color: #999;
+}
+
+@media (max-width: 600px) {
+    .a11y-widget-toggle {
+        right: 12px;
+        bottom: 12px;
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+    }
+    .a11y-widget-panel {
+        right: 10px;
+        left: auto;
+        bottom: 64px;
+        max-width: calc(100% - 20px);
+    }
+}
+
+/* Modos aplicados a toda la pantalla (html + body) */
+
+/* Tamaño de letra: toda la pantalla vía raíz */
+html[data-a11y-font-size="large"] {
+    font-size: 112%;
+}
+html[data-a11y-font-size="xlarge"] {
+    font-size: 125%;
+}
+
+/* Tipo de letra: toda la pantalla */
+html[data-a11y-font-family="sans"],
+html[data-a11y-font-family="sans"] *,
+body[data-a11y-font-family="sans"],
+body[data-a11y-font-family="sans"] * {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+}
+html[data-a11y-font-family="serif"],
+html[data-a11y-font-family="serif"] *,
+body[data-a11y-font-family="serif"],
+body[data-a11y-font-family="serif"] * {
+    font-family: "Georgia", "Times New Roman", serif !important;
+}
+
+/* Alto contraste */
+body[data-a11y-contrast="high"],
+body[data-a11y-contrast="high"] .panel-admin-body,
+body[data-a11y-contrast="high"] .panel-main,
+body[data-a11y-contrast="high"] .admin-sidebar,
+body[data-a11y-contrast="high"] .admin-topbar,
+body[data-a11y-contrast="high"] .admin-dashboard {
+    background-color: #000 !important;
+    color: #fff !important;
+}
+body[data-a11y-contrast="high"] .btn,
+body[data-a11y-contrast="high"] .btn-primary-crud,
+body[data-a11y-contrast="high"] .btn-secondary {
+    border-color: #fff !important;
+}
+
+/* Tema claro: pantalla en blanco */
+html[data-a11y-theme="light"],
+body[data-a11y-theme="light"],
+body[data-a11y-theme="light"] .panel-admin-body,
+body[data-a11y-theme="light"] .admin-main-wrap,
+body[data-a11y-theme="light"] .admin-dashboard,
+body[data-a11y-theme="light"] .admin-sidebar,
+body[data-a11y-theme="light"] .admin-topbar,
+body[data-a11y-theme="light"] .panel-main,
+body[data-a11y-theme="light"] .auth-container,
+body[data-a11y-theme="light"] .navbar,
+body[data-a11y-theme="light"] .hero,
+body[data-a11y-theme="light"] .crud-section,
+body[data-a11y-theme="light"] .modal-box,
+body[data-a11y-theme="light"] .cart-sidebar {
+    background-color: #f5f5f5 !important;
+    background: #f5f5f5 !important;
+}
+body[data-a11y-theme="light"],
+body[data-a11y-theme="light"] *,
+body[data-a11y-theme="light"] .admin-nav-item,
+body[data-a11y-theme="light"] .admin-topbar-title,
+body[data-a11y-theme="light"] .dashboard-card-title,
+body[data-a11y-theme="light"] .panel-title,
+body[data-a11y-theme="light"] .crud-table th,
+body[data-a11y-theme="light"] .crud-table td,
+body[data-a11y-theme="light"] input,
+body[data-a11y-theme="light"] select,
+body[data-a11y-theme="light"] label,
+body[data-a11y-theme="light"] .auth-title,
+body[data-a11y-theme="light"] .hero-brand,
+body[data-a11y-theme="light"] a {
+    color: #1a1a1a !important;
+}
+body[data-a11y-theme="light"] .admin-sidebar {
+    border-right-color: #ddd;
+}
+body[data-a11y-theme="light"] .crud-table,
+body[data-a11y-theme="light"] input,
+body[data-a11y-theme="light"] select {
+    border-color: #ccc !important;
+    background-color: #fff !important;
+}
+
+/* Color del texto (todas las interfaces) */
+body[data-a11y-text-color="black"] *,
+body[data-a11y-text-color="black"] {
+    color: #111 !important;
+}
+body[data-a11y-text-color="white"] *,
+body[data-a11y-text-color="white"] {
+    color: #fff !important;
+}
+body[data-a11y-text-color="white"] input,
+body[data-a11y-text-color="white"] select,
+body[data-a11y-text-color="white"] textarea {
+    background: #333 !important;
+    border-color: #555 !important;
+}
+body[data-a11y-text-color="blue"] *,
+body[data-a11y-text-color="blue"] {
+    color: #001f3f !important;
+}
+body[data-a11y-text-color="blue"] input,
+body[data-a11y-text-color="blue"] select,
+body[data-a11y-text-color="blue"] textarea {
+    color: #001f3f !important;
+}
+
+/* El panel de accesibilidad mantiene fondo oscuro para legibilidad */
+.a11y-widget-panel {
+    background: #111;
+    color: #f5f5f5;
+}
+body[data-a11y-theme="light"] .a11y-widget-panel,
+body[data-a11y-theme="light"] .a11y-widget-panel * {
+    background-color: transparent !important;
+    color: #f0f0f0 !important;
+}
+body[data-a11y-theme="light"] .a11y-widget-panel {
+    background: #1a1a1a !important;
+    border-color: #333;
+}
+body[data-a11y-theme="light"] .a11y-widget-panel .a11y-chip {
+    background: #2a2a2a !important;
+    border-color: #444 !important;
+}
+body[data-a11y-theme="light"] .a11y-widget-panel .a11y-widget-select {
+    background: #2a2a2a !important;
+    color: #f0f0f0 !important;
+    border-color: #444 !important;
 }
