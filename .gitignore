@@ -34,3 +34,5 @@ build/
 
 # Credenciales locales (no subir a GitHub)
 **/application.properties
+run-local.ps1
+.env.local
