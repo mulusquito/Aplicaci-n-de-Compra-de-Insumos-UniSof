@@ -6,48 +6,139 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/styles.css">
 </head>
-<body>
+<body class="panel-admin-body">
 
     <div class="welcome-toast" id="welcome-toast">¡Bienvenido a UNISOF!</div>
+    <div class="registro-success-toast" id="registro-success-toast" aria-live="polite"></div>
 
-    <header class="navbar">
-        <a href="/" class="link-atras">← Atrás</a>
-        <a href="/" class="logo">
-            <span class="logo-icon">U</span>
-            <span class="logo-text">UNISOF</span>
-        </a>
-        <div class="nav-user-info" id="nav-user-info">
-            <span class="user-name" id="user-name">—</span>
-            <span class="user-rol" id="user-rol">ADMINISTRADOR</span>
-        </div>
-        <button type="button" class="btn-logout btn-logout-nav" id="btn-logout">Cerrar Sesión</button>
-    </header>
-
-    <main class="panel-main">
-        <h1 class="panel-title">Panel de administración</h1>
-        <div class="panel-buttons">
-            <a href="#registrar-personal" class="panel-btn">
-                <span class="panel-btn-icon">👤</span>
-                <span class="panel-btn-text">Registrar personal</span>
-                <span class="panel-btn-hint">(Próximamente)</span>
-            </a>
-            <a href="#consultar-ordenes-compra" class="panel-btn">
-                <span class="panel-btn-icon">📋</span>
-                <span class="panel-btn-text">Consultar órdenes de compra</span>
-                <span class="panel-btn-hint">(Próximamente)</span>
-            </a>
-            <a href="#consultar-compras-insumos" class="panel-btn">
-                <span class="panel-btn-icon">📦</span>
-                <span class="panel-btn-text">Consultar compras insumos</span>
-                <span class="panel-btn-hint">(Próximamente)</span>
-            </a>
-            <a href="#consultar-inventario" class="panel-btn">
-                <span class="panel-btn-icon">📊</span>
-                <span class="panel-btn-text">Consultar inventario</span>
-                <span class="panel-btn-hint">(Próximamente)</span>
+    <aside class="admin-sidebar" id="admin-sidebar">
+        <div class="admin-sidebar-header">
+            <a href="/" class="admin-logo">
+                <span class="admin-logo-icon">U</span>
+                <span class="admin-logo-text">UNISOF</span>
             </a>
         </div>
-    </main>
+        <nav class="admin-nav">
+            <a href="/panel-admin.html" class="admin-nav-item active" data-section="dashboard">
+                <span class="admin-nav-icon">📊</span>
+                <span class="admin-nav-text">Dashboard</span>
+            </a>
+            <a href="/personal.html" class="admin-nav-item" data-section="personal">
+                <span class="admin-nav-icon">👤</span>
+                <span class="admin-nav-text">Personal</span>
+            </a>
+            <a href="#ordenes-compra" class="admin-nav-item admin-nav-item--disabled" data-section="ordenes">
+                <span class="admin-nav-icon">📋</span>
+                <span class="admin-nav-text">Consultar órdenes de compra</span>
+                <span class="admin-nav-hint">(Próximamente)</span>
+            </a>
+            <a href="#compras-insumos" class="admin-nav-item admin-nav-item--disabled" data-section="compras">
+                <span class="admin-nav-icon">📦</span>
+                <span class="admin-nav-text">Consultar compras insumos</span>
+                <span class="admin-nav-hint">(Próximamente)</span>
+            </a>
+            <a href="#inventario" class="admin-nav-item admin-nav-item--disabled" data-section="inventario">
+                <span class="admin-nav-icon">📁</span>
+                <span class="admin-nav-text">Consultar inventario</span>
+                <span class="admin-nav-hint">(Próximamente)</span>
+            </a>
+        </nav>
+        <div class="admin-sidebar-footer">
+            <div class="admin-user-info" id="admin-sidebar-user">
+                <span class="admin-user-name" id="user-name">—</span>
+                <span class="admin-user-rol" id="user-rol">ADMINISTRADOR</span>
+            </div>
+            <a href="/" class="admin-link-inicio">← Inicio</a>
+            <button type="button" class="admin-btn-logout" id="btn-logout">Cerrar sesión</button>
+        </div>
+    </aside>
+
+    <div class="admin-main-wrap">
+        <header class="admin-topbar">
+            <h1 class="admin-topbar-title">Dashboard</h1>
+            <div class="admin-topbar-actions">
+                <div class="admin-topbar-user-info">
+                    <span class="admin-topbar-user-name" id="admin-topbar-user-name">—</span>
+                    <span class="admin-topbar-user-rol" id="admin-topbar-user-rol">ADMINISTRADOR</span>
+                </div>
+                <button type="button" class="admin-btn-logout admin-btn-logout--top" id="btn-logout-top">Cerrar sesión</button>
+            </div>
+        </header>
+
+        <main class="admin-dashboard">
+            <section class="dashboard-cards">
+                <article class="dashboard-card">
+                    <div class="dashboard-card-header">
+                        <h3 class="dashboard-card-title">Usuarios activos</h3>
+                    </div>
+                    <div class="dashboard-card-body">
+                        <p class="dashboard-card-value" id="dashboard-usuarios">—</p>
+                        <p class="dashboard-card-label">Personal en el sistema</p>
+                    </div>
+                </article>
+                <article class="dashboard-card">
+                    <div class="dashboard-card-header">
+                        <h3 class="dashboard-card-title">Órdenes del mes</h3>
+                    </div>
+                    <div class="dashboard-card-body">
+                        <p class="dashboard-card-value" id="dashboard-ordenes">—</p>
+                        <p class="dashboard-card-label">(Próximamente)</p>
+                    </div>
+                </article>
+                <article class="dashboard-card">
+                    <div class="dashboard-card-header">
+                        <h3 class="dashboard-card-title">Ventas del mes</h3>
+                    </div>
+                    <div class="dashboard-card-body">
+                        <p class="dashboard-card-value" id="dashboard-ventas">—</p>
+                        <p class="dashboard-card-label">(Próximamente)</p>
+                    </div>
+                </article>
+            </section>
+
+            <section class="dashboard-section">
+                <h2 class="dashboard-section-title">Ventas por mes</h2>
+                <p class="dashboard-section-desc">Resumen de ventas mensuales de la empresa. Los datos se actualizarán cuando el módulo esté disponible.</p>
+                <div class="dashboard-chart-placeholder" id="dashboard-ventas-mes">
+                    <div class="dashboard-chart-bars">
+                        <div class="dashboard-chart-bar-wrap" data-mes="Ene"><div class="dashboard-chart-bar" style="height: 40%"></div></div>
+                        <div class="dashboard-chart-bar-wrap" data-mes="Feb"><div class="dashboard-chart-bar" style="height: 55%"></div></div>
+                        <div class="dashboard-chart-bar-wrap" data-mes="Mar"><div class="dashboard-chart-bar" style="height: 35%"></div></div>
+                        <div class="dashboard-chart-bar-wrap" data-mes="Abr"><div class="dashboard-chart-bar" style="height: 70%"></div></div>
+                        <div class="dashboard-chart-bar-wrap" data-mes="May"><div class="dashboard-chart-bar" style="height: 60%"></div></div>
+                        <div class="dashboard-chart-bar-wrap" data-mes="Jun"><div class="dashboard-chart-bar" style="height: 85%"></div></div>
+                        <div class="dashboard-chart-bar-wrap" data-mes="Jul"><div class="dashboard-chart-bar" style="height: 75%"></div></div>
+                        <div class="dashboard-chart-bar-wrap" data-mes="Ago"><div class="dashboard-chart-bar" style="height: 50%"></div></div>
+                        <div class="dashboard-chart-bar-wrap" data-mes="Sep"><div class="dashboard-chart-bar" style="height: 65%"></div></div>
+                        <div class="dashboard-chart-bar-wrap" data-mes="Oct"><div class="dashboard-chart-bar" style="height: 90%"></div></div>
+                        <div class="dashboard-chart-bar-wrap" data-mes="Nov"><div class="dashboard-chart-bar" style="height: 55%"></div></div>
+                        <div class="dashboard-chart-bar-wrap" data-mes="Dic"><div class="dashboard-chart-bar" style="height: 30%"></div></div>
+                    </div>
+                    <p class="dashboard-chart-note">Gráfico ilustrativo. Conectará con datos reales cuando el módulo de ventas esté activo.</p>
+                </div>
+            </section>
+
+            <section class="dashboard-section">
+                <h2 class="dashboard-section-title">Resumen del negocio</h2>
+                <div class="dashboard-summary-list">
+                    <div class="dashboard-summary-item">
+                        <span class="dashboard-summary-label">Compras de insumos</span>
+                        <span class="dashboard-summary-value">Módulo en desarrollo</span>
+                    </div>
+                    <div class="dashboard-summary-item">
+                        <span class="dashboard-summary-label">Inventario</span>
+                        <span class="dashboard-summary-value">Próximamente</span>
+                    </div>
+                    <div class="dashboard-summary-item">
+                        <span class="dashboard-summary-label">Órdenes de compra</span>
+                        <span class="dashboard-summary-value">Próximamente</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <button type="button" class="admin-sidebar-toggle" id="admin-sidebar-toggle" aria-label="Abrir menú">☰</button>
 
     <script src="/js/auth.js"></script>
     <script>
@@ -62,8 +153,11 @@
                 window.location.href = '/';
                 return;
             }
-            document.getElementById('user-name').textContent = result.usuario?.nombre || result.usuario?.usuario;
+            const userName = result.usuario?.nombre || result.usuario?.usuario || '—';
+            document.getElementById('user-name').textContent = userName;
             document.getElementById('user-rol').textContent = result.usuario?.rol || 'ADMINISTRADOR';
+            document.getElementById('admin-topbar-user-name').textContent = userName;
+            document.getElementById('admin-topbar-user-rol').textContent = result.usuario?.rol || 'ADMINISTRADOR';
 
             const welcomeMsg = document.getElementById('welcome-toast');
             if (new URLSearchParams(window.location.search).get('welcome') === '1') {
@@ -71,11 +165,45 @@
                 window.history.replaceState({}, '', '/panel-admin.html');
                 setTimeout(() => welcomeMsg?.classList.remove('visible'), 3000);
             }
+
+            try {
+                const res = await fetch('/api/usuarios?tipo=todos', { credentials: 'include' });
+                if (res.ok) {
+                    const data = await res.json();
+                    const el = document.getElementById('dashboard-usuarios');
+                    if (el && Array.isArray(data)) el.textContent = data.length;
+                }
+            } catch (_) {}
         })();
 
-        document.getElementById('btn-logout').addEventListener('click', async () => {
+        document.getElementById('btn-logout').addEventListener('click', () => logout());
+        document.getElementById('btn-logout-top').addEventListener('click', () => logout());
+        async function logout() {
+            const confirmar = window.confirm('¿Desea cerrar sesión?');
+            if (!confirmar) return;
             await authApi.logout();
             window.location.href = '/';
+        }
+
+        const sidebar = document.getElementById('admin-sidebar');
+        const toggle = document.getElementById('admin-sidebar-toggle');
+        if (toggle && sidebar) {
+            toggle.addEventListener('click', () => {
+                sidebar.classList.toggle('open');
+                toggle.setAttribute('aria-label', sidebar.classList.contains('open') ? 'Cerrar menú' : 'Abrir menú');
+            });
+        }
+
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.admin-nav-item[href]').forEach(link => {
+            const href = link.getAttribute('href');
+            if (href && href !== '#' && !href.startsWith('#') && currentPath.indexOf(href) !== -1) {
+                link.classList.add('active');
+            } else if (link.getAttribute('href') === '/panel-admin.html' && currentPath === '/panel-admin.html') {
+                link.classList.add('active');
+            } else if (!link.classList.contains('admin-nav-item--disabled')) {
+                link.classList.remove('active');
+            }
         });
     </script>
 </body>

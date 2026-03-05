@@ -43,7 +43,15 @@ public class Usuario {
     @Column(nullable = false, unique = true)
     private String correo;
 
-    /** Rol del usuario (ej: ADMINISTRADOR, WORKER) */
+    /** Número de identificación (único). SCRUM-12 */
+    @Column(name = "numero_identificacion", unique = true)
+    private String numeroIdentificacion;
+
+    /** Celular de contacto. SCRUM-12 */
+    @Column(length = 20)
+    private String celular;
+
+    /** Rol del usuario (ej: ADMINISTRADOR, VENDEDOR, JEFE DE VENTAS) */
     @Column(nullable = false)
     private String rol = "WORKER";
 
