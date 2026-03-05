@@ -456,6 +456,8 @@
         })();
 
         document.getElementById('btn-logout').addEventListener('click', async () => {
+            const confirmar = window.confirm('¿Desea cerrar sesión?');
+            if (!confirmar) return;
             await authApi.logout();
             window.location.href = '/';
         });

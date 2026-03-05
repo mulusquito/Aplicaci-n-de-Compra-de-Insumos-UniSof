@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de personal - UNISOF</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+<div class="welcome-toast" id="welcome-toast">Gestión de personal UNISOF</div>
+<div class="registro-success-toast" id="registro-success-toast" aria-live="polite"></div>
+
+<header class="navbar">
+    <a href="/panel-admin.html" class="link-atras">← Panel admin</a>
+    <a href="/" class="logo">
+        <span class="logo-icon">U</span>
+        <span class="logo-text">UNISOF</span>
+    </a>
+    <div class="nav-user-info" id="nav-user-info">
+        <span class="user-name" id="user-name">—</span>
+        <span class="user-rol" id="user-rol">ADMINISTRADOR</span>
+    </div>
+    <button type="button" class="btn-logout btn-logout-nav" id="btn-logout">Cerrar Sesión</button>
+</header>
+
+<main class="panel-main">
+    <h1 class="panel-title">Gestión de personal UNISOF</h1>
+
+    <div class="modal-registro-tabs">
+        <button type="button" class="modal-registro-tab active" data-tab="registrar" id="tab-registrar">Registrar</button>
+        <button type="button" class="modal-registro-tab" data-tab="gestionar" id="tab-gestionar">Gestionar</button>
+    </div>
+
+    <div class="modal-registro-alert" id="registro-alert" role="alert" hidden></div>
+
+    <!-- Panel de éxito centrado -->
+    <div class="modal-registro-success-center" id="registro-success-center" hidden>
+        <span class="modal-registro-success-icon">✓</span>
+        <p class="modal-registro-success-text" id="registro-success-text"></p>
+    </div>
+
+    <!-- Contenedor del formulario y la tabla -->
+    <div class="modal-registro-form-wrap" id="modal-registro-form-wrap">
+
+        <!-- Tab Registrar -->
+        <form id="form-registro-usuario" class="form-registro modal-registro-tab-panel" data-tab-panel="registrar">
+            <div class="form-group">
+                <label for="reg-nombre">Nombre completo</label>
+                <input type="text" id="reg-nombre" name="nombreCompleto" autocomplete="name" required>
+            </div>
+            <div class="form-group">
+                <label for="reg-usuario">Usuario (para inicio de sesión)</label>
+                <input type="text" id="reg-usuario" name="usuario" autocomplete="username" required placeholder="Ej: jperez">
+                <span class="input-hint-small">Con este usuario y su clave ingresará al sistema</span>
+            </div>
+            <div class="form-group">
+                <label for="reg-identificacion">Número de identificación</label>
+                <input type="text" id="reg-identificacion" name="numeroIdentificacion" required>
+            </div>
+            <div class="form-group">
+                <label for="reg-correo">Correo electrónico</label>
+                <input type="email" id="reg-correo" name="correo" autocomplete="email" required>
+            </div>
+            <div class="form-group">
+                <label for="reg-celular">Celular</label>
+                <input type="tel" id="reg-celular" name="celular" required>
+            </div>
+            <div class="form-group">
+                <label for="reg-clave">Clave de acceso</label>
+                <input type="password" id="reg-clave" name="clave" autocomplete="new-password" required>
+                <span class="input-hint-small" id="reg-clave-hint" hidden>Dejar en blanco para mantener la contraseña actual.</span>
+            </div>
+            <div class="form-group">
+                <label for="reg-confirmar-clave">Confirmar clave</label>
+                <input type="password" id="reg-confirmar-clave" name="confirmarClave" autocomplete="new-password" required>
+            </div>
+            <div class="form-group">
+                <label for="reg-rol">Rol</label>
+                <select id="reg-rol" name="rol" required>
+                    <option value="">Seleccione un rol</option>
+                    <option value="VENDEDOR">Vendedor</option>
+                    <option value="JEFE DE VENTAS">Jefe de ventas</option>
+                    <option value="ADMINISTRADOR">Administrador</option>
+                </select>
+            </div>
+            <div class="form-group form-group-terminos" id="form-registro-terminos">
+                <label class="terminos-label">
+                    <input type="checkbox" id="reg-acepto-terminos" name="aceptoTerminos">
+                    <span>Acepto la <a href="/terminos-y-condiciones.html" id="link-politica">Política de privacidad</a> y los <a href="/terminos-y-condiciones.html" id="link-terminos">Términos y condiciones</a>.</span>
+                </label>
+            </div>
+            <div class="modal-registro-actions">
+                <button type="reset" class="btn-registro-cancelar" id="btn-form-secundario">Limpiar</button>
+                <button type="submit" class="btn-registro-enviar" id="btn-registrar-guardar">Registrar</button>
+            </div>
+        </form>
+
+        <!-- Tab Gestionar -->
+        <section class="modal-registro-tab-panel" data-tab-panel="gestionar" hidden>
+            <div class="usuarios-search-bar">
+                <div class="form-group">
+                    <label for="search-tipo">Tipo de búsqueda</label>
+                    <select id="search-tipo">
+                        <option value="nombre">Por nombre completo</option>
+                        <option value="identificacion">Por número de identificación</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="search-criterio" id="search-criterio-label">Dato a buscar</label>
+                    <input type="text" id="search-criterio" placeholder="Escriba el nombre completo">
+                </div>
+                <div class="usuarios-search-actions">
+                    <button type="button" class="btn-registro-enviar" id="btn-buscar-usuarios">Buscar</button>
+                    <button type="button" class="btn-registro-cancelar" id="btn-listar-todos">Listar todos</button>
+                </div>
+            </div>
+
+            <div class="usuarios-table-wrapper">
+                <table class="usuarios-table">
+                    <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Nombre completo</th>
+                        <th>N° identificación</th>
+                        <th>Correo</th>
+                        <th>Celular</th>
+                        <th>Rol</th>
+                    </tr>
+                    </thead>
+                    <tbody id="usuarios-tbody">
+                    <tr>
+                        <td colspan="6" class="usuarios-empty">Use la búsqueda o "Listar todos" para ver usuarios.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="usuarios-actions-bar">
+                <span id="usuarios-seleccion-info">Ningún usuario seleccionado.</span>
+                <div class="usuarios-actions-buttons">
+                    <button type="button" class="btn-usuario-editar" id="btn-editar-usuario" disabled>Actualizar usuario</button>
+                    <button type="button" class="btn-usuario-eliminar" id="btn-eliminar-usuario" disabled>Eliminar usuario</button>
+                    <button type="button" class="btn-usuario-limpiar" id="btn-limpiar-campos">Limpiar campos</button>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<script src="/js/auth.js"></script>
+<script>
+    (async () => {
+        const result = await authApi.getMe();
+        if (!result.ok) {
+            window.location.href = '/login.html';
+            return;
+        }
+        const rol = (result.usuario?.rol || '').toUpperCase();
+        if (rol !== 'ADMINISTRADOR') {
+            window.location.href = '/';
+            return;
+        }
+        document.getElementById('user-name').textContent = result.usuario?.nombre || result.usuario?.usuario;
+        document.getElementById('user-rol').textContent = result.usuario?.rol || 'ADMINISTRADOR';
+    })();
+
+    document.getElementById('btn-logout').addEventListener('click', async () => {
+        const confirmar = window.confirm('¿Desea cerrar sesión?');
+        if (!confirmar) return;
+        await authApi.logout();
+        window.location.href = '/';
+    });
+
+    const registroAlert = document.getElementById('registro-alert');
+    const tabButtons = document.querySelectorAll('.modal-registro-tab');
+    const tabPanels = document.querySelectorAll('.modal-registro-tab-panel');
+    const usuariosTbody = document.getElementById('usuarios-tbody');
+    const btnBuscarUsuarios = document.getElementById('btn-buscar-usuarios');
+    const btnListarTodos = document.getElementById('btn-listar-todos');
+    const searchInput = document.getElementById('search-criterio');
+    const searchTipo = document.getElementById('search-tipo');
+    const searchCriterioLabel = document.getElementById('search-criterio-label');
+    const btnRegistrarGuardar = document.getElementById('btn-registrar-guardar');
+    const btnFormSecundario = document.getElementById('btn-form-secundario');
+    const formRegistro = document.getElementById('form-registro-usuario');
+
+    let editingUserId = null;
+    let selectedUserId = null;
+
+    var FORM_DRAFT_KEY = 'personalRegistroFormDraft';
+    var REGISTRO_FIELDS = ['reg-nombre','reg-usuario','reg-identificacion','reg-correo','reg-celular','reg-clave','reg-confirmar-clave','reg-rol','reg-acepto-terminos'];
+
+    function guardarBorradorFormulario() {
+        var draft = {};
+        REGISTRO_FIELDS.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) draft[id] = el.type === 'checkbox' ? el.checked : (el.value || '');
+        });
+        try { sessionStorage.setItem(FORM_DRAFT_KEY, JSON.stringify(draft)); } catch (e) {}
+    }
+    function restaurarBorradorFormulario() {
+        try {
+            var raw = sessionStorage.getItem(FORM_DRAFT_KEY);
+            if (!raw) return;
+            var draft = JSON.parse(raw);
+            sessionStorage.removeItem(FORM_DRAFT_KEY);
+            REGISTRO_FIELDS.forEach(function(id) {
+                var el = document.getElementById(id);
+                if (!el || !draft.hasOwnProperty(id)) return;
+                if (el.type === 'checkbox') el.checked = !!draft[id];
+                else el.value = draft[id] || '';
+            });
+            setPersonalTab('registrar');
+        } catch (e) {}
+    }
+
+    restaurarBorradorFormulario();
+
+    ['link-politica','link-terminos'].forEach(function(id) {
+        var link = document.getElementById(id);
+        if (link) link.addEventListener('click', function(e) {
+            e.preventDefault();
+            guardarBorradorFormulario();
+            window.location.href = '/terminos-y-condiciones.html';
+        });
+    });
+
+    function showRegistroAlert(msg, isError) {
+        registroAlert.textContent = msg;
+        registroAlert.className = 'modal-registro-alert ' + (isError ? 'error' : 'success');
+        registroAlert.hidden = false;
+    }
+    function hideRegistroAlert() {
+        registroAlert.hidden = true;
+        registroAlert.textContent = '';
+    }
+    function showRegistroSuccessToast(msg) {
+        var toast = document.getElementById('registro-success-toast');
+        if (!toast) return;
+        toast.textContent = msg;
+        toast.classList.add('visible');
+        setTimeout(function() { toast.classList.remove('visible'); }, 5000);
+    }
+    function updateFormMode() {
+        if (!btnFormSecundario || !btnRegistrarGuardar) return;
+        const regClave = document.getElementById('reg-clave');
+        const regConfirmarClave = document.getElementById('reg-confirmar-clave');
+        const regClaveHint = document.getElementById('reg-clave-hint');
+        if (editingUserId == null) {
+            btnRegistrarGuardar.textContent = 'Registrar';
+            btnFormSecundario.textContent = 'Limpiar';
+            btnFormSecundario.type = 'reset';
+            btnFormSecundario.onclick = null;
+            if (regClave) regClave.required = true;
+            if (regConfirmarClave) regConfirmarClave.required = true;
+            if (regClaveHint) regClaveHint.hidden = true;
+        } else {
+            btnRegistrarGuardar.textContent = 'Actualizar';
+            btnFormSecundario.textContent = 'Atrás';
+            btnFormSecundario.type = 'button';
+            btnFormSecundario.onclick = () => {
+                formRegistro.reset();
+                editingUserId = null;
+                actualizarSeleccion(null, null);
+                setPersonalTab('gestionar');
+            };
+            if (regClave) regClave.required = false;
+            if (regConfirmarClave) regConfirmarClave.required = false;
+            if (regClaveHint) regClaveHint.hidden = false;
+            const terminosBlock = document.getElementById('form-registro-terminos');
+            if (terminosBlock) terminosBlock.style.display = 'none';
+        }
+        const terminosBlock = document.getElementById('form-registro-terminos');
+        if (editingUserId == null && terminosBlock) terminosBlock.style.display = 'block';
+    }
+
+    function setPersonalTab(tab) {
+        tabButtons.forEach(btn => {
+            const isActive = btn.dataset.tab === tab;
+            btn.classList.toggle('active', isActive);
+        });
+        tabPanels.forEach(panel => {
+            const isActive = panel.dataset.tabPanel === tab;
+            panel.hidden = !isActive;
+        });
+        if (tab === 'registrar') {
+            if (editingUserId == null) {
+                btnRegistrarGuardar.textContent = 'Registrar';
+            }
+        }
+        updateFormMode();
+    }
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tab = btn.dataset.tab;
+            setPersonalTab(tab);
+        });
+    });
+
+    function actualizarPlaceholderBusqueda() {
+        const tipo = searchTipo?.value || 'nombre';
+        if (!searchInput || !searchCriterioLabel) return;
+        if (tipo === 'identificacion') {
+            searchCriterioLabel.textContent = 'Número de identificación';
+            searchInput.placeholder = 'Escriba el número de identificación';
+        } else {
+            searchCriterioLabel.textContent = 'Nombre completo';
+            searchInput.placeholder = 'Escriba el nombre completo';
+        }
+    }
+    if (searchTipo) {
+        searchTipo.addEventListener('change', actualizarPlaceholderBusqueda);
+        actualizarPlaceholderBusqueda();
+    }
+
+    function actualizarSeleccion(id, fila) {
+        selectedUserId = id;
+        document.querySelectorAll('.usuarios-table tbody tr').forEach(tr => {
+            tr.classList.toggle('usuarios-row-selected', tr === fila);
+        });
+        const info = document.getElementById('usuarios-seleccion-info');
+        const btnEditar = document.getElementById('btn-editar-usuario');
+        const btnEliminar = document.getElementById('btn-eliminar-usuario');
+        if (id && fila) {
+            const nombre = fila.children[1]?.textContent || '';
+            const usuario = fila.children[0]?.textContent || '';
+            if (info) info.textContent = `Seleccionado: ${nombre} (${usuario})`;
+            if (btnEditar) btnEditar.disabled = false;
+            if (btnEliminar) btnEliminar.disabled = false;
+        } else {
+            if (info) info.textContent = 'Ningún usuario seleccionado.';
+            if (btnEditar) btnEditar.disabled = true;
+            if (btnEliminar) btnEliminar.disabled = true;
+        }
+    }
+
+    async function cargarUsuarios() {
+        try {
+            const criterio = (searchInput?.value || '').trim();
+            const tipo = searchTipo?.value || 'todos';
+            const params = new URLSearchParams();
+            if (criterio) params.append('criterio', criterio);
+            if (tipo) params.append('tipo', tipo);
+            const res = await fetch('/api/usuarios?' + params.toString(), {
+                credentials: 'include'
+            });
+            if (!res.ok) {
+                usuariosTbody.innerHTML = '<tr><td colspan="6" class="usuarios-empty">Error al cargar usuarios.</td></tr>';
+                return;
+            }
+            const data = await res.json();
+            if (!Array.isArray(data) || data.length === 0) {
+                const esBusqueda = !!criterio;
+                const mensajeVacio = esBusqueda ? 'El usuario no existe.' : 'No se encontraron usuarios.';
+                usuariosTbody.innerHTML = '<tr><td colspan="6" class="usuarios-empty' + (esBusqueda ? ' usuarios-empty--no-existe' : '') + '">' + mensajeVacio + '</td></tr>';
+                return;
+            }
+            usuariosTbody.innerHTML = data.map(u => `
+                <tr data-id="${u.id}" class="usuarios-row-clickable">
+                    <td>${u.usuario}</td>
+                    <td>${u.nombreCompleto}</td>
+                    <td>${u.numeroIdentificacion || ''}</td>
+                    <td>${u.correo}</td>
+                    <td>${u.celular || ''}</td>
+                    <td>${u.rol}</td>
+                </tr>
+            `).join('');
+            actualizarSeleccion(null, null);
+        } catch (e) {
+            usuariosTbody.innerHTML = '<tr><td colspan="6" class="usuarios-empty">Error de conexión al cargar usuarios.</td></tr>';
+        }
+    }
+
+    if (btnBuscarUsuarios) {
+        btnBuscarUsuarios.addEventListener('click', () => {
+            setPersonalTab('gestionar');
+            cargarUsuarios();
+        });
+    }
+    if (btnListarTodos) {
+        btnListarTodos.addEventListener('click', () => {
+            if (searchTipo) searchTipo.value = 'nombre';
+            if (searchInput) searchInput.value = '';
+            setPersonalTab('gestionar');
+            cargarUsuarios();
+        });
+    }
+    const btnLimpiarCampos = document.getElementById('btn-limpiar-campos');
+    const MSJ_TABLA_INICIAL = 'Use la búsqueda o "Listar todos" para ver usuarios.';
+    if (btnLimpiarCampos) {
+        btnLimpiarCampos.addEventListener('click', () => {
+            if (searchTipo) searchTipo.value = 'nombre';
+            if (searchInput) searchInput.value = '';
+            if (usuariosTbody) {
+                usuariosTbody.innerHTML = '<tr><td colspan="6" class="usuarios-empty">' + MSJ_TABLA_INICIAL + '</td></tr>';
+            }
+            actualizarSeleccion(null, null);
+        });
+    }
+    if (usuariosTbody) {
+        usuariosTbody.addEventListener('click', (e) => {
+            const fila = e.target.closest('tr[data-id]');
+            if (fila) {
+                const id = fila.getAttribute('data-id');
+                if (selectedUserId === id) {
+                    actualizarSeleccion(null, null);
+                } else {
+                    actualizarSeleccion(id, fila);
+                }
+            } else {
+                actualizarSeleccion(null, null);
+            }
+        });
+    }
+
+    const btnEditarUsuario = document.getElementById('btn-editar-usuario');
+    const btnEliminarUsuario = document.getElementById('btn-eliminar-usuario');
+
+    if (btnEditarUsuario) {
+        btnEditarUsuario.addEventListener('click', async () => {
+            if (!selectedUserId) {
+                showRegistroAlert('Seleccione un usuario de la tabla para actualizar.', true);
+                return;
+            }
+            try {
+                const res = await fetch('/api/usuarios/' + selectedUserId, { credentials: 'include' });
+                if (!res.ok) {
+                    showRegistroAlert('No se pudo cargar el usuario para edición.', true);
+                    return;
+                }
+                const u = await res.json();
+                document.getElementById('reg-nombre').value = u.nombreCompleto || '';
+                document.getElementById('reg-usuario').value = u.usuario || '';
+                document.getElementById('reg-identificacion').value = u.numeroIdentificacion || '';
+                document.getElementById('reg-correo').value = u.correo || '';
+                document.getElementById('reg-celular').value = u.celular || '';
+                document.getElementById('reg-rol').value = u.rol || '';
+                document.getElementById('reg-clave').value = '';
+                document.getElementById('reg-confirmar-clave').value = '';
+
+                editingUserId = u.id;
+                updateFormMode();
+                setPersonalTab('registrar');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch {
+                showRegistroAlert('Error de conexión al cargar usuario.', true);
+            }
+        });
+    }
+
+    if (btnEliminarUsuario) {
+        btnEliminarUsuario.addEventListener('click', async () => {
+            if (!selectedUserId) {
+                showRegistroAlert('Seleccione un usuario de la tabla para eliminar.', true);
+                return;
+            }
+            const fila = document.querySelector(`.usuarios-table tbody tr[data-id="${selectedUserId}"]`);
+            const nombre = fila ? fila.children[1].textContent : '';
+            const seguro = window.confirm('¿Está seguro que desea eliminar al usuario "' + nombre + '"? Esta acción no se puede deshacer.');
+            if (!seguro) return;
+            try {
+                const res = await fetch('/api/usuarios/' + selectedUserId, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                const data = await res.json().catch(() => ({}));
+                if (res.ok) {
+                    showRegistroSuccessToast(data.mensaje || 'Usuario eliminado correctamente.');
+                    cargarUsuarios();
+                } else {
+                    showRegistroAlert(data.mensaje || 'No se pudo eliminar el usuario.', true);
+                }
+            } catch {
+                showRegistroAlert('Error de conexión al eliminar usuario.', true);
+            }
+        });
+    }
+
+    formRegistro.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideRegistroAlert();
+        const nombreCompleto = document.getElementById('reg-nombre').value.trim();
+        const usuario = document.getElementById('reg-usuario').value.trim();
+        const numeroIdentificacion = document.getElementById('reg-identificacion').value.trim();
+        const correo = document.getElementById('reg-correo').value.trim();
+        const celular = document.getElementById('reg-celular').value.trim();
+        const clave = document.getElementById('reg-clave').value;
+        const confirmarClave = document.getElementById('reg-confirmar-clave').value;
+        const rol = document.getElementById('reg-rol').value;
+
+        const esActualizacion = editingUserId != null;
+        if (!nombreCompleto || !usuario || !numeroIdentificacion || !correo || !celular || !rol) {
+            showRegistroAlert('Todos los campos obligatorios deben estar llenos.', true);
+            return;
+        }
+        if (!esActualizacion) {
+            const aceptoTerminos = document.getElementById('reg-acepto-terminos');
+            if (!aceptoTerminos || !aceptoTerminos.checked) {
+                showRegistroAlert('Debe aceptar la Política de privacidad y los Términos y condiciones para registrarse.', true);
+                return;
+            }
+        }
+        if (!esActualizacion && (!clave || !confirmarClave)) {
+            showRegistroAlert('Al registrar, la clave y confirmar clave son obligatorios.', true);
+            return;
+        }
+        if (esActualizacion && (clave || confirmarClave)) {
+            if (clave !== confirmarClave) {
+                showRegistroAlert('La clave y confirmar clave no coinciden.', true);
+                return;
+            }
+        }
+
+        const payload = {
+            nombreCompleto,
+            usuario,
+            numeroIdentificacion,
+            correo,
+            celular,
+            clave: clave || '',
+            confirmarClave: confirmarClave || '',
+            rol
+        };
+
+        try {
+            const url = editingUserId != null ? '/api/usuarios/' + editingUserId : '/api/usuarios';
+            const method = editingUserId != null ? 'PUT' : 'POST';
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json().catch(() => ({}));
+            if (res.ok) {
+                editingUserId = null;
+                updateFormMode();
+                const textoExito = data.nombre
+                    ? 'Usuario ' + data.nombre + ' registrado correctamente.'
+                    : (data.mensaje || (editingUserId != null ? 'Usuario actualizado correctamente.' : 'Usuario registrado correctamente.'));
+                const successCenter = document.getElementById('registro-success-center');
+                const successText = document.getElementById('registro-success-text');
+                const formWrap = document.getElementById('modal-registro-form-wrap');
+                if (formWrap) formWrap.style.display = 'none';
+                if (successCenter && successText) {
+                    successText.textContent = textoExito;
+                    successCenter.hidden = false;
+                }
+                formRegistro.reset();
+                showRegistroSuccessToast(textoExito);
+                setTimeout(function() {
+                    if (successCenter) successCenter.hidden = true;
+                    if (formWrap) formWrap.style.display = '';
+                }, 4500);
+            } else {
+                showRegistroAlert(data.mensaje || 'Error al registrar. Verifique que el usuario, correo o número de identificación no estén ya en uso.', true);
+            }
+        } catch (err) {
+            showRegistroAlert('Error de conexión. Intente de nuevo.', true);
+        }
+    });
+</script>
+</body>
+</html>
+
