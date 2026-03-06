@@ -169,6 +169,8 @@
             return new Intl.NumberFormat('es-CO').format(n) + ' COP';
         }
 
+        let ultimoContexto = 'todos';
+
         async function cargarOrdenes(params = {}) {
             try {
                 const qs = new URLSearchParams(params).toString();
@@ -183,29 +185,36 @@
             }
         }
 
-        document.getElementById('btn-listar-todos').addEventListener('click', () => cargarOrdenes());
+        document.getElementById('btn-listar-todos').addEventListener('click', () => {
+            ultimoContexto = 'todos';
+            cargarOrdenes();
+        });
 
         document.getElementById('btn-buscar-numero').addEventListener('click', () => {
             const num = document.getElementById('buscar-numero').value.trim();
             if (!num) { Toast.error('Ingresa un número de orden'); return; }
+            ultimoContexto = 'numero';
             cargarOrdenes({ numero: num });
         });
 
         document.getElementById('btn-buscar-cedula').addEventListener('click', () => {
             const cedula = document.getElementById('buscar-cedula').value.trim();
             if (!cedula) { Toast.error('Ingresa una cédula'); return; }
+            ultimoContexto = 'cedula';
             cargarOrdenes({ cedula });
         });
 
         document.getElementById('btn-buscar-fecha').addEventListener('click', () => {
             const fecha = document.getElementById('buscar-fecha').value;
             if (!fecha) { Toast.error('Selecciona una fecha'); return; }
+            ultimoContexto = 'fecha';
             cargarOrdenes({ fecha });
         });
 
         document.getElementById('btn-buscar-mes').addEventListener('click', () => {
             const mes = document.getElementById('buscar-mes').value;
             if (!mes) { Toast.error('Selecciona un mes'); return; }
+            ultimoContexto = 'mes';
             cargarOrdenes({ mes });
         });
 
@@ -215,6 +224,11 @@
             tbody.innerHTML = '';
             if (ordenes.length === 0) {
                 document.getElementById('tabla-ordenes').style.display = 'none';
+                if (ultimoContexto === 'todos') {
+                    emptyMsg.textContent = 'No hay pedidos. Los pedidos se crean desde el carrito en Ventas.';
+                } else {
+                    emptyMsg.textContent = 'No se encontraron pedidos para la búsqueda realizada.';
+                }
                 emptyMsg.style.display = 'block';
                 return;
             }
