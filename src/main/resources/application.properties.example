@@ -20,3 +20,18 @@ spring.mail.password=TU_CONTRASENA_APLICACION
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.ssl.enable=true
 spring.mail.properties.mail.smtp.starttls.enable=false
+
+# URL base de la app (para redirección tras el pago)
+# Local: http://localhost:8080 | Producción: usa APP_BASE_URL
+app.base-url=http://localhost:8080
+
+# Mercado Pago - Access Token (opcional si usas Stripe)
+mercadopago.access-token=${MERCADOPAGO_ACCESS_TOKEN:}
+
+# Pasarela de pago: "mercadopago" o "stripe"
+# IMPORTANTE: Para pagos con Stripe necesitas STRIPE_SECRET_KEY
+app.payment-provider=stripe
+
+# Stripe - Clave secreta. OBLIGATORIO para pagos.
+# Local: usa run-local.ps1 o define SPRING_MAIL_PASSWORD y STRIPE_SECRET_KEY como variables de entorno
+stripe.secret-key=${STRIPE_SECRET_KEY:}

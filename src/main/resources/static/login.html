@@ -28,48 +28,101 @@
             </div>
             <div id="error-msg" class="error-msg" style="display:none"></div>
             <p class="auth-forgot"><a href="/recuperar-contrasena.html" data-i18n-key="auth.forgot">¿Olvidaste la contraseña?</a></p>
-            <button type="submit" class="btn-primary btn-block" data-i18n-key="auth.submit">Iniciar Sesión</button>
+            <div class="auth-submit-wrap">
+                <button type="submit" class="btn-primary btn-block" id="btn-login-submit" data-i18n-key="auth.submit">Iniciar Sesión</button>
+                <div class="auth-loader" id="auth-loader" aria-hidden="true">
+                    <span class="auth-loader-spinner"></span>
+                    <span class="auth-loader-text">Verificando…</span>
+                </div>
+            </div>
         </form>
 
         <p class="auth-footer"><a href="/" data-i18n-key="auth.back">← Volver al inicio</a></p>
     </div>
 
+    <style>
+        .auth-submit-wrap { position: relative; margin-top: 4px; }
+        .auth-loader {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 0;
+            font-size: 13px;
+            color: #999;
+        }
+        .auth-loader.is-active { display: flex; }
+        .auth-loader-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(245, 166, 35, 0.25);
+            border-top-color: #f5a623;
+            border-radius: 50%;
+            animation: auth-spin 0.7s linear infinite;
+        }
+        @keyframes auth-spin { to { transform: rotate(360deg); } }
+        .auth-submit-wrap.is-loading .btn-primary { opacity: 0.6; pointer-events: none; }
+    </style>
     <script src="/js/toast.js"></script>
     <script src="/js/auth.js"></script>
     <script src="/js/accessibility.js"></script>
     <script>
-        document.getElementById('form-login').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const usuario = document.getElementById('usuario').value.trim();
-            const contrasena = document.getElementById('contrasena').value;
+        (function() {
+            const form = document.getElementById('form-login');
+            const submitBtn = document.getElementById('btn-login-submit');
+            const loader = document.getElementById('auth-loader');
+            const wrap = document.querySelector('.auth-submit-wrap');
             const errorEl = document.getElementById('error-msg');
 
-            errorEl.style.display = 'none';
-            let result;
-            try {
-                result = await authApi.login(usuario, contrasena);
-            } catch (err) {
-                Toast.error('Error de conexión. Verifica tu red.');
-                errorEl.textContent = 'Error de conexión con el servidor';
-                errorEl.style.display = 'block';
-                return;
+            function setLoading(loading) {
+                if (loading) {
+                    wrap.classList.add('is-loading');
+                    loader.classList.add('is-active');
+                    submitBtn.disabled = true;
+                } else {
+                    wrap.classList.remove('is-loading');
+                    loader.classList.remove('is-active');
+                    submitBtn.disabled = false;
+                }
             }
 
-            if (result.ok) {
-                if (result.data.requiereVerificacionDosPasos) {
-                    Toast.success('Token enviado a tu correo. Revisa tu bandeja.');
-                    sessionStorage.setItem('loginUsuario', usuario);
-                    setTimeout(() => { window.location.href = '/verificar-token.html'; }, 1500);
-                } else {
-                    Toast.success('Inicio de sesión exitoso');
-                    setTimeout(() => { window.location.href = '/'; }, 800);
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const usuario = document.getElementById('usuario').value.trim();
+                const contrasena = document.getElementById('contrasena').value;
+
+                errorEl.style.display = 'none';
+                setLoading(true);
+
+                let result;
+                try {
+                    result = await authApi.login(usuario, contrasena);
+                } catch (err) {
+                    setLoading(false);
+                    Toast.error('Error de conexión. Verifica tu red.');
+                    errorEl.textContent = 'Error de conexión con el servidor';
+                    errorEl.style.display = 'block';
+                    return;
                 }
-            } else {
-                Toast.error(result.mensaje || 'Credenciales inválidas');
-                errorEl.textContent = result.mensaje || 'Credenciales inválidas';
-                errorEl.style.display = 'block';
-            }
-        });
+
+                if (result.ok) {
+                    if (result.data.requiereVerificacionDosPasos) {
+                        loader.querySelector('.auth-loader-text').textContent = 'Revisa tu correo…';
+                        Toast.success('Token enviado a tu correo. Revisa tu bandeja.');
+                        sessionStorage.setItem('loginUsuario', usuario);
+                        setTimeout(() => { window.location.href = '/verificar-token.html'; }, 1500);
+                    } else {
+                        Toast.success('Inicio de sesión exitoso');
+                        setTimeout(() => { window.location.href = '/'; }, 800);
+                    }
+                } else {
+                    setLoading(false);
+                    Toast.error(result.mensaje || 'Credenciales inválidas');
+                    errorEl.textContent = result.mensaje || 'Credenciales inválidas';
+                    errorEl.style.display = 'block';
+                }
+            });
+        })();
     </script>
 </body>
 </html>

@@ -8,9 +8,13 @@
         contrast: 'normal',
         fontSize: 'normal',
         fontFamily: 'default',
-        theme: 'dark',       // dark | light (fondo blanco)
-        textColor: 'default', // default | black | white | blue
-        lang: 'es'
+        theme: 'dark',
+        textColor: 'default',
+        lang: 'es',
+        contentScale: 100,
+        fontScale: 100,
+        lineHeight: 100,
+        letterSpacing: 100
     };
 
     function loadPrefs() {
@@ -125,6 +129,7 @@
             'personal.jefeVentas': 'Jefe de ventas',
             'personal.administrador': 'Administrador',
             'a11y.title': 'Accesibilidad UNISOF',
+            'a11y.toolsTitle': 'Herramientas de Accesibilidad',
             'a11y.contrast': 'Contraste',
             'a11y.contrastNormal': 'Normal',
             'a11y.contrastHigh': 'Alto contraste',
@@ -140,13 +145,19 @@
             'a11y.themeDark': 'Oscuro',
             'a11y.themeLight': 'Blanco',
             'a11y.textColor': 'Color del texto',
-            'a11y.textDefault': 'Predeterminado',
+            'a11y.textDefault': 'Por defecto',
             'a11y.textBlack': 'Negro',
             'a11y.textWhite': 'Blanco',
             'a11y.textBlue': 'Azul oscuro',
             'a11y.lang': 'Idioma',
             'a11y.langEs': 'Español',
-            'a11y.langEn': 'English'
+            'a11y.langEn': 'English',
+            'a11y.visualSection': 'Ajustes visuales',
+            'a11y.textSection': 'Texto',
+            'a11y.contentScale': 'Escalamiento de contenido',
+            'a11y.fontSizeSlider': 'Tamaño de fuente',
+            'a11y.lineHeight': 'Altura de línea',
+            'a11y.letterSpacing': 'Espaciado de letras'
         },
         en: {
             'nav.dashboard': 'Dashboard',
@@ -243,6 +254,7 @@
             'personal.jefeVentas': 'Sales manager',
             'personal.administrador': 'Administrator',
             'a11y.title': 'UNISOF Accessibility',
+            'a11y.toolsTitle': 'Accessibility Tools',
             'a11y.contrast': 'Contrast',
             'a11y.contrastNormal': 'Normal',
             'a11y.contrastHigh': 'High contrast',
@@ -264,7 +276,13 @@
             'a11y.textBlue': 'Dark blue',
             'a11y.lang': 'Language',
             'a11y.langEs': 'Español',
-            'a11y.langEn': 'English'
+            'a11y.langEn': 'English',
+            'a11y.visualSection': 'Visual settings',
+            'a11y.textSection': 'Text',
+            'a11y.contentScale': 'Content scaling',
+            'a11y.fontSizeSlider': 'Font size',
+            'a11y.lineHeight': 'Line height',
+            'a11y.letterSpacing': 'Letter spacing'
         }
     };
 
@@ -292,16 +310,22 @@
         body.removeAttribute('data-a11y-contrast');
         body.removeAttribute('data-a11y-theme');
         body.removeAttribute('data-a11y-text-color');
-        html.removeAttribute('data-a11y-font-size');
         html.removeAttribute('data-a11y-font-family');
-        body.removeAttribute('data-a11y-font-size');
         body.removeAttribute('data-a11y-font-family');
 
         if (prefs.contrast === 'high') body.setAttribute('data-a11y-contrast', 'high');
         if (prefs.theme === 'light') body.setAttribute('data-a11y-theme', 'light');
         if (prefs.textColor && prefs.textColor !== 'default') body.setAttribute('data-a11y-text-color', prefs.textColor);
-        if (prefs.fontSize === 'large' || prefs.fontSize === 'xlarge') html.setAttribute('data-a11y-font-size', prefs.fontSize);
         if (prefs.fontFamily === 'sans' || prefs.fontFamily === 'serif') html.setAttribute('data-a11y-font-family', prefs.fontFamily);
+
+        const scale = (prefs.contentScale != null ? prefs.contentScale : 100) / 100;
+        const fontScale = (prefs.fontScale != null ? prefs.fontScale : 100) / 100;
+        const lineH = (prefs.lineHeight != null ? prefs.lineHeight : 100) / 100;
+        const letterS = prefs.letterSpacing != null ? (prefs.letterSpacing - 100) * 0.002 : 0;
+        html.style.setProperty('--a11y-content-scale', String(scale));
+        html.style.setProperty('--a11y-font-scale', String(fontScale));
+        html.style.setProperty('--a11y-line-height', String(lineH));
+        html.style.setProperty('--a11y-letter-spacing', letterS + 'em');
 
         applyLanguage(prefs.lang || 'es');
     }
@@ -314,7 +338,16 @@
         toggle.type = 'button';
         toggle.className = 'a11y-widget-toggle';
         toggle.setAttribute('aria-label', 'Opciones de accesibilidad');
-        toggle.innerHTML = 'A<span>Accesibilidad</span>';
+        toggle.innerHTML = `
+            <span class="a11y-toggle-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="32" height="32" fill="none" role="img" aria-label="">
+                    <circle cx="32" cy="32" r="30" fill="#7a7a7a"/>
+                    <circle cx="32" cy="18" r="5" fill="#fff"/>
+                    <path d="M32 24 v14 M32 38 l-8 18 M32 38 l8 18 M32 38 l-14 -6 M32 38 l14 -6" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                </svg>
+            </span>
+            <span class="sr-only">Accesibilidad</span>
+        `;
 
         const panel = document.createElement('div');
         panel.className = 'a11y-widget-panel';
@@ -324,46 +357,88 @@
 
         panel.innerHTML = `
             <div class="a11y-widget-panel-header">
-                <div class="a11y-widget-title" data-i18n-key="a11y.title">Accesibilidad UNISOF</div>
-                <button type="button" class="a11y-widget-close" aria-label="Cerrar">✕</button>
-            </div>
-            <div class="a11y-widget-section">
-                <label class="a11y-widget-label" data-i18n-key="a11y.contrast">Contraste</label>
-                <div class="a11y-widget-row" data-a11y-group="contrast">
-                    <button type="button" data-value="normal" class="a11y-chip" data-i18n-key="a11y.contrastNormal">Normal</button>
-                    <button type="button" data-value="high" class="a11y-chip" data-i18n-key="a11y.contrastHigh">Alto contraste</button>
+                <h2 class="a11y-widget-title" data-i18n-key="a11y.toolsTitle">Herramientas de Accesibilidad</h2>
+                <div class="a11y-widget-header-actions">
+                    <button type="button" class="a11y-widget-reset" aria-label="Restaurar valores por defecto" title="Restaurar valores por defecto">↺</button>
+                    <button type="button" class="a11y-widget-close" aria-label="Cerrar">✕</button>
                 </div>
             </div>
-            <div class="a11y-widget-section">
-                <label class="a11y-widget-label" data-i18n-key="a11y.fontSize">Tamaño de texto</label>
-                <div class="a11y-widget-row" data-a11y-group="fontSize">
-                    <button type="button" data-value="normal" class="a11y-chip" data-i18n-key="a11y.fontSizeNormal">Normal</button>
-                    <button type="button" data-value="large" class="a11y-chip" data-i18n-key="a11y.fontSizeLarge">Grande</button>
-                    <button type="button" data-value="xlarge" class="a11y-chip" data-i18n-key="a11y.fontSizeXLarge">Muy grande</button>
+            <div class="a11y-panel-section">
+                <h3 class="a11y-panel-section-title" data-i18n-key="a11y.visualSection">Ajustes visuales</h3>
+                <div class="a11y-toggle-grid">
+                    <div class="a11y-toggle-group">
+                        <span class="a11y-toggle-icon-small" aria-hidden="true">◐</span>
+                        <label class="a11y-widget-label" data-i18n-key="a11y.contrast">Contraste</label>
+                        <div class="a11y-widget-row" data-a11y-group="contrast">
+                            <button type="button" data-value="normal" class="a11y-chip" data-i18n-key="a11y.contrastNormal">Normal</button>
+                            <button type="button" data-value="high" class="a11y-chip" data-i18n-key="a11y.contrastHigh">Alto</button>
+                        </div>
+                    </div>
+                    <div class="a11y-toggle-group">
+                        <span class="a11y-toggle-icon-small" aria-hidden="true">☀</span>
+                        <label class="a11y-widget-label" data-i18n-key="a11y.theme">Fondo</label>
+                        <div class="a11y-widget-row" data-a11y-group="theme">
+                            <button type="button" data-value="dark" class="a11y-chip" data-i18n-key="a11y.themeDark">Oscuro</button>
+                            <button type="button" data-value="light" class="a11y-chip" data-i18n-key="a11y.themeLight">Blanco</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="a11y-toggle-group a11y-toggle-group--full">
+                    <span class="a11y-toggle-icon-small" aria-hidden="true">A</span>
+                    <label class="a11y-widget-label" data-i18n-key="a11y.textColor">Color del texto</label>
+                    <div class="a11y-widget-row" data-a11y-group="textColor">
+                        <button type="button" data-value="default" class="a11y-chip" data-i18n-key="a11y.textDefault">Por defecto</button>
+                        <button type="button" data-value="black" class="a11y-chip" data-i18n-key="a11y.textBlack">Negro</button>
+                        <button type="button" data-value="white" class="a11y-chip" data-i18n-key="a11y.textWhite">Blanco</button>
+                        <button type="button" data-value="blue" class="a11y-chip" data-i18n-key="a11y.textBlue">Azul</button>
+                    </div>
                 </div>
             </div>
-            <div class="a11y-widget-section">
-                <label class="a11y-widget-label" data-i18n-key="a11y.fontFamily">Tipo de letra</label>
-                <select class="a11y-widget-select" data-a11y-control="fontFamily">
-                    <option value="default" data-i18n-key="a11y.fontDefault">Predeterminada</option>
-                    <option value="sans" data-i18n-key="a11y.fontSans">Sin serif (pantalla)</option>
-                    <option value="serif" data-i18n-key="a11y.fontSerif">Con serif (lectura)</option>
-                </select>
-            </div>
-            <div class="a11y-widget-section">
-                <label class="a11y-widget-label" data-i18n-key="a11y.theme">Fondo de pantalla</label>
-                <div class="a11y-widget-row" data-a11y-group="theme">
-                    <button type="button" data-value="dark" class="a11y-chip" data-i18n-key="a11y.themeDark">Oscuro</button>
-                    <button type="button" data-value="light" class="a11y-chip" data-i18n-key="a11y.themeLight">Blanco</button>
+            <div class="a11y-panel-section">
+                <h3 class="a11y-panel-section-title" data-i18n-key="a11y.textSection">Texto</h3>
+                <div class="a11y-widget-section">
+                    <label class="a11y-widget-label" data-i18n-key="a11y.fontFamily">Tipo de letra</label>
+                    <select class="a11y-widget-select" data-a11y-control="fontFamily">
+                        <option value="default" data-i18n-key="a11y.fontDefault">Predeterminada</option>
+                        <option value="sans" data-i18n-key="a11y.fontSans">Sin serif</option>
+                        <option value="serif" data-i18n-key="a11y.fontSerif">Con serif</option>
+                    </select>
                 </div>
-            </div>
-            <div class="a11y-widget-section">
-                <label class="a11y-widget-label" data-i18n-key="a11y.textColor">Color del texto</label>
-                <div class="a11y-widget-row" data-a11y-group="textColor">
-                    <button type="button" data-value="default" class="a11y-chip" data-i18n-key="a11y.textDefault">Predeterminado</button>
-                    <button type="button" data-value="black" class="a11y-chip" data-i18n-key="a11y.textBlack">Negro</button>
-                    <button type="button" data-value="white" class="a11y-chip" data-i18n-key="a11y.textWhite">Blanco</button>
-                    <button type="button" data-value="blue" class="a11y-chip" data-i18n-key="a11y.textBlue">Azul oscuro</button>
+                <div class="a11y-slider-row">
+                    <label class="a11y-widget-label" data-i18n-key="a11y.contentScale">Escalamiento</label>
+                    <div class="a11y-slider-wrap">
+                        <button type="button" class="a11y-slider-btn" data-a11y-slider="contentScale" data-delta="-5">−</button>
+                        <input type="range" class="a11y-slider" data-a11y-slider="contentScale" min="90" max="120" value="100" step="5">
+                        <span class="a11y-slider-value" data-a11y-value="contentScale">100%</span>
+                        <button type="button" class="a11y-slider-btn" data-a11y-slider="contentScale" data-delta="5">+</button>
+                    </div>
+                </div>
+                <div class="a11y-slider-row">
+                    <label class="a11y-widget-label" data-i18n-key="a11y.fontSizeSlider">Tamaño de fuente</label>
+                    <div class="a11y-slider-wrap">
+                        <button type="button" class="a11y-slider-btn" data-a11y-slider="fontScale" data-delta="-5">−</button>
+                        <input type="range" class="a11y-slider" data-a11y-slider="fontScale" min="90" max="125" value="100" step="5">
+                        <span class="a11y-slider-value" data-a11y-value="fontScale">100%</span>
+                        <button type="button" class="a11y-slider-btn" data-a11y-slider="fontScale" data-delta="5">+</button>
+                    </div>
+                </div>
+                <div class="a11y-slider-row">
+                    <label class="a11y-widget-label" data-i18n-key="a11y.lineHeight">Altura de línea</label>
+                    <div class="a11y-slider-wrap">
+                        <button type="button" class="a11y-slider-btn" data-a11y-slider="lineHeight" data-delta="-10">−</button>
+                        <input type="range" class="a11y-slider" data-a11y-slider="lineHeight" min="100" max="180" value="100" step="10">
+                        <span class="a11y-slider-value" data-a11y-value="lineHeight">100%</span>
+                        <button type="button" class="a11y-slider-btn" data-a11y-slider="lineHeight" data-delta="10">+</button>
+                    </div>
+                </div>
+                <div class="a11y-slider-row">
+                    <label class="a11y-widget-label" data-i18n-key="a11y.letterSpacing">Espaciado letras</label>
+                    <div class="a11y-slider-wrap">
+                        <button type="button" class="a11y-slider-btn" data-a11y-slider="letterSpacing" data-delta="-5">−</button>
+                        <input type="range" class="a11y-slider" data-a11y-slider="letterSpacing" min="100" max="150" value="100" step="5">
+                        <span class="a11y-slider-value" data-a11y-value="letterSpacing">100%</span>
+                        <button type="button" class="a11y-slider-btn" data-a11y-slider="letterSpacing" data-delta="5">+</button>
+                    </div>
                 </div>
             </div>
             <div class="a11y-widget-section">
@@ -379,6 +454,7 @@
         document.body.appendChild(panel);
 
         const closeBtn = panel.querySelector('.a11y-widget-close');
+        const resetBtn = panel.querySelector('.a11y-widget-reset');
         function openPanel() { panel.style.display = 'block'; applyLanguage(prefs.lang || 'es'); }
         function closePanel() { panel.style.display = 'none'; }
         toggle.addEventListener('click', () => {
@@ -386,8 +462,35 @@
             else openPanel();
         });
         closeBtn.addEventListener('click', closePanel);
+        resetBtn.addEventListener('click', () => {
+            const def = { ...defaultPrefs };
+            Object.keys(def).forEach(k => { prefs[k] = def[k]; });
+            savePrefs(prefs);
+            applyPrefs(prefs);
+            panel.querySelectorAll('.a11y-chip--active').forEach(c => c.classList.remove('a11y-chip--active'));
+            panel.querySelectorAll('[data-a11y-group]').forEach(row => {
+                const val = prefs[row.getAttribute('data-a11y-group')];
+                row.querySelectorAll('.a11y-chip').forEach(chip => {
+                    if (chip.getAttribute('data-value') === val) chip.classList.add('a11y-chip--active');
+                });
+            });
+            panel.querySelectorAll('[data-a11y-control]').forEach(sel => {
+                const key = sel.getAttribute('data-a11y-control');
+                if (prefs[key]) sel.value = prefs[key];
+            });
+            ['contentScale', 'fontScale', 'lineHeight', 'letterSpacing'].forEach(key => {
+                const range = panel.querySelector(`.a11y-slider[data-a11y-slider="${key}"]`);
+                const valueEl = panel.querySelector(`.a11y-slider-value[data-a11y-value="${key}"]`);
+                if (range && valueEl) {
+                    const v = prefs[key] != null ? prefs[key] : 100;
+                    range.value = v;
+                    valueEl.textContent = v + '%';
+                }
+            });
+            applyLanguage(prefs.lang || 'es');
+        });
 
-        ['contrast', 'fontSize', 'theme', 'textColor'].forEach(groupName => {
+        ['contrast', 'theme', 'textColor'].forEach(groupName => {
             const row = panel.querySelector(`[data-a11y-group="${groupName}"]`);
             if (!row) return;
             row.querySelectorAll('.a11y-chip').forEach(chip => {
@@ -412,6 +515,38 @@
                 savePrefs(prefs);
                 applyPrefs(prefs);
                 if (key === 'lang') applyLanguage(prefs.lang);
+            });
+        });
+
+        const sliderKeys = ['contentScale', 'fontScale', 'lineHeight', 'letterSpacing'];
+        sliderKeys.forEach(key => {
+            const range = panel.querySelector(`.a11y-slider[data-a11y-slider="${key}"]`);
+            const valueEl = panel.querySelector(`.a11y-slider-value[data-a11y-value="${key}"]`);
+            if (!range || !valueEl) return;
+            const min = parseInt(range.min, 10);
+            const max = parseInt(range.max, 10);
+            const step = parseInt(range.step, 10) || 5;
+            const update = () => {
+                const v = parseInt(range.value, 10);
+                prefs[key] = v;
+                valueEl.textContent = v + '%';
+                savePrefs(prefs);
+                applyPrefs(prefs);
+            };
+            if (prefs[key] != null) {
+                const v = Math.max(min, Math.min(max, prefs[key]));
+                range.value = v;
+                valueEl.textContent = v + '%';
+            }
+            range.addEventListener('input', update);
+            panel.querySelectorAll(`.a11y-slider-btn[data-a11y-slider="${key}"]`).forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const delta = parseInt(btn.getAttribute('data-delta'), 10);
+                    let v = parseInt(range.value, 10) + delta;
+                    v = Math.max(min, Math.min(max, v));
+                    range.value = v;
+                    update();
+                });
             });
         });
 

@@ -39,4 +39,11 @@ public interface TokenVerificacionRepository extends JpaRepository<TokenVerifica
      * @param fecha fecha límite
      */
     void deleteByFechaExpiracionBefore(Instant fecha);
+
+    /**
+     * Elimina todos los tokens de un usuario (para permitir eliminar el usuario).
+     *
+     * @param usuarioId ID del usuario
+     */
+    void deleteByUsuario_Id(Long usuarioId);
 }
