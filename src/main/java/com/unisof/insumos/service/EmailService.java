@@ -122,17 +122,19 @@ public class EmailService {
 
     /**
      * Envía el recibo por correo al cliente.
+     * @param nombreVendedor nombre completo del vendedor que realizó la venta (puede ser null)
      */
     public boolean enviarRecibo(String correoDestino, String nombreCliente, String cedula, String correoCliente,
                                String telefono, String direccion, String numeroRecibo, String itemsHtml,
-                               String totalFormateado, String estado, String fechaFormateada, String fechaEntregaFormateada) {
+                               String totalFormateado, String estado, String fechaFormateada, String fechaEntregaFormateada,
+                               String nombreVendedor) {
         if (!emailHabilitado) {
             log.info("Recibo {} para {} ({}): total {} - {}", numeroRecibo, nombreCliente, correoDestino, totalFormateado, estado);
             return true;
         }
 
         String html = buildHtmlReciboEmail(nombreCliente, cedula, correoCliente, telefono, direccion,
-                numeroRecibo, itemsHtml, totalFormateado, estado, fechaFormateada, fechaEntregaFormateada);
+                numeroRecibo, itemsHtml, totalFormateado, estado, fechaFormateada, fechaEntregaFormateada, nombreVendedor);
         String subject = "Recibo Nº " + numeroRecibo + " - UNISOF";
 
         // 1. Intentar Resend
@@ -170,7 +172,7 @@ public class EmailService {
     private String buildHtmlReciboEmail(String nombreCliente, String cedula, String correoCliente,
                                         String telefono, String direccion, String numeroRecibo,
                                         String itemsHtml, String totalFormateado, String estado,
-                                        String fechaFormateada, String fechaEntregaFormateada) {
+                                        String fechaFormateada, String fechaEntregaFormateada, String nombreVendedor) {
         String clienteHtml = """
             <p style="margin:4px 0;font-size:13px;">Nombre: %s</p>
             <p style="margin:4px 0;font-size:13px;">Cédula: %s</p>
@@ -204,7 +206,10 @@ public class EmailService {
             <thead><tr style="border-bottom:1px solid #ddd;"><th style="text-align:left;padding:6px 0;">Prendas de vestir</th><th>Talla</th><th>Cant.</th><th>P.Unit</th><th>Subtotal</th></tr></thead>
             <tbody>%s</tbody>
             </table>
-            <p style="text-align:right;font-size:16px;font-weight:bold;margin-top:16px;color:#f5a623;">Total: %s COP</p>
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-top:16px;flex-wrap:wrap;gap:12px;">
+            <p style="margin:0;font-size:13px;color:#555;">%s</p>
+            <p style="text-align:right;font-size:16px;font-weight:bold;margin:0;color:#f5a623;">Total: %s COP</p>
+            </div>
             </div>
             <div style="background:#f8f8f8;padding:16px;text-align:center;font-size:12px;color:#888;">
             Sistema de Insumos UNISOF
@@ -212,7 +217,9 @@ public class EmailService {
             </div>
             </body>
             </html>
-            """.formatted(numeroRecibo, fechaFormateada, fechaEntregaFormateada, clienteHtml, itemsHtml, totalFormateado);
+            """.formatted(numeroRecibo, fechaFormateada, fechaEntregaFormateada, clienteHtml, itemsHtml,
+                    nombreVendedor != null && !nombreVendedor.isBlank() ? "Vendedor: " + nombreVendedor : "Vendedor: —",
+                    totalFormateado);
     }
 
     private String buildHtmlTokenEmail(String nombreUsuario, String token) {
