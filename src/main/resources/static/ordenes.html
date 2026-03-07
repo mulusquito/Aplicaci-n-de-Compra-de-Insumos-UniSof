@@ -37,18 +37,25 @@
         .form-group input, .form-group select { width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid #444; background: #222; color: white; }
         .form-group input:disabled { opacity: 0.7; cursor: not-allowed; }
         .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
-        .btn-ver-pedido { padding: 6px 12px; font-size: 12px; border-radius: 6px; cursor: pointer; border: 1px solid #f5a623; background: transparent; color: #f5a623; }
-        .btn-ver-pedido:hover { background: #f5a623; color: #1a1a1a; }
-        .modal-recibo { max-width: 480px; max-height: 85vh; overflow-y: auto; }
-        .modal-recibo-header { background: #f5a623; color: #1a1a1a; padding: 20px; text-align: center; border-radius: 12px 12px 0 0; }
-        .modal-recibo-body { padding: 24px; background: #1a1a1a; }
-        .modal-recibo-body h3 { font-size: 14px; color: #f5a623; margin: 16px 0 8px; }
-        .modal-recibo-body p { margin: 4px 0; font-size: 13px; color: #ccc; }
-        .modal-recibo-total { text-align: right; font-size: 18px; font-weight: bold; color: #f5a623; margin-top: 16px; }
-        .modal-recibo-vendedor { font-size: 13px; color: #888; margin-top: 12px; }
-        .modal-recibo-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
-        .modal-recibo-table th, .modal-recibo-table td { padding: 8px; text-align: left; border-bottom: 1px solid #333; }
-        .modal-recibo-table th { color: #888; }
+.pedido-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; overflow-y: auto; }
+        .pedido-modal-overlay.hidden { display: none !important; }
+        .pedido-modal { background: #1a1a1a; border-radius: 12px; max-width: 520px; width: 100%; border: 1px solid #333; overflow: hidden; max-height: 90vh; overflow-y: auto; }
+        .pedido-modal-header { background: #f5a623; color: #1a1a1a; padding: 20px; text-align: center; }
+        .pedido-modal-header .logo-u { display: inline-block; width: 40px; height: 40px; line-height: 40px; background: #1a1a1a; color: #f5a623; border-radius: 8px; font-weight: bold; margin-right: 8px; }
+        .pedido-modal-header .titulo { font-size: 20px; font-weight: bold; letter-spacing: 1px; }
+        .pedido-modal-body { padding: 24px; }
+        .pedido-modal-body .subtitulo { text-align: center; color: #888; font-size: 12px; margin-bottom: 4px; }
+        .pedido-modal-body .numero-orden { text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 16px; }
+        .pedido-modal-body .fechas { font-size: 12px; color: #aaa; margin-bottom: 16px; }
+        .pedido-modal-body h3 { font-size: 13px; color: #f5a623; margin: 16px 0 8px; }
+        .pedido-modal-body .cliente-datos p { margin: 4px 0; font-size: 13px; color: #ccc; }
+        .pedido-modal-body .tabla-productos { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+        .pedido-modal-body .tabla-productos th { text-align: left; padding: 8px 0; border-bottom: 1px solid #333; color: #888; }
+        .pedido-modal-body .tabla-productos td { padding: 6px 0; border-bottom: 1px solid #2a2a2a; color: #ddd; }
+        .pedido-modal-body .total-line { text-align: right; font-size: 16px; font-weight: bold; color: #f5a623; margin-top: 16px; }
+        .pedido-modal-footer { background: #111; padding: 12px; text-align: center; font-size: 11px; color: #666; }
+        .btn-ver-pedido { padding: 6px 14px; font-size: 12px; border-radius: 6px; cursor: pointer; border: none; background: #f5a623; color: #1a1a1a; font-weight: 600; }
+        .btn-ver-pedido:hover { background: #e09520; }
     </style>
 </head>
 <body class="panel-admin-body">
@@ -60,7 +67,7 @@
                 <span class="admin-logo-text">UNISOF</span>
             </a>
         </div>
-        <nav class="admin-nav">
+        <nav class="admin-nav" id="admin-nav">
             <a href="/ventas.html" class="admin-nav-item" data-section="ventas">
                 <span class="admin-nav-icon">💼</span>
                 <span class="admin-nav-text" data-i18n-key="nav.sales">Ventas</span>
@@ -124,7 +131,7 @@
                             <th data-i18n-key="orders.date">Fecha</th>
                             <th data-i18n-key="orders.total">Total</th>
                             <th data-i18n-key="orders.status">Estado</th>
-                            <th>Ver pedido</th>
+<th>Ver pedido</th>
                         </tr>
                     </thead>
                     <tbody id="tabla-body">
@@ -135,6 +142,29 @@
         </div>
         </div>
         </main>
+    </div>
+
+    <div class="pedido-modal-overlay hidden" id="pedido-modal-overlay" aria-hidden="true">
+        <div class="pedido-modal" id="pedido-modal" role="dialog" aria-labelledby="pedido-modal-title">
+            <div class="pedido-modal-header">
+                <span class="logo-u">U</span>
+                <span class="titulo">UNISOF</span>
+            </div>
+            <div class="pedido-modal-body">
+                <p class="subtitulo">Orden de compra</p>
+                <p class="numero-orden" id="pedido-modal-numero">—</p>
+                <div class="fechas" id="pedido-modal-fechas"></div>
+                <h3>Cliente</h3>
+                <div class="cliente-datos" id="pedido-modal-cliente"></div>
+                <h3>Productos</h3>
+                <div id="pedido-modal-productos"></div>
+                <p class="total-line" id="pedido-modal-total"></p>
+            </div>
+            <div class="pedido-modal-footer">
+                Sistema de Insumos UNISOF<br>
+                <button type="button" class="btn btn-secondary" id="pedido-modal-cerrar" style="margin-top:10px;">Cerrar</button>
+            </div>
+        </div>
     </div>
 
     <button type="button" class="admin-sidebar-toggle" id="admin-sidebar-toggle" aria-label="Abrir menú">☰</button>
@@ -162,9 +192,29 @@
             const result = await authApi.getMe();
             if (!result.ok) { window.location.href = '/login.html'; return; }
             const rol = (result.usuario?.rol || '').toUpperCase();
-            if (rol !== 'VENDEDOR') { window.location.href = '/'; return; }
+            if (rol !== 'VENDEDOR' && rol !== 'ADMINISTRADOR') { window.location.href = '/'; return; }
             document.getElementById('user-name').textContent = result.usuario?.nombre || result.usuario?.usuario;
-            document.getElementById('user-rol').textContent = result.usuario?.rol || 'VENDEDOR';
+            document.getElementById('user-rol').textContent = result.usuario?.rol || rol;
+            if (rol === 'ADMINISTRADOR') {
+                document.querySelector('.admin-topbar-title').textContent = 'Consultar órdenes de compra';
+                const nav = document.getElementById('admin-nav');
+                nav.innerHTML = `
+                    <a href="/panel-admin.html" class="admin-nav-item" data-section="dashboard">
+                        <span class="admin-nav-icon">📊</span>
+                        <span class="admin-nav-text">Dashboard</span>
+                    </a>
+                    <a href="/personal.html" class="admin-nav-item" data-section="personal">
+                        <span class="admin-nav-icon">👤</span>
+                        <span class="admin-nav-text">Personal</span>
+                    </a>
+                    <a href="/ordenes.html" class="admin-nav-item active" data-section="ordenes">
+                        <span class="admin-nav-icon">📋</span>
+                        <span class="admin-nav-text">Consultar órdenes de compra</span>
+                    </a>
+                    <a href="#compras-insumos" class="admin-nav-item admin-nav-item--disabled"><span class="admin-nav-icon">📦</span><span class="admin-nav-text">Consultar compras insumos</span><span class="admin-nav-hint">(Próximamente)</span></a>
+                    <a href="#inventario" class="admin-nav-item admin-nav-item--disabled"><span class="admin-nav-icon">📁</span><span class="admin-nav-text">Consultar inventario</span><span class="admin-nav-hint">(Próximamente)</span></a>
+                `;
+            }
         })();
 
         document.getElementById('btn-logout').addEventListener('click', async () => {
@@ -262,25 +312,83 @@
             }
             document.getElementById('tabla-ordenes').style.display = 'table';
             emptyMsg.style.display = 'none';
-            ordenes.forEach(o => {
+            let listaOrdenes = ordenes;
+            ordenes.forEach((o, idx) => {
                 const tr = document.createElement('tr');
-                const estadoBadge = (o.estado || '').toUpperCase() === 'PAGADO' || (o.estado || '').toUpperCase() === 'APROBADO'
-                    ? '<span class="estado-badge estado-pagado">Pagado</span>'
-                    : '<span class="estado-badge estado-pendiente">' + escapeHtml(o.estado || 'Pendiente') + '</span>';
+const esPagado = (o.estado || '').toUpperCase() === 'PAGADO' || (o.estado || '').toUpperCase() === 'APROBADO';
+                const estadoClase = esPagado ? 'estado-pagado' : 'estado-pendiente';
+                const estadoTexto = esPagado ? 'Pagado' : (o.estado || 'Pendiente');
                 tr.innerHTML = `
                     <td><strong>${o.numeroFormateado || ('00' + o.numero).slice(-3)}</strong></td>
                     <td>${escapeHtml(o.clienteNombre || '—')}</td>
                     <td>${formatFecha(o.fecha)}</td>
                     <td>${formatTotal(o.total)}</td>
-                    <td>${estadoBadge}</td>
-                    <td><button type="button" class="btn-ver-pedido" data-id="${o.id}">Ver pedido</button></td>
+<td><span class="estado-badge ${estadoClase}">${escapeHtml(estadoTexto)}</span></td>
+                    <td><button type="button" class="btn-ver-pedido" data-idx="${idx}">Ver pedido</button></td>
                 `;
                 tbody.appendChild(tr);
             });
-            document.querySelectorAll('.btn-ver-pedido').forEach(btn => {
-                btn.addEventListener('click', () => verRecibo(btn.dataset.id));
+            tbody.querySelectorAll('.btn-ver-pedido').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const idx = parseInt(btn.getAttribute('data-idx'), 10);
+                    if (!isNaN(idx) && listaOrdenes[idx]) abrirModalPedido(listaOrdenes[idx]);
+                });
             });
         }
+
+        function abrirModalPedido(orden) {
+            const num = orden.numeroFormateado || ('00' + orden.numero).slice(-3);
+            document.getElementById('pedido-modal-numero').textContent = 'Nº ' + num;
+            let fechaStr = '—';
+            let entregaStr = '—';
+            try {
+                const d = new Date(orden.fecha);
+                fechaStr = d.toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
+                const entrega = new Date(d);
+                entrega.setDate(entrega.getDate() + 15);
+                entregaStr = entrega.toLocaleDateString('es-CO', { dateStyle: 'medium' });
+            } catch (_) {}
+            document.getElementById('pedido-modal-fechas').innerHTML = '<strong>Fecha:</strong> ' + fechaStr + '<br><strong>Fecha de entrega:</strong> ' + entregaStr;
+            document.getElementById('pedido-modal-cliente').innerHTML = `
+                <p><strong>Nombre:</strong> ${escapeHtml(orden.clienteNombre || '—')}</p>
+                <p><strong>Cédula:</strong> ${escapeHtml(orden.clienteCedula || '—')}</p>
+                <p><strong>Correo:</strong> ${escapeHtml(orden.clienteCorreo || '—')}</p>
+                <p><strong>Teléfono:</strong> ${escapeHtml(orden.clienteTelefono || '—')}</p>
+                <p><strong>Dirección:</strong> ${escapeHtml(orden.clienteDireccion || '—')}</p>
+            `;
+            let items = [];
+            try {
+                items = typeof orden.itemsJson === 'string' ? JSON.parse(orden.itemsJson) : (orden.itemsJson || []);
+            } catch (_) {}
+            const totalNum = orden.total != null ? (typeof orden.total === 'number' ? orden.total : Number(orden.total)) : 0;
+            const totalStr = new Intl.NumberFormat('es-CO').format(totalNum);
+            let tablaHtml = '<table class="tabla-productos"><thead><tr><th>Prendas de vestir</th><th>Talla</th><th>Cant.</th><th>P.Unit</th><th>Subtotal</th></tr></thead><tbody>';
+            items.forEach(i => {
+                const nombre = escapeHtml(i.nombre || '—');
+                const talla = escapeHtml(i.talla || '—');
+                const cant = i.cantidad != null ? i.cantidad : '—';
+                const pUnit = i.precioUnit != null ? new Intl.NumberFormat('es-CO').format(i.precioUnit) : '—';
+                const subtotal = i.subtotal != null ? new Intl.NumberFormat('es-CO').format(i.subtotal) : '—';
+                tablaHtml += '<tr><td>' + nombre + '</td><td>' + talla + '</td><td>' + cant + '</td><td>' + pUnit + '</td><td>' + subtotal + '</td></tr>';
+            });
+            tablaHtml += '</tbody></table>';
+            document.getElementById('pedido-modal-productos').innerHTML = tablaHtml;
+            document.getElementById('pedido-modal-total').textContent = 'Total: ' + totalStr + ' COP';
+            const overlay = document.getElementById('pedido-modal-overlay');
+            overlay.classList.remove('hidden');
+            overlay.setAttribute('aria-hidden', 'false');
+        }
+
+        document.getElementById('pedido-modal-cerrar').addEventListener('click', () => {
+            document.getElementById('pedido-modal-overlay').classList.add('hidden');
+            document.getElementById('pedido-modal-overlay').setAttribute('aria-hidden', 'true');
+        });
+        document.getElementById('pedido-modal-overlay').addEventListener('click', (e) => {
+            if (e.target.id === 'pedido-modal-overlay') {
+                document.getElementById('pedido-modal-overlay').classList.add('hidden');
+                document.getElementById('pedido-modal-overlay').setAttribute('aria-hidden', 'true');
+            }
+        });
 
         function escapeHtml(s) {
             if (s == null) return '';
