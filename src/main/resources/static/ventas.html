@@ -459,31 +459,8 @@
     <script src="/js/cart.js"></script>
     <script src="/js/accessibility.js"></script>
     <script>
-        (async () => {
-            let result;
-            try {
-                result = await authApi.getMe();
-            } catch (err) {
-                Toast.error('Error de conexión. Verifica tu red.');
-                setTimeout(() => { window.location.href = '/login.html'; }, 2000);
-                return;
-            }
-            if (!result.ok) {
-                if (result.mensaje && result.mensaje.includes('conexión')) {
-                    Toast.error(result.mensaje);
-                }
-                window.location.href = '/login.html';
-                return;
-            }
-            const rol = (result.usuario?.rol || '').toUpperCase();
-            if (rol !== 'VENDEDOR') {
-                window.location.href = '/';
-                return;
-            }
-            document.getElementById('user-name').textContent = result.usuario?.nombre || result.usuario?.usuario;
-            document.getElementById('user-rol').textContent = result.usuario?.rol || 'VENDEDOR';
-
-            // Estadísticas diarias de ventas (usa fecha local del navegador, no UTC)
+        /** Actualiza el resumen de ventas (Ventas de hoy, Pedidos de hoy, Ticket promedio) */
+        async function cargarEstadisticasVentas() {
             try {
                 const hoy = new Date();
                 const y = hoy.getFullYear();
@@ -513,9 +490,34 @@
                     if (pedidosEl) pedidosEl.textContent = count;
                     if (promedioEl) promedioEl.textContent = count > 0 ? formatter.format(total / count) : '—';
                 }
-            } catch (_) {
-                // Silencioso: si falla, dejamos los valores por defecto
+            } catch (_) {}
+        }
+
+        (async () => {
+            let result;
+            try {
+                result = await authApi.getMe();
+            } catch (err) {
+                Toast.error('Error de conexión. Verifica tu red.');
+                setTimeout(() => { window.location.href = '/login.html'; }, 2000);
+                return;
             }
+            if (!result.ok) {
+                if (result.mensaje && result.mensaje.includes('conexión')) {
+                    Toast.error(result.mensaje);
+                }
+                window.location.href = '/login.html';
+                return;
+            }
+            const rol = (result.usuario?.rol || '').toUpperCase();
+            if (rol !== 'VENDEDOR') {
+                window.location.href = '/';
+                return;
+            }
+            document.getElementById('user-name').textContent = result.usuario?.nombre || result.usuario?.usuario;
+            document.getElementById('user-rol').textContent = result.usuario?.rol || 'VENDEDOR';
+
+            await cargarEstadisticasVentas();
 
             // Mensaje de bienvenida al iniciar sesión
             const welcomeMsg = document.getElementById('welcome-toast');
@@ -558,6 +560,7 @@
                     Toast.success('¡Pago aprobado! Gracias por su compra.', 4000);
                 }
                 Cart.clear();
+                await cargarEstadisticasVentas();
                 window.history.replaceState({}, '', '/ventas.html');
             } else if (payment === 'failure') {
                 sessionStorage.removeItem('unisof_pending_checkout');
