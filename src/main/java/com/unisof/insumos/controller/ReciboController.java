@@ -4,8 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unisof.insumos.model.Cliente;
 import com.unisof.insumos.model.Recibo;
+import com.unisof.insumos.model.Usuario;
 import com.unisof.insumos.repository.ClienteRepository;
 import com.unisof.insumos.repository.ReciboRepository;
+import com.unisof.insumos.service.AuthService;
 import com.unisof.insumos.service.EmailService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -33,15 +35,18 @@ public class ReciboController {
     private final ReciboRepository reciboRepository;
     private final ClienteRepository clienteRepository;
     private final EmailService emailService;
+    private final AuthService authService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${app.copias.emails:}")
     private String copiasEmails;
 
-    public ReciboController(ReciboRepository reciboRepository, ClienteRepository clienteRepository, EmailService emailService) {
+    public ReciboController(ReciboRepository reciboRepository, ClienteRepository clienteRepository,
+                           EmailService emailService, AuthService authService) {
         this.reciboRepository = reciboRepository;
         this.clienteRepository = clienteRepository;
         this.emailService = emailService;
+        this.authService = authService;
     }
 
     /**
@@ -118,6 +123,7 @@ public class ReciboController {
         m.put("total", r.getTotal());
         m.put("itemsJson", r.getItemsJson());
         m.put("estado", r.getEstado());
+        m.put("vendedorNombre", r.getVendedor() != null ? r.getVendedor().getNombre() : null);
         return m;
     }
 
@@ -180,7 +186,8 @@ public class ReciboController {
             final String itemsAsJson = objectMapper.writeValueAsString(items);
             final int nextNumero = (reciboRepository.findMaxNumero() == null ? 0 : reciboRepository.findMaxNumero()) + 1;
             final String estado = body.containsKey("estado") ? body.get("estado").toString() : "PENDIENTE";
-            final Recibo recibo = reciboRepository.save(new Recibo(nextNumero, cliente, total, itemsAsJson, estado));
+            Usuario vendedor = authService.obtenerUsuarioActual().orElse(null);
+            final Recibo recibo = reciboRepository.save(new Recibo(nextNumero, cliente, total, itemsAsJson, estado, vendedor));
             final String numeroReciboStr = String.format("%03d", recibo.getNumero());
 
             boolean enviarPorCorreo = Boolean.TRUE.equals(body.get("enviarPorCorreo"))
@@ -189,7 +196,8 @@ public class ReciboController {
                     || Boolean.parseBoolean(String.valueOf(body.get("enviarACopias")));
 
             if (enviarPorCorreo || enviarACopias) {
-                ResponseEntity<?> resp = enviarRecibosPorCorreo(cliente, recibo, items, numeroReciboStr, estado, total, enviarPorCorreo, enviarACopias);
+                String nombreVendedor = vendedor != null ? vendedor.getNombre() : null;
+                ResponseEntity<?> resp = enviarRecibosPorCorreo(cliente, recibo, items, numeroReciboStr, estado, total, enviarPorCorreo, enviarACopias, nombreVendedor);
                 if (resp != null) {
                     return resp;
                 }
@@ -211,7 +219,7 @@ public class ReciboController {
     }
 
     private ResponseEntity<?> enviarRecibosPorCorreo(Cliente cliente, Recibo recibo, List<Map<String, Object>> items,
-            String numeroReciboStr, String estado, BigDecimal total, boolean enviarPorCorreo, boolean enviarACopias) {
+            String numeroReciboStr, String estado, BigDecimal total, boolean enviarPorCorreo, boolean enviarACopias, String nombreVendedor) {
         String itemsHtml = buildItemsHtml(items);
         String totalStr = String.format("%,d", total.intValue()).replace(",", ".");
         ZoneId zone = ZoneId.systemDefault();
@@ -234,7 +242,8 @@ public class ReciboController {
                     totalStr,
                     estado,
                     fechaStr,
-                    fechaEntregaStr);
+                    fechaEntregaStr,
+                    nombreVendedor);
             if (!enviado) {
                 return ResponseEntity.status(500).body(Map.of("mensaje", "Recibo creado pero no se pudo enviar el correo al cliente"));
             }
@@ -270,7 +279,8 @@ public class ReciboController {
                         totalStr,
                         estado,
                         fechaStr,
-                        fechaEntregaStr);
+                        fechaEntregaStr,
+                        nombreVendedor);
             }
         }
         return null;

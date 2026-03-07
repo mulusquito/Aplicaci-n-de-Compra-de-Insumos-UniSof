@@ -37,7 +37,7 @@
         .form-group input, .form-group select { width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid #444; background: #222; color: white; }
         .form-group input:disabled { opacity: 0.7; cursor: not-allowed; }
         .modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
-        .pedido-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; overflow-y: auto; }
+.pedido-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; overflow-y: auto; }
         .pedido-modal-overlay.hidden { display: none !important; }
         .pedido-modal { background: #1a1a1a; border-radius: 12px; max-width: 520px; width: 100%; border: 1px solid #333; overflow: hidden; max-height: 90vh; overflow-y: auto; }
         .pedido-modal-header { background: #f5a623; color: #1a1a1a; padding: 20px; text-align: center; }
@@ -131,7 +131,7 @@
                             <th data-i18n-key="orders.date">Fecha</th>
                             <th data-i18n-key="orders.total">Total</th>
                             <th data-i18n-key="orders.status">Estado</th>
-                            <th></th>
+<th>Ver pedido</th>
                         </tr>
                     </thead>
                     <tbody id="tabla-body">
@@ -168,6 +168,21 @@
     </div>
 
     <button type="button" class="admin-sidebar-toggle" id="admin-sidebar-toggle" aria-label="Abrir menú">☰</button>
+
+    <!-- Modal Ver recibo -->
+    <div class="modal-overlay hidden" id="modal-recibo-overlay">
+        <div class="modal-box modal-recibo" id="modal-recibo-content">
+            <div class="modal-recibo-header">
+                <span style="font-size:24px;font-weight:bold;">U</span> UNISOF
+            </div>
+            <div class="modal-recibo-body" id="modal-recibo-body">
+                <!-- Se llena por JS -->
+            </div>
+            <div style="padding: 16px; text-align: center;">
+                <button type="button" class="btn btn-secondary" id="modal-recibo-cerrar">Cerrar</button>
+            </div>
+        </div>
+    </div>
 
     <script src="/js/auth.js"></script>
     <script src="/js/toast.js"></script>
@@ -300,15 +315,15 @@
             let listaOrdenes = ordenes;
             ordenes.forEach((o, idx) => {
                 const tr = document.createElement('tr');
-                const esPagado = (o.estado || '').toUpperCase() === 'PAGADO';
+const esPagado = (o.estado || '').toUpperCase() === 'PAGADO' || (o.estado || '').toUpperCase() === 'APROBADO';
                 const estadoClase = esPagado ? 'estado-pagado' : 'estado-pendiente';
-                const estadoTexto = esPagado ? 'Pagado' : 'Pendiente';
+                const estadoTexto = esPagado ? 'Pagado' : (o.estado || 'Pendiente');
                 tr.innerHTML = `
                     <td><strong>${o.numeroFormateado || ('00' + o.numero).slice(-3)}</strong></td>
                     <td>${escapeHtml(o.clienteNombre || '—')}</td>
                     <td>${formatFecha(o.fecha)}</td>
                     <td>${formatTotal(o.total)}</td>
-                    <td><span class="estado-badge ${estadoClase}">${estadoTexto}</span></td>
+<td><span class="estado-badge ${estadoClase}">${escapeHtml(estadoTexto)}</span></td>
                     <td><button type="button" class="btn-ver-pedido" data-idx="${idx}">Ver pedido</button></td>
                 `;
                 tbody.appendChild(tr);
@@ -381,6 +396,65 @@
             div.textContent = s;
             return div.innerHTML;
         }
+
+        async function verRecibo(id) {
+            try {
+                const res = await fetch('/api/recibos/' + id, { credentials: 'include' });
+                if (!res.ok) throw new Error('No se pudo cargar el pedido');
+                const r = await res.json();
+                const num = r.numeroFormateado || ('00' + r.numero).slice(-3);
+                const fechaStr = formatFecha(r.fecha);
+                const fechaEntrega = (() => {
+                    try {
+                        const d = new Date(r.fecha);
+                        d.setDate(d.getDate() + 15);
+                        return d.toLocaleDateString('es-CO');
+                    } catch (_) { return '—'; }
+                })();
+                let itemsHtml = '';
+                try {
+                    const items = JSON.parse(r.itemsJson || '[]');
+                    items.forEach(i => {
+                        const nombre = escapeHtml(i.nombre || i.name || '—');
+                        const talla = escapeHtml(i.talla || i.size || '—');
+                        const cant = i.cantidad ?? i.quantity ?? 0;
+                        const pUnit = (i.precioUnit ?? i.unitPrice ?? 0);
+                        const subtotal = (i.subtotal ?? (pUnit * cant));
+                        itemsHtml += `<tr><td>${nombre}</td><td>${talla}</td><td>${cant}</td><td>${formatTotal(pUnit)}</td><td>${formatTotal(subtotal)}</td></tr>`;
+                    });
+                } catch (_) { itemsHtml = '<tr><td colspan="5">—</td></tr>'; }
+                const body = document.getElementById('modal-recibo-body');
+                body.innerHTML = `
+                    <p style="text-align:center;color:#666;font-size:12px;margin:0;">Orden de compra</p>
+                    <p style="text-align:center;font-size:18px;font-weight:bold;margin:0 0 16px;">Nº ${num}</p>
+                    <p style="font-size:12px;color:#555;"><strong>Fecha:</strong> ${fechaStr}</p>
+                    <p style="font-size:12px;color:#555;margin-bottom:16px;"><strong>Fecha de entrega:</strong> ${fechaEntrega}</p>
+                    <h3>Cliente</h3>
+                    <p>Nombre: ${escapeHtml(r.clienteNombre || '—')}</p>
+                    <p>Cédula: ${escapeHtml(r.clienteCedula || '—')}</p>
+                    <p>Correo: ${escapeHtml(r.clienteCorreo || '—')}</p>
+                    <p>Teléfono: ${escapeHtml(r.clienteTelefono || '—')}</p>
+                    <p>Dirección: ${escapeHtml(r.clienteDireccion || '—')}</p>
+                    <h3>Productos</h3>
+                    <table class="modal-recibo-table">
+                        <thead><tr><th>Prendas</th><th>Talla</th><th>Cant.</th><th>P.Unit</th><th>Subtotal</th></tr></thead>
+                        <tbody>${itemsHtml}</tbody>
+                    </table>
+                    <div class="modal-recibo-total">Total: ${formatTotal(r.total)}</div>
+                    <div class="modal-recibo-vendedor">Vendedor: ${escapeHtml(r.vendedorNombre || '—')}</div>
+                `;
+                document.getElementById('modal-recibo-overlay').classList.remove('hidden');
+            } catch (err) {
+                Toast.error(err.message || 'Error al cargar el recibo');
+            }
+        }
+
+        document.getElementById('modal-recibo-cerrar').addEventListener('click', () => {
+            document.getElementById('modal-recibo-overlay').classList.add('hidden');
+        });
+        document.getElementById('modal-recibo-overlay').addEventListener('click', (e) => {
+            if (e.target.id === 'modal-recibo-overlay') e.target.classList.add('hidden');
+        });
 
         cargarOrdenes();
     </script>

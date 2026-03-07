@@ -1,6 +1,7 @@
 package com.unisof.insumos.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -83,10 +84,18 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /** SCRUM-36: Respuesta JSON en 401 (sesion expirada o no autenticado) */
+    /** SCRUM-36: Respuesta JSON en 401 (API) o redireccion a login (navegacion HTML) */
     @Bean
     public AuthenticationEntryPoint json401EntryPoint() {
         return (request, response, authException) -> {
+            HttpServletRequest req = request;
+            String accept = req.getHeader("Accept") != null ? req.getHeader("Accept").toLowerCase() : "";
+            String path = req.getRequestURI() != null ? req.getRequestURI() : "";
+            boolean pideHtml = accept.contains("text/html") || path.equals("/") || path.equals("/index.html") || path.endsWith(".html");
+            if (pideHtml) {
+                response.sendRedirect("/login.html");
+                return;
+            }
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             try {

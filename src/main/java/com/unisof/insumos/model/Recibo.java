@@ -43,12 +43,18 @@ public class Recibo {
     @Column(nullable = false, length = 20)
     private String estado = "PENDIENTE";
 
-    public Recibo(Integer numero, Cliente cliente, BigDecimal total, String itemsJson, String estado) {
+    /** Vendedor que realizó la venta */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vendedor_id")
+    private Usuario vendedor;
+
+    public Recibo(Integer numero, Cliente cliente, BigDecimal total, String itemsJson, String estado, Usuario vendedor) {
         this.numero = numero;
         this.cliente = cliente;
         this.fecha = Instant.now();
         this.total = total;
         this.itemsJson = itemsJson;
         this.estado = estado != null ? estado : "PENDIENTE";
+        this.vendedor = vendedor;
     }
 }

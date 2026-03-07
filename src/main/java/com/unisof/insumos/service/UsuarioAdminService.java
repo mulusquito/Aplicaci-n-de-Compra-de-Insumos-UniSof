@@ -3,8 +3,8 @@ package com.unisof.insumos.service;
 import com.unisof.insumos.dto.UpdateUsuarioRequest;
 import com.unisof.insumos.dto.UsuarioResponse;
 import com.unisof.insumos.model.Usuario;
+import com.unisof.insumos.repository.TokenVerificacionRepository;
 import com.unisof.insumos.repository.UsuarioRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,11 +18,19 @@ import java.util.Optional;
  * SCRUM-12: CRUD de personal (listar, buscar, actualizar y eliminar).
  */
 @Service
-@RequiredArgsConstructor
 public class UsuarioAdminService {
 
     private final UsuarioRepository usuarioRepository;
+    private final TokenVerificacionRepository tokenVerificacionRepository;
     private final PasswordEncoder passwordEncoder;
+
+    public UsuarioAdminService(UsuarioRepository usuarioRepo,
+                               TokenVerificacionRepository tokenRepo,
+                               PasswordEncoder pwEncoder) {
+        this.usuarioRepository = usuarioRepo;
+        this.tokenVerificacionRepository = tokenRepo;
+        this.passwordEncoder = pwEncoder;
+    }
 
     /**
      * Lista todos los usuarios ordenados por nombre.
@@ -122,9 +130,11 @@ public class UsuarioAdminService {
 
     /**
      * Elimina un usuario por su id.
+     * Elimina primero los tokens de verificación 2FA para evitar violación de FK.
      */
     @Transactional
     public void eliminar(Long id) {
+        tokenVerificacionRepository.deleteByUsuario_Id(id);
         usuarioRepository.deleteById(id);
     }
 

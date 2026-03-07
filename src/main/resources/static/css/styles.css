@@ -889,6 +889,9 @@ button.panel-btn:hover {
     background: #1a1a1a;
 }
 .admin-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
     padding: 20px 24px;
     border-bottom: 1px solid #222;
     display: flex;
@@ -996,6 +999,12 @@ button.panel-btn:hover {
 }
 .dashboard-card:hover {
     border-color: #333;
+}
+.dashboard-card-clickable {
+    cursor: pointer;
+}
+.dashboard-card-clickable:hover {
+    border-color: #f5a623;
 }
 .dashboard-card-header {
     margin-bottom: 12px;
@@ -1235,6 +1244,100 @@ button.panel-btn:hover {
 }
 
 /* CARRITO - Sidebar */
+/* Modal Pedidos de hoy */
+.modal-pedidos-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+}
+.modal-pedidos-overlay.open {
+    opacity: 1;
+    visibility: visible;
+}
+.modal-pedidos-content {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    max-width: 480px;
+    width: 90%;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.modal-pedidos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #222;
+}
+.modal-pedidos-header h2 {
+    font-size: 20px;
+    color: #f5a623;
+    margin: 0;
+}
+.modal-pedidos-close {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 28px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 4px;
+}
+.modal-pedidos-close:hover {
+    color: #fff;
+}
+.modal-pedidos-body {
+    padding: 20px 24px;
+    overflow-y: auto;
+}
+.modal-pedidos-empty {
+    color: #888;
+    text-align: center;
+    margin: 0;
+}
+.modal-pedidos-item {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid #222;
+    align-items: center;
+}
+.modal-pedidos-item:last-child {
+    border-bottom: none;
+}
+.modal-pedidos-item-num {
+    font-weight: 600;
+    color: #f5a623;
+    min-width: 50px;
+}
+.modal-pedidos-item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 13px;
+    color: #aaa;
+}
+.modal-pedidos-item-info span:last-child {
+    color: #fff;
+    font-weight: 500;
+}
+.modal-pedidos-item-fecha {
+    font-size: 12px;
+    color: #666;
+}
+
 .cart-overlay {
     position: fixed;
     inset: 0;
