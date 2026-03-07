@@ -483,26 +483,28 @@
             document.getElementById('user-name').textContent = result.usuario?.nombre || result.usuario?.usuario;
             document.getElementById('user-rol').textContent = result.usuario?.rol || 'VENDEDOR';
 
-            // Estadísticas diarias de ventas
+            // Estadísticas diarias de ventas (usa fecha local del navegador, no UTC)
             try {
                 const hoy = new Date();
-                const fecha = hoy.toISOString().slice(0, 10); // yyyy-MM-dd
+                const y = hoy.getFullYear();
+                const m = String(hoy.getMonth() + 1).padStart(2, '0');
+                const d = String(hoy.getDate()).padStart(2, '0');
+                const fecha = `${y}-${m}-${d}`;
                 const res = await fetch('/api/recibos?fecha=' + fecha, { credentials: 'include' });
                 if (res.ok) {
                     const data = await res.json();
+                    const pedidos = Array.isArray(data) ? data : [];
                     let total = 0;
                     let count = 0;
-                    if (Array.isArray(data)) {
-                        data.forEach(r => {
-                            if (r && r.total != null) {
-                                const valor = typeof r.total === 'number' ? r.total : Number(r.total);
-                                if (!Number.isNaN(valor)) {
-                                    total += valor;
-                                    count += 1;
-                                }
+                    pedidos.forEach(r => {
+                        if (r && r.total != null) {
+                            const valor = typeof r.total === 'number' ? r.total : Number(r.total);
+                            if (!Number.isNaN(valor)) {
+                                total += valor;
+                                count += 1;
                             }
-                        });
-                    }
+                        }
+                    });
                     const formatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
                     const totalEl = document.getElementById('ventas-hoy-total');
                     const pedidosEl = document.getElementById('ventas-hoy-pedidos');
