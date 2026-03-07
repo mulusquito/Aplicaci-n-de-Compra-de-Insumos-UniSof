@@ -27,10 +27,9 @@
                 <span class="admin-nav-icon">👤</span>
                 <span class="admin-nav-text" data-i18n-key="nav.personal">Personal</span>
             </a>
-            <a href="#ordenes-compra" class="admin-nav-item admin-nav-item--disabled" data-section="ordenes">
+            <a href="/ordenes.html" class="admin-nav-item" data-section="ordenes">
                 <span class="admin-nav-icon">📋</span>
                 <span class="admin-nav-text" data-i18n-key="nav.orders">Consultar órdenes de compra</span>
-                <span class="admin-nav-hint">(Próximamente)</span>
             </a>
             <a href="#compras-insumos" class="admin-nav-item admin-nav-item--disabled" data-section="compras">
                 <span class="admin-nav-icon">📦</span>
@@ -58,6 +57,14 @@
         </header>
 
         <main class="admin-dashboard">
+            <div class="dashboard-toolbar">
+                <label for="dashboard-fecha-desde">Desde</label>
+                <input type="date" id="dashboard-fecha-desde" aria-label="Fecha desde">
+                <label for="dashboard-fecha-hasta">Hasta</label>
+                <input type="date" id="dashboard-fecha-hasta" aria-label="Fecha hasta">
+                <button type="button" class="dashboard-btn dashboard-btn-refresh" id="dashboard-btn-actualizar">Actualizar</button>
+                <button type="button" class="dashboard-btn dashboard-btn-pdf" id="dashboard-btn-pdf">Exportar PDF</button>
+            </div>
             <section class="dashboard-cards">
                 <article class="dashboard-card">
                     <div class="dashboard-card-header">
@@ -74,7 +81,7 @@
                     </div>
                     <div class="dashboard-card-body">
                         <p class="dashboard-card-value" id="dashboard-ordenes">—</p>
-                        <p class="dashboard-card-label">(Próximamente)</p>
+                        <p class="dashboard-card-label">Órdenes en el periodo</p>
                     </div>
                 </article>
                 <article class="dashboard-card">
@@ -83,7 +90,7 @@
                     </div>
                     <div class="dashboard-card-body">
                         <p class="dashboard-card-value" id="dashboard-ventas">—</p>
-                        <p class="dashboard-card-label">(Próximamente)</p>
+                        <p class="dashboard-card-label">Ventas en el periodo</p>
                     </div>
                 </article>
             </section>
@@ -92,21 +99,10 @@
                 <h2 class="dashboard-section-title">Ventas por mes</h2>
                 <p class="dashboard-section-desc">Resumen de ventas mensuales de la empresa. Los datos se actualizarán cuando el módulo esté disponible.</p>
                 <div class="dashboard-chart-placeholder" id="dashboard-ventas-mes">
-                    <div class="dashboard-chart-bars">
-                        <div class="dashboard-chart-bar-wrap" data-mes="Ene"><div class="dashboard-chart-bar" style="height: 40%"></div></div>
-                        <div class="dashboard-chart-bar-wrap" data-mes="Feb"><div class="dashboard-chart-bar" style="height: 55%"></div></div>
-                        <div class="dashboard-chart-bar-wrap" data-mes="Mar"><div class="dashboard-chart-bar" style="height: 35%"></div></div>
-                        <div class="dashboard-chart-bar-wrap" data-mes="Abr"><div class="dashboard-chart-bar" style="height: 70%"></div></div>
-                        <div class="dashboard-chart-bar-wrap" data-mes="May"><div class="dashboard-chart-bar" style="height: 60%"></div></div>
-                        <div class="dashboard-chart-bar-wrap" data-mes="Jun"><div class="dashboard-chart-bar" style="height: 85%"></div></div>
-                        <div class="dashboard-chart-bar-wrap" data-mes="Jul"><div class="dashboard-chart-bar" style="height: 75%"></div></div>
-                        <div class="dashboard-chart-bar-wrap" data-mes="Ago"><div class="dashboard-chart-bar" style="height: 50%"></div></div>
-                        <div class="dashboard-chart-bar-wrap" data-mes="Sep"><div class="dashboard-chart-bar" style="height: 65%"></div></div>
-                        <div class="dashboard-chart-bar-wrap" data-mes="Oct"><div class="dashboard-chart-bar" style="height: 90%"></div></div>
-                        <div class="dashboard-chart-bar-wrap" data-mes="Nov"><div class="dashboard-chart-bar" style="height: 55%"></div></div>
-                        <div class="dashboard-chart-bar-wrap" data-mes="Dic"><div class="dashboard-chart-bar" style="height: 30%"></div></div>
+                    <div class="dashboard-chart-bars" id="dashboard-chart-bars">
+                        <!-- Se rellena por JS con ventasPorMes -->
                     </div>
-                    <p class="dashboard-chart-note">Gráfico ilustrativo. Conectará con datos reales cuando el módulo de ventas esté activo.</p>
+                    <p class="dashboard-chart-note">Ventas por mes (últimos 12 meses). Se actualiza con el botón Actualizar.</p>
                 </div>
             </section>
 
@@ -134,7 +130,124 @@
 
     <script src="/js/auth.js"></script>
     <script src="/js/accessibility.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSDznJrLLud0ODM3LTlvOnQ49NlbUP/bTL6VyUtwntHjGqk2YqQqLoPRBqVLbYrqL8IiABq1g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
+        let lastDashboardStats = null;
+
+        function formatVentas(val) {
+            if (val == null) return '—';
+            const n = typeof val === 'number' ? val : (val.value ? Number(val) : 0);
+            return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
+        }
+
+        function renderChart(ventasPorMes) {
+            const container = document.getElementById('dashboard-chart-bars');
+            if (!container || !Array.isArray(ventasPorMes) || ventasPorMes.length === 0) return;
+            const maxTotal = Math.max(1, ...ventasPorMes.map(m => Number(m.total) || 0));
+            container.innerHTML = ventasPorMes.map(m => {
+                const pct = maxTotal > 0 ? (Number(m.total) || 0) / maxTotal * 100 : 0;
+                return '<div class="dashboard-chart-bar-wrap" data-mes="' + (m.mesLabel || '') + '"><div class="dashboard-chart-bar" style="height:' + pct + '%"></div></div>';
+            }).join('');
+        }
+
+        async function loadDashboard() {
+            const desde = document.getElementById('dashboard-fecha-desde')?.value;
+            const hasta = document.getElementById('dashboard-fecha-hasta')?.value;
+            let url = '/api/dashboard/stats';
+            const params = new URLSearchParams();
+            if (desde) params.set('fechaDesde', desde);
+            if (hasta) params.set('fechaHasta', hasta);
+            if (params.toString()) url += '?' + params.toString();
+            try {
+                const res = await fetch(url, { credentials: 'include' });
+                if (!res.ok) throw new Error('Error al cargar estadísticas');
+                const data = await res.json();
+                lastDashboardStats = data;
+                const u = document.getElementById('dashboard-usuarios');
+                const o = document.getElementById('dashboard-ordenes');
+                const v = document.getElementById('dashboard-ventas');
+                if (u) u.textContent = data.usuarios != null ? data.usuarios : '—';
+                if (o) o.textContent = data.ordenes != null ? data.ordenes : '—';
+                if (v) v.textContent = formatVentas(data.ventas);
+                if (data.ventasPorMes && data.ventasPorMes.length) renderChart(data.ventasPorMes);
+            } catch (e) {
+                lastDashboardStats = null;
+                document.getElementById('dashboard-usuarios').textContent = '—';
+                document.getElementById('dashboard-ordenes').textContent = '—';
+                document.getElementById('dashboard-ventas').textContent = '—';
+                document.getElementById('dashboard-chart-bars').innerHTML = '';
+            }
+        }
+
+        function setDefaultDates() {
+            const now = new Date();
+            const y = now.getFullYear(), m = String(now.getMonth() + 1).padStart(2, '0'), d = String(now.getDate()).padStart(2, '0');
+            const first = y + '-' + m + '-01';
+            const inputDesde = document.getElementById('dashboard-fecha-desde');
+            const inputHasta = document.getElementById('dashboard-fecha-hasta');
+            if (inputDesde && !inputDesde.value) inputDesde.value = first;
+            if (inputHasta && !inputHasta.value) inputHasta.value = y + '-' + m + '-' + d;
+        }
+
+        function generarResumenAnalisis(stats) {
+            const desde = stats.fechaDesde || '—';
+            const hasta = stats.fechaHasta || '—';
+            const usuarios = stats.usuarios != null ? stats.usuarios : 0;
+            const ordenes = stats.ordenes != null ? stats.ordenes : 0;
+            const ventasStr = formatVentas(stats.ventas);
+            let texto = 'En el periodo del ' + desde + ' al ' + hasta + ' se registraron ' + ordenes + ' órdenes por un total de ' + ventasStr + '. ';
+            texto += 'El sistema cuenta con ' + usuarios + ' usuarios activos en el personal. ';
+            if (ordenes === 0) {
+                texto += 'No hubo actividad de ventas en el periodo seleccionado.';
+            } else {
+                texto += 'Los demás módulos (compras de insumos, inventario, órdenes de compra) están en desarrollo.';
+            }
+            return texto;
+        }
+
+        function exportarPdf() {
+            if (typeof jspdf === 'undefined') {
+                alert('No se pudo cargar la librería PDF. Compruebe la conexión.');
+                return;
+            }
+            const { jsPDF } = jspdf;
+            const doc = new jsPDF();
+            const stats = lastDashboardStats || {};
+            let y = 20;
+            doc.setFontSize(18);
+            doc.text('Resumen Dashboard - UNISOF', 14, y);
+            y += 10;
+            doc.setFontSize(11);
+            doc.text('Periodo: ' + (stats.fechaDesde || '—') + ' a ' + (stats.fechaHasta || '—'), 14, y);
+            y += 8;
+            doc.text('Usuarios activos: ' + (stats.usuarios != null ? stats.usuarios : '—'), 14, y);
+            y += 6;
+            doc.text('Ordenes en el periodo: ' + (stats.ordenes != null ? stats.ordenes : '—'), 14, y);
+            y += 6;
+            doc.text('Ventas en el periodo: ' + formatVentas(stats.ventas), 14, y);
+            y += 14;
+            doc.setFontSize(12);
+            doc.text('Análisis de resultados', 14, y);
+            y += 8;
+            doc.setFontSize(10);
+            const resumenTexto = generarResumenAnalisis(stats);
+            const lineas = doc.splitTextToSize(resumenTexto, 180);
+            doc.text(lineas, 14, y);
+            y += lineas.length * 6 + 10;
+            doc.setFontSize(11);
+            doc.text('Resumen del negocio:', 14, y);
+            y += 6;
+            doc.text('• Compras de insumos: Módulo en desarrollo', 14, y);
+            y += 6;
+            doc.text('• Inventario: Próximamente', 14, y);
+            y += 6;
+            doc.text('• Órdenes de compra: Próximamente', 14, y);
+            y += 12;
+            doc.setFontSize(9);
+            doc.text('Documento generado el ' + new Date().toLocaleString('es-CO'), 14, y);
+            doc.save('resumen-dashboard-unisof.pdf');
+        }
+
         (async () => {
             const result = await authApi.getMe();
             if (!result.ok) {
@@ -157,14 +270,10 @@
                 setTimeout(() => welcomeMsg?.classList.remove('visible'), 3000);
             }
 
-            try {
-                const res = await fetch('/api/usuarios?tipo=todos', { credentials: 'include' });
-                if (res.ok) {
-                    const data = await res.json();
-                    const el = document.getElementById('dashboard-usuarios');
-                    if (el && Array.isArray(data)) el.textContent = data.length;
-                }
-            } catch (_) {}
+            setDefaultDates();
+            await loadDashboard();
+            document.getElementById('dashboard-btn-actualizar').addEventListener('click', loadDashboard);
+            document.getElementById('dashboard-btn-pdf').addEventListener('click', exportarPdf);
         })();
 
         document.getElementById('btn-logout').addEventListener('click', () => logout());

@@ -46,14 +46,16 @@ public class ReciboController {
 
     /**
      * Busca órdenes.
-     * GET /api/recibos?numero=001 | ?cedula=123456789 | ?fecha=2026-02-28 | ?mes=2026-02
+     * GET /api/recibos?numero=001 | ?cedula=... | ?fecha=... | ?mes=2026-02 | ?fechaDesde=...&fechaHasta=...
      */
     @GetMapping
     public ResponseEntity<?> buscar(
             @RequestParam(required = false) String numero,
             @RequestParam(required = false) String cedula,
             @RequestParam(required = false) String fecha,
-            @RequestParam(required = false) String mes) {
+            @RequestParam(required = false) String mes,
+            @RequestParam(required = false) String fechaDesde,
+            @RequestParam(required = false) String fechaHasta) {
         ZoneId zone = ZoneId.systemDefault();
         List<Recibo> recibos = new ArrayList<>();
         if (numero != null && !numero.isBlank()) {
@@ -75,6 +77,12 @@ public class ReciboController {
             LocalDate finMes = inicioMes.plusMonths(1);
             Instant inicio = inicioMes.atStartOfDay(zone).toInstant();
             Instant fin = finMes.atStartOfDay(zone).toInstant();
+            recibos = reciboRepository.findByFechaBetween(inicio, fin);
+        } else if (fechaDesde != null && !fechaDesde.isBlank() && fechaHasta != null && !fechaHasta.isBlank()) {
+            LocalDate dInicio = LocalDate.parse(fechaDesde);
+            LocalDate dFin = LocalDate.parse(fechaHasta);
+            Instant inicio = dInicio.atStartOfDay(zone).toInstant();
+            Instant fin = dFin.plusDays(1).atStartOfDay(zone).toInstant();
             recibos = reciboRepository.findByFechaBetween(inicio, fin);
         } else {
             recibos = reciboRepository.findAll().stream()
@@ -104,6 +112,8 @@ public class ReciboController {
         m.put("clienteNombre", r.getCliente().getNombre());
         m.put("clienteCedula", r.getCliente().getCedula());
         m.put("clienteCorreo", r.getCliente().getCorreo());
+        m.put("clienteTelefono", r.getCliente().getTelefono() != null ? r.getCliente().getTelefono() : "");
+        m.put("clienteDireccion", r.getCliente().getDireccion() != null ? r.getCliente().getDireccion() : "");
         m.put("fecha", r.getFecha().toString());
         m.put("total", r.getTotal());
         m.put("itemsJson", r.getItemsJson());

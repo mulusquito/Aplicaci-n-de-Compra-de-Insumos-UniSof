@@ -928,6 +928,59 @@ button.panel-btn:hover {
     padding: 24px;
     overflow-y: auto;
 }
+.dashboard-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 12px;
+}
+.dashboard-toolbar label {
+    font-size: 13px;
+    color: #888;
+    margin-right: 4px;
+}
+.dashboard-toolbar input[type="date"] {
+    padding: 8px 12px;
+    border: 1px solid #333;
+    border-radius: 8px;
+    background: #0d0d0d;
+    color: #fff;
+    font-size: 14px;
+}
+.dashboard-toolbar input[type="date"]:focus {
+    outline: none;
+    border-color: #f5a623;
+}
+.dashboard-toolbar .dashboard-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s, color 0.2s;
+}
+.dashboard-btn-refresh {
+    background: #f5a623;
+    color: #000;
+}
+.dashboard-btn-refresh:hover {
+    background: #e09520;
+}
+.dashboard-btn-pdf {
+    background: #222;
+    color: #fff;
+    border: 1px solid #444;
+}
+.dashboard-btn-pdf:hover {
+    background: #333;
+    border-color: #555;
+}
 .dashboard-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
