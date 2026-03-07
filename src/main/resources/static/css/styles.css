@@ -656,6 +656,34 @@ footer {
     font-size: 14px;
 }
 
+/* Contraseña con ojito para mostrar/ocultar */
+.input-password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.input-password-wrapper input {
+    flex: 1;
+    padding-right: 44px;
+}
+.input-password-wrapper .btn-toggle-password {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    color: #888;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.input-password-wrapper .btn-toggle-password:hover {
+    color: #f5a623;
+}
+
 /* Panel por rol */
 .nav-user-info {
     display: flex;

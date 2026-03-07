@@ -9,7 +9,6 @@
 <body class="auth-page">
 
     <div class="auth-container">
-        <a href="/login.html" class="link-atras link-atras-top">← Atrás</a>
         <a href="/" class="logo auth-logo">
             <span class="logo-icon">U</span>
             <span class="logo-text">UNISOF</span>
@@ -21,28 +20,63 @@
         <form id="form-recuperar" class="auth-form">
             <div class="form-group">
                 <label for="correo">Correo electrónico</label>
-                <input type="email" id="correo" name="correo" required placeholder="tu@correo.com">
+                <input type="email" id="correo" name="correo" required placeholder="tu@correo.com" autocomplete="email">
             </div>
             <div id="error-msg" class="error-msg" style="display:none"></div>
             <div id="success-msg" class="success-msg" style="display:none"></div>
-            <button type="submit" class="btn-primary btn-block">Enviar instrucciones</button>
+            <button type="submit" class="btn-primary btn-block" id="btn-enviar">Enviar instrucciones</button>
         </form>
-
-        <p class="auth-subtitle" style="margin-top:16px; font-size:13px;">
-            (Funcionalidad en desarrollo — el backend se implementará próximamente)
-        </p>
 
         <p class="auth-footer"><a href="/login.html">← Volver al login</a></p>
     </div>
 
     <script src="/js/toast.js"></script>
     <script>
-        document.getElementById('form-recuperar').addEventListener('submit', (e) => {
+        document.getElementById('form-recuperar').addEventListener('submit', async (e) => {
             e.preventDefault();
-            Toast.info('Próximamente: se enviarán instrucciones a tu correo.');
-            document.getElementById('success-msg').textContent = 'Próximamente: se enviarán instrucciones a tu correo.';
-            document.getElementById('success-msg').style.display = 'block';
-            document.getElementById('error-msg').style.display = 'none';
+            const correo = document.getElementById('correo').value.trim();
+            const btn = document.getElementById('btn-enviar');
+            const errorEl = document.getElementById('error-msg');
+            const successEl = document.getElementById('success-msg');
+
+            errorEl.style.display = 'none';
+            successEl.style.display = 'none';
+            btn.disabled = true;
+            btn.textContent = 'Enviando...';
+
+            try {
+                const res = await fetch('/api/auth/solicitar-recuperacion', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ correo })
+                });
+                const data = await res.json().catch(() => ({}));
+
+                if (res.ok) {
+                    if (data.existe) {
+                        successEl.textContent = data.mensaje || 'Se le envió un correo de recuperación. Revisa tu bandeja de entrada y spam.';
+                        successEl.style.display = 'block';
+                        errorEl.style.display = 'none';
+                        Toast.success(data.mensaje || 'Revisa tu correo para continuar.');
+                    } else {
+                        errorEl.textContent = data.mensaje || 'Ese correo no existe.';
+                        errorEl.style.display = 'block';
+                        successEl.style.display = 'none';
+                        Toast.error(data.mensaje || 'Ese correo no existe.');
+                    }
+                } else {
+                    errorEl.textContent = data.mensaje || 'Error al enviar. Intenta de nuevo.';
+                    errorEl.style.display = 'block';
+                    Toast.error(data.mensaje || 'Error al enviar.');
+                }
+            } catch (err) {
+                errorEl.textContent = 'Error de conexión. Verifica tu red.';
+                errorEl.style.display = 'block';
+                Toast.error('Error de conexión.');
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Enviar instrucciones';
         });
     </script>
 </body>

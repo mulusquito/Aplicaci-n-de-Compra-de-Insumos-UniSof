@@ -2,8 +2,11 @@ package com.unisof.insumos.controller;
 
 import com.unisof.insumos.dto.LoginRequest;
 import com.unisof.insumos.dto.LoginResponse;
+import com.unisof.insumos.dto.RestablecerContrasenaRequest;
+import com.unisof.insumos.dto.SolicitarRecuperacionRequest;
 import com.unisof.insumos.dto.VerifyTokenRequest;
 import com.unisof.insumos.service.AuthService;
+import com.unisof.insumos.service.RecuperarContrasenaService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -13,6 +16,8 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 /**
  * Controlador de autenticacion.
@@ -28,6 +33,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final RecuperarContrasenaService recuperarContrasenaService;
     private final SecurityContextRepository securityContextRepository;
 
     /**
@@ -76,6 +82,34 @@ public class AuthController {
         } else {
             return ResponseEntity.status(401).body(response);
         }
+    }
+
+    /**
+     * Solicita recuperación de contraseña. Envía enlace por correo si el usuario existe.
+     * Por seguridad, siempre retorna 200 (evita enumeración de correos).
+     * POST /api/auth/solicitar-recuperacion
+     */
+    @PostMapping("/solicitar-recuperacion")
+    public ResponseEntity<Map<String, Object>> solicitarRecuperacion(@Valid @RequestBody SolicitarRecuperacionRequest request) {
+        boolean existe = recuperarContrasenaService.solicitarRecuperacion(request.getCorreo());
+        if (existe) {
+            return ResponseEntity.ok(Map.of("existe", true, "mensaje", "Se le envió un correo de recuperación. Revisa tu bandeja de entrada y spam."));
+        }
+        return ResponseEntity.ok(Map.of("existe", false, "mensaje", "Ese correo no existe."));
+    }
+
+    /**
+     * Restablece la contraseña con el token recibido por correo.
+     * POST /api/auth/restablecer-contrasena
+     */
+    @PostMapping("/restablecer-contrasena")
+    public ResponseEntity<Map<String, String>> restablecerContrasena(@Valid @RequestBody RestablecerContrasenaRequest request) {
+        String error = recuperarContrasenaService.restablecerContrasena(
+                request.getToken(), request.getNuevaClave(), request.getConfirmarClave());
+        if (error != null) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", error));
+        }
+        return ResponseEntity.ok(Map.of("mensaje", "Contraseña actualizada. Ya puedes iniciar sesión."));
     }
 
     /**

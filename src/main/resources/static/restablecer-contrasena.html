@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Restablecer contraseña - UNISOF</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="auth-page">
+
+    <div class="auth-container">
+        <a href="/" class="logo auth-logo">
+            <span class="logo-icon">U</span>
+            <span class="logo-text">UNISOF</span>
+        </a>
+
+        <h1 class="auth-title">Nueva contraseña</h1>
+        <p class="auth-subtitle">Ingresa tu nueva contraseña (mínimo 6 caracteres).</p>
+
+        <form id="form-restablecer" class="auth-form">
+            <input type="hidden" id="token" name="token">
+            <div class="form-group">
+                <label for="nueva-clave">Nueva contraseña</label>
+                <div class="input-password-wrapper">
+                    <input type="password" id="nueva-clave" name="nuevaClave" required minlength="6" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+                    <button type="button" class="btn-toggle-password" id="toggle-nueva" title="Ver contraseña" aria-label="Mostrar/ocultar contraseña">
+                        <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        <svg class="icon-eye-off" style="display:none" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="confirmar-clave">Confirmar contraseña</label>
+                <div class="input-password-wrapper">
+                    <input type="password" id="confirmar-clave" name="confirmarClave" required minlength="6" placeholder="Repite la contraseña" autocomplete="new-password">
+                    <button type="button" class="btn-toggle-password" id="toggle-confirmar" title="Ver contraseña" aria-label="Mostrar/ocultar contraseña">
+                        <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        <svg class="icon-eye-off" style="display:none" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div id="error-msg" class="error-msg" style="display:none"></div>
+            <div id="success-msg" class="success-msg" style="display:none"></div>
+            <button type="submit" class="btn-primary btn-block" id="btn-restablecer">Restablecer contraseña</button>
+        </form>
+
+        <p class="auth-footer"><a href="/login.html">← Volver al login</a></p>
+    </div>
+
+    <script src="/js/toast.js"></script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token');
+        const tokenEl = document.getElementById('token');
+
+        if (!token) {
+            document.getElementById('form-restablecer').style.display = 'none';
+            document.querySelector('.auth-subtitle').textContent = 'Enlace inválido o expirado. Solicita uno nuevo desde "¿Olvidaste la contraseña?" en el login.';
+            document.querySelector('.auth-subtitle').classList.add('error-msg');
+        } else {
+            tokenEl.value = token;
+        }
+
+        document.getElementById('form-restablecer').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nuevaClave = document.getElementById('nueva-clave').value;
+            const confirmarClave = document.getElementById('confirmar-clave').value;
+            const btn = document.getElementById('btn-restablecer');
+            const errorEl = document.getElementById('error-msg');
+            const successEl = document.getElementById('success-msg');
+
+            errorEl.style.display = 'none';
+            successEl.style.display = 'none';
+
+            if (nuevaClave.length < 6) {
+                errorEl.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+                errorEl.style.display = 'block';
+                return;
+            }
+            if (nuevaClave !== confirmarClave) {
+                errorEl.textContent = 'Las contraseñas no coinciden.';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Guardando...';
+
+            try {
+                const res = await fetch('/api/auth/restablecer-contrasena', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, nuevaClave, confirmarClave })
+                });
+                const data = await res.json().catch(() => ({}));
+
+                if (res.ok) {
+                    successEl.textContent = data.mensaje || 'Contraseña actualizada. Ya puedes iniciar sesión.';
+                    successEl.style.display = 'block';
+                    Toast.success(data.mensaje || 'Contraseña actualizada.');
+                    setTimeout(() => { window.location.href = '/login.html'; }, 2000);
+                } else {
+                    errorEl.textContent = data.mensaje || 'Error al restablecer. El enlace puede haber expirado.';
+                    errorEl.style.display = 'block';
+                    Toast.error(data.mensaje || 'Error al restablecer.');
+                    btn.disabled = false;
+                    btn.textContent = 'Restablecer contraseña';
+                }
+            } catch (err) {
+                errorEl.textContent = 'Error de conexión. Verifica tu red.';
+                errorEl.style.display = 'block';
+                Toast.error('Error de conexión.');
+                btn.disabled = false;
+                btn.textContent = 'Restablecer contraseña';
+            }
+        });
+
+        function setupPasswordToggle(btnId, inputId) {
+            const btn = document.getElementById(btnId);
+            const input = document.getElementById(inputId);
+            if (!btn || !input) return;
+            const iconEye = btn.querySelector('.icon-eye');
+            const iconEyeOff = btn.querySelector('.icon-eye-off');
+            btn.addEventListener('click', () => {
+                const isVisible = input.type === 'text';
+                input.type = isVisible ? 'password' : 'text';
+                iconEye.style.display = isVisible ? 'block' : 'none';
+                iconEyeOff.style.display = isVisible ? 'none' : 'block';
+            });
+        }
+        setupPasswordToggle('toggle-nueva', 'nueva-clave');
+        setupPasswordToggle('toggle-confirmar', 'confirmar-clave');
+    </script>
+</body>
+</html>

@@ -51,6 +51,9 @@ public class EmailService {
     @Value("${app.resend.from:UNISOF <onboarding@resend.dev>}")
     private String resendFrom;
 
+    @Value("${app.base-url:http://localhost:8080}")
+    private String appBaseUrl;
+
     /**
      * Envía el token de verificación 2FA por correo con diseño HTML y logo UNISOF.
      * Prioridad: Resend (si API key configurada) > JavaMailSender > log fallback.
@@ -93,6 +96,75 @@ public class EmailService {
         }
         log.warn("No se pudo enviar el token por correo a {}", correoDestino);
         return false;
+    }
+
+    /**
+     * Envía el enlace para restablecer contraseña por correo.
+     * El enlace expira en 1 hora.
+     */
+    public boolean enviarLinkRecuperacionContrasena(String correoDestino, String nombreUsuario, String token) {
+        if (!emailHabilitado) {
+            log.info("Link recuperación para {} ({}): {}", nombreUsuario, correoDestino, token);
+            return true;
+        }
+        String link = String.format("%s/restablecer-contrasena.html?token=%s", appBaseUrl.replaceAll("/$", ""), token);
+        String html = buildHtmlRecuperacionContrasenaEmail(nombreUsuario, link);
+
+        if (resendApiKey != null && !resendApiKey.isBlank()) {
+            if (enviarViaResend(correoDestino, "Restablece tu contraseña - UNISOF", html)) {
+                log.info("Link recuperación enviado a {} (Resend)", correoDestino);
+                return true;
+            }
+        }
+        if (mailSender != null) {
+            try {
+                MimeMessage mensaje = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(mensaje, true, "UTF-8");
+                helper.setFrom(remitente);
+                helper.setTo(correoDestino);
+                helper.setSubject("Restablece tu contraseña - UNISOF");
+                helper.setText(html, true);
+                mailSender.send(mensaje);
+                log.info("Link recuperación enviado a {} (SMTP)", correoDestino);
+                return true;
+            } catch (MessagingException | MailException e) {
+                log.error("Error enviando link recuperación a {} (SMTP): {}", correoDestino, e.getMessage());
+            }
+        }
+        if (fallbackLogOnError) {
+            log.info(">>> LINK RECUPERACIÓN PARA PRUEBAS: {}", link);
+            return true;
+        }
+        return false;
+    }
+
+    private String buildHtmlRecuperacionContrasenaEmail(String nombreUsuario, String link) {
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head><meta charset="UTF-8"></head>
+            <body style="margin:0;font-family:Arial,sans-serif;background:#f5f5f5;padding:20px;">
+            <div style="max-width:480px;margin:0 auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+            <div style="background:#f5a623;color:#1a1a1a;padding:24px;text-align:center;">
+            <span style="font-size:28px;font-weight:bold;display:inline-block;width:48px;height:48px;line-height:48px;background:#1a1a1a;color:#f5a623;border-radius:8px;margin:0 8px 0 0;">U</span>
+            <span style="font-size:24px;font-weight:bold;letter-spacing:2px;">UNISOF</span>
+            </div>
+            <div style="padding:32px;">
+            <p style="font-size:16px;color:#333;margin:0 0 16px;">Hola <strong>%s</strong>,</p>
+            <p style="font-size:15px;color:#555;margin:0 0 24px;">Solicitaste restablecer tu contraseña. Haz clic en el botón para crear una nueva:</p>
+            <p style="text-align:center;margin:0 0 24px;">
+            <a href="%s" style="display:inline-block;background:#f5a623;color:#1a1a1a;padding:14px 28px;text-decoration:none;font-weight:bold;border-radius:8px;">Restablecer contraseña</a>
+            </p>
+            <p style="font-size:13px;color:#777;margin:0 0 8px;">⏱ Este enlace expira en 1 hora.</p>
+            <p style="font-size:13px;color:#777;margin:0;">Si no solicitaste esto, ignora este mensaje. Tu contraseña no cambiará.</p>
+            </div>
+            <div style="background:#f8f8f8;padding:16px;text-align:center;font-size:12px;color:#888;">
+            Sistema de Insumos UNISOF
+            </div>
+            </div>
+            </body>
+            </html>
+            """.formatted(nombreUsuario, link);
     }
 
     /**
