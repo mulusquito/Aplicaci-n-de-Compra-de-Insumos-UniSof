@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * SCRUM-35: Servicio para verificación en dos pasos (2FA) mediante token enviado por correo.
@@ -35,7 +36,7 @@ public class TokenVerificacionService {
     private final EmailService emailService;
 
     /**
-     * Genera un token, lo guarda y lo envía por correo al usuario.
+     * Genera un token, lo guarda y envía el correo en segundo plano para no bloquear el login.
      * Invalida cualquier token previo no usado del mismo usuario.
      *
      * @param usuario usuario que solicitó el login
@@ -51,11 +52,14 @@ public class TokenVerificacionService {
         TokenVerificacion tokenVerificacion = new TokenVerificacion(usuario, token, expiracion);
         tokenRepository.save(tokenVerificacion);
 
-        boolean enviado = emailService.enviarTokenVerificacion(usuario.getCorreo(), usuario.getNombre(), token);
-
-        if (!enviado) {
-            log.warn("No se pudo enviar el token por correo a {}", usuario.getCorreo());
-        }
+        String correo = usuario.getCorreo();
+        String nombre = usuario.getNombre();
+        CompletableFuture.runAsync(() -> {
+            boolean enviado = emailService.enviarTokenVerificacion(correo, nombre, token);
+            if (!enviado) {
+                log.warn("No se pudo enviar el token por correo a {}", correo);
+            }
+        });
 
         return Optional.of(tokenVerificacion);
     }

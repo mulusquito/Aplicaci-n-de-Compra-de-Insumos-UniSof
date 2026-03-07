@@ -656,6 +656,34 @@ footer {
     font-size: 14px;
 }
 
+/* Contraseña con ojito para mostrar/ocultar */
+.input-password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.input-password-wrapper input {
+    flex: 1;
+    padding-right: 44px;
+}
+.input-password-wrapper .btn-toggle-password {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    color: #888;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.input-password-wrapper .btn-toggle-password:hover {
+    color: #f5a623;
+}
+
 /* Panel por rol */
 .nav-user-info {
     display: flex;
@@ -931,6 +959,59 @@ button.panel-btn:hover {
     padding: 24px;
     overflow-y: auto;
 }
+.dashboard-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 12px;
+}
+.dashboard-toolbar label {
+    font-size: 13px;
+    color: #888;
+    margin-right: 4px;
+}
+.dashboard-toolbar input[type="date"] {
+    padding: 8px 12px;
+    border: 1px solid #333;
+    border-radius: 8px;
+    background: #0d0d0d;
+    color: #fff;
+    font-size: 14px;
+}
+.dashboard-toolbar input[type="date"]:focus {
+    outline: none;
+    border-color: #f5a623;
+}
+.dashboard-toolbar .dashboard-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s, color 0.2s;
+}
+.dashboard-btn-refresh {
+    background: #f5a623;
+    color: #000;
+}
+.dashboard-btn-refresh:hover {
+    background: #e09520;
+}
+.dashboard-btn-pdf {
+    background: #222;
+    color: #fff;
+    border: 1px solid #444;
+}
+.dashboard-btn-pdf:hover {
+    background: #333;
+    border-color: #555;
+}
 .dashboard-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -996,12 +1077,33 @@ button.panel-btn:hover {
     border-radius: 12px;
     padding: 24px;
 }
+.dashboard-chart-with-axis {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+    margin-bottom: 16px;
+}
+.dashboard-chart-y-axis {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-width: 28px;
+    padding-right: 8px;
+    border-right: 1px solid #333;
+}
+.dashboard-y-label {
+    font-size: 11px;
+    color: #888;
+}
+.dashboard-chart-area {
+    flex: 1;
+    min-width: 0;
+}
 .dashboard-chart-bars {
     display: flex;
     align-items: flex-end;
     gap: 8px;
     height: 180px;
-    margin-bottom: 16px;
 }
 .dashboard-chart-bar-wrap {
     flex: 1;
@@ -1017,10 +1119,16 @@ button.panel-btn:hover {
     color: #666;
     margin-top: 8px;
 }
+.dashboard-chart-bar-count {
+    display: block;
+    font-size: 10px;
+    color: #888;
+    margin-top: 2px;
+}
 .dashboard-chart-bar {
     width: 100%;
     max-width: 28px;
-    min-height: 4px;
+    min-height: 0;
     background: linear-gradient(180deg, #f5a623 0%, rgba(245, 166, 35, 0.5) 100%);
     border-radius: 6px 6px 0 0;
     transition: height 0.2s;
@@ -1079,6 +1187,9 @@ button.panel-btn:hover {
     }
     .admin-main-wrap {
         margin-left: 0;
+    }
+    .admin-topbar .nav-cart-btn {
+        display: flex;
     }
     .admin-sidebar-toggle {
         display: flex;
@@ -1283,6 +1394,70 @@ button.panel-btn:hover {
 .modal-pedidos-item-fecha {
     font-size: 12px;
     color: #666;
+}
+
+/* Carrito flotante (móvil): anclado, siempre visible al hacer scroll */
+.cart-fab {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #f5a623;
+    color: #111;
+    border: none;
+    box-shadow: 0 4px 20px rgba(245, 166, 35, 0.5);
+    cursor: pointer;
+    z-index: 900;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.cart-fab:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 24px rgba(245, 166, 35, 0.6);
+}
+.cart-fab:active {
+    transform: scale(0.98);
+}
+.cart-fab-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    background: #e53935;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 10px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+@media (max-width: 768px) {
+    .cart-fab {
+        display: none !important;
+    }
+    .admin-topbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        padding-left: 60px;
+    }
+    .admin-dashboard {
+        padding-top: 72px;
+    }
+}
+@media (min-width: 769px) {
+    .cart-fab {
+        display: none !important;
+    }
 }
 
 .cart-overlay {

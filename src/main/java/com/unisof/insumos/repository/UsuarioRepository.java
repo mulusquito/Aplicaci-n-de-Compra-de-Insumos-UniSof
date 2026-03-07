@@ -23,6 +23,11 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Optional<Usuario> findByUsuario(String usuario);
 
     /**
+     * Busca un usuario por su correo electrónico (para recuperación de contraseña).
+     */
+    Optional<Usuario> findByCorreoIgnoreCase(String correo);
+
+    /**
      * Indica si ya existe un usuario con el correo dado. SCRUM-12
      */
     boolean existsByCorreo(String correo);

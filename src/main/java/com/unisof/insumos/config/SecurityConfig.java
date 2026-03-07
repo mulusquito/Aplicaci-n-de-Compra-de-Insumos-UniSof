@@ -53,8 +53,8 @@ public class SecurityConfig {
                         .authenticationEntryPoint(json401EntryPoint())
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login", "/api/auth/verify-token", "/api/webhooks/**").permitAll()
-                        .requestMatchers("/api/usuarios/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers("/api/auth/login", "/api/auth/verify-token", "/api/auth/solicitar-recuperacion", "/api/auth/restablecer-contrasena", "/api/webhooks/**").permitAll()
+                        .requestMatchers("/api/usuarios/**", "/api/dashboard/**").hasRole("ADMINISTRADOR")
                         .requestMatchers("/api/auth/logout", "/api/auth/me", "/api/checkout/create-preference", "/api/clientes/**", "/api/recibos/**").authenticated()
                         .requestMatchers(
                                 "/",
@@ -62,6 +62,7 @@ public class SecurityConfig {
                                 "/login.html",
                                 "/verificar-token.html",
                                 "/recuperar-contrasena.html",
+                                "/restablecer-contrasena.html",
                                 "/panel-admin.html",
                                 "/personal.html",
                                 "/terminos-y-condiciones.html",
