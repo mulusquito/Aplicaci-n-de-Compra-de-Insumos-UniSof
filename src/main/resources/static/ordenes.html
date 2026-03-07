@@ -53,9 +53,13 @@
         .pedido-modal-body .tabla-productos th { text-align: left; padding: 8px 0; border-bottom: 1px solid #333; color: #888; }
         .pedido-modal-body .tabla-productos td { padding: 6px 0; border-bottom: 1px solid #2a2a2a; color: #ddd; }
         .pedido-modal-body .total-line { text-align: right; font-size: 16px; font-weight: bold; color: #f5a623; margin-top: 16px; }
+        .pedido-modal-body .vendedor-line { font-size: 13px; color: #888; margin-top: 8px; }
         .pedido-modal-footer { background: #111; padding: 12px; text-align: center; font-size: 11px; color: #666; }
         .btn-ver-pedido { padding: 6px 14px; font-size: 12px; border-radius: 6px; cursor: pointer; border: none; background: #f5a623; color: #1a1a1a; font-weight: 600; }
         .btn-ver-pedido:hover { background: #e09520; }
+        .modal-recibo-total-wrap { margin-top: 16px; }
+        .modal-recibo-total { text-align: right; font-size: 16px; font-weight: bold; color: #f5a623; margin: 0 0 8px; }
+        .modal-recibo-vendedor { font-size: 13px; color: #888; margin: 0; }
     </style>
 </head>
 <body class="panel-admin-body">
@@ -159,6 +163,7 @@
                 <h3>Productos</h3>
                 <div id="pedido-modal-productos"></div>
                 <p class="total-line" id="pedido-modal-total"></p>
+                <p class="vendedor-line" id="pedido-modal-vendedor"></p>
             </div>
             <div class="pedido-modal-footer">
                 Sistema de Insumos UNISOF<br>
@@ -374,6 +379,7 @@ const esPagado = (o.estado || '').toUpperCase() === 'PAGADO' || (o.estado || '')
             tablaHtml += '</tbody></table>';
             document.getElementById('pedido-modal-productos').innerHTML = tablaHtml;
             document.getElementById('pedido-modal-total').textContent = 'Total: ' + totalStr + ' COP';
+            document.getElementById('pedido-modal-vendedor').textContent = 'Vendedor: ' + (orden.vendedorNombre || '—');
             const overlay = document.getElementById('pedido-modal-overlay');
             overlay.classList.remove('hidden');
             overlay.setAttribute('aria-hidden', 'false');
@@ -440,8 +446,10 @@ const esPagado = (o.estado || '').toUpperCase() === 'PAGADO' || (o.estado || '')
                         <thead><tr><th>Prendas</th><th>Talla</th><th>Cant.</th><th>P.Unit</th><th>Subtotal</th></tr></thead>
                         <tbody>${itemsHtml}</tbody>
                     </table>
-                    <div class="modal-recibo-total">Total: ${formatTotal(r.total)}</div>
-                    <div class="modal-recibo-vendedor">Vendedor: ${escapeHtml(r.vendedorNombre || '—')}</div>
+                    <div class="modal-recibo-total-wrap">
+                        <div class="modal-recibo-total">Total: ${formatTotal(r.total)}</div>
+                        <div class="modal-recibo-vendedor">Vendedor: ${escapeHtml(r.vendedorNombre || '—')}</div>
+                    </div>
                 `;
                 document.getElementById('modal-recibo-overlay').classList.remove('hidden');
             } catch (err) {

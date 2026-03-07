@@ -97,12 +97,19 @@
 
             <section class="dashboard-section">
                 <h2 class="dashboard-section-title">Ventas por mes</h2>
-                <p class="dashboard-section-desc">Resumen de ventas mensuales de la empresa. Los datos se actualizarán cuando el módulo esté disponible.</p>
+                <p class="dashboard-section-desc">Órdenes por mes del año actual (Ene–Dic). Meses sin ventas aparecen en cero. Use Actualizar para refrescar.</p>
                 <div class="dashboard-chart-placeholder" id="dashboard-ventas-mes">
-                    <div class="dashboard-chart-bars" id="dashboard-chart-bars">
-                        <!-- Se rellena por JS con ventasPorMes -->
+                    <div class="dashboard-chart-with-axis">
+                        <div class="dashboard-chart-y-axis" id="dashboard-chart-y-axis">
+                            <!-- Escala 0, 2, 4... por JS -->
+                        </div>
+                        <div class="dashboard-chart-area">
+                            <div class="dashboard-chart-bars" id="dashboard-chart-bars">
+                                <!-- Se rellena por JS con ventasPorMes -->
+                            </div>
+                        </div>
                     </div>
-                    <p class="dashboard-chart-note">Ventas por mes (últimos 12 meses). Se actualiza con el botón Actualizar.</p>
+                    <p class="dashboard-chart-note">Enero a diciembre del año actual. Se actualiza con el botón Actualizar.</p>
                 </div>
             </section>
 
@@ -130,7 +137,7 @@
 
     <script src="/js/auth.js"></script>
     <script src="/js/accessibility.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSDznJrLLud0ODM3LTlvOnQ49NlbUP/bTL6VyUtwntHjGqk2YqQqLoPRBqVLbYrqL8IiABq1g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="/js/jspdf.umd.min.js"></script>
     <script>
         let lastDashboardStats = null;
 
@@ -141,12 +148,20 @@
         }
 
         function renderChart(ventasPorMes) {
-            const container = document.getElementById('dashboard-chart-bars');
-            if (!container || !Array.isArray(ventasPorMes) || ventasPorMes.length === 0) return;
-            const maxTotal = Math.max(1, ...ventasPorMes.map(m => Number(m.total) || 0));
-            container.innerHTML = ventasPorMes.map(m => {
-                const pct = maxTotal > 0 ? (Number(m.total) || 0) / maxTotal * 100 : 0;
-                return '<div class="dashboard-chart-bar-wrap" data-mes="' + (m.mesLabel || '') + '"><div class="dashboard-chart-bar" style="height:' + pct + '%"></div></div>';
+            const barsContainer = document.getElementById('dashboard-chart-bars');
+            const yAxisEl = document.getElementById('dashboard-chart-y-axis');
+            if (!barsContainer || !yAxisEl || !Array.isArray(ventasPorMes) || ventasPorMes.length === 0) return;
+            const maxCantidad = Math.max(1, ...ventasPorMes.map(m => Number(m.cantidad) || 0));
+            const barHeightPx = 160;
+            const yLabels = [];
+            const step = maxCantidad <= 5 ? 1 : maxCantidad <= 10 ? 2 : Math.ceil(maxCantidad / 5);
+            for (let v = 0; v <= maxCantidad; v += step) yLabels.push(v);
+            if (yLabels[yLabels.length - 1] !== maxCantidad) yLabels.push(maxCantidad);
+            yAxisEl.innerHTML = yLabels.reverse().map(v => '<span class="dashboard-y-label">' + v + '</span>').join('');
+            barsContainer.innerHTML = ventasPorMes.map(m => {
+                const cant = Number(m.cantidad) || 0;
+                const heightPx = maxCantidad > 0 ? Math.round((cant / maxCantidad) * barHeightPx) : 0;
+                return '<div class="dashboard-chart-bar-wrap" data-mes="' + (m.mesLabel || '') + '" data-cant="' + cant + '" title="' + (m.mesLabel || '') + ': ' + cant + ' órdenes"><div class="dashboard-chart-bar" style="height:' + heightPx + 'px"></div><span class="dashboard-chart-bar-count">' + cant + '</span></div>';
             }).join('');
         }
 
@@ -160,6 +175,7 @@
             if (params.toString()) url += '?' + params.toString();
             try {
                 const res = await fetch(url, { credentials: 'include' });
+                if (res.status === 401) { window.location.href = '/login.html'; return; }
                 if (!res.ok) throw new Error('Error al cargar estadísticas');
                 const data = await res.json();
                 lastDashboardStats = data;
@@ -172,10 +188,16 @@
                 if (data.ventasPorMes && data.ventasPorMes.length) renderChart(data.ventasPorMes);
             } catch (e) {
                 lastDashboardStats = null;
-                document.getElementById('dashboard-usuarios').textContent = '—';
-                document.getElementById('dashboard-ordenes').textContent = '—';
-                document.getElementById('dashboard-ventas').textContent = '—';
-                document.getElementById('dashboard-chart-bars').innerHTML = '';
+                const u = document.getElementById('dashboard-usuarios');
+                const o = document.getElementById('dashboard-ordenes');
+                const v = document.getElementById('dashboard-ventas');
+                const chart = document.getElementById('dashboard-chart-bars');
+                if (u) u.textContent = '—';
+                if (o) o.textContent = '—';
+                if (v) v.textContent = '—';
+                if (chart) chart.innerHTML = '';
+                const yAxis = document.getElementById('dashboard-chart-y-axis');
+                if (yAxis) yAxis.innerHTML = '';
             }
         }
 
@@ -206,11 +228,12 @@
         }
 
         function exportarPdf() {
-            if (typeof jspdf === 'undefined') {
-                alert('No se pudo cargar la librería PDF. Compruebe la conexión.');
+            const jspdfLib = window.jspdf || (typeof jspdf !== 'undefined' ? jspdf : null);
+            if (!jspdfLib) {
+                alert('No se pudo cargar la librería PDF. Compruebe que el archivo /js/jspdf.umd.min.js exista.');
                 return;
             }
-            const { jsPDF } = jspdf;
+            const { jsPDF } = jspdfLib;
             const doc = new jsPDF();
             const stats = lastDashboardStats || {};
             let y = 20;

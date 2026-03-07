@@ -278,9 +278,9 @@ public class EmailService {
             <thead><tr style="border-bottom:1px solid #ddd;"><th style="text-align:left;padding:6px 0;">Prendas de vestir</th><th>Talla</th><th>Cant.</th><th>P.Unit</th><th>Subtotal</th></tr></thead>
             <tbody>%s</tbody>
             </table>
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-top:16px;flex-wrap:wrap;gap:12px;">
-            <p style="margin:0;font-size:13px;color:#555;">%s</p>
-            <p style="text-align:right;font-size:16px;font-weight:bold;margin:0;color:#f5a623;">Total: %s COP</p>
+            <div style="margin-top:16px;">
+            <p style="text-align:right;font-size:16px;font-weight:bold;margin:0 0 8px;color:#f5a623;">Total: %s COP</p>
+            <p style="margin:0;font-size:13px;color:#555;">Vendedor: %s</p>
             </div>
             </div>
             <div style="background:#f8f8f8;padding:16px;text-align:center;font-size:12px;color:#888;">
@@ -290,8 +290,8 @@ public class EmailService {
             </body>
             </html>
             """.formatted(numeroRecibo, fechaFormateada, fechaEntregaFormateada, clienteHtml, itemsHtml,
-                    nombreVendedor != null && !nombreVendedor.isBlank() ? "Vendedor: " + nombreVendedor : "Vendedor: —",
-                    totalFormateado);
+                    totalFormateado,
+                    nombreVendedor != null && !nombreVendedor.isBlank() ? nombreVendedor : "—");
     }
 
     private String buildHtmlTokenEmail(String nombreUsuario, String token) {

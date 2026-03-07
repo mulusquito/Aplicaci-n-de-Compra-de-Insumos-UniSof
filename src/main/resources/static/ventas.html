@@ -386,6 +386,12 @@
 
     <button type="button" class="admin-sidebar-toggle" id="admin-sidebar-toggle" aria-label="Abrir menú">☰</button>
 
+    <!-- Carrito flotante (móvil): siempre visible al hacer scroll -->
+    <button type="button" class="cart-fab" id="cart-fab" title="Ver carrito" aria-label="Ver carrito">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+        <span class="cart-fab-badge" id="cart-fab-badge">0</span>
+    </button>
+
     <!-- CARRITO (sidebar) -->
     <div class="cart-overlay" id="cart-overlay"></div>
     <aside class="cart-sidebar" id="cart-sidebar">
@@ -653,9 +659,11 @@
         // CARRITO: abrir/cerrar sidebar
         function updateCartUI() {
             const items = Cart.getItems();
+            const count = Cart.getCount();
             const badge = document.getElementById('cart-badge');
-            badge.textContent = Cart.getCount();
-            badge.style.display = Cart.getCount() > 0 ? 'flex' : 'none';
+            const fabBadge = document.getElementById('cart-fab-badge');
+            if (badge) { badge.textContent = count; badge.style.display = count > 0 ? 'flex' : 'none'; }
+            if (fabBadge) { fabBadge.textContent = count; fabBadge.style.display = count > 0 ? 'flex' : 'none'; }
 
             const container = document.getElementById('cart-items');
             const seenIdBases = new Set();
@@ -722,10 +730,12 @@
         Cart.onUpdate = updateCartUI;
         updateCartUI();
 
-        document.getElementById('btn-cart').addEventListener('click', () => {
+        function openCart() {
             document.getElementById('cart-sidebar').classList.add('open');
             document.getElementById('cart-overlay').classList.add('open');
-        });
+        }
+        document.getElementById('btn-cart').addEventListener('click', openCart);
+        document.getElementById('cart-fab').addEventListener('click', openCart);
         document.getElementById('cart-close').addEventListener('click', () => {
             document.getElementById('cart-sidebar').classList.remove('open');
             document.getElementById('cart-overlay').classList.remove('open');

@@ -37,11 +37,13 @@ public class DashboardController {
         this.reciboRepository = reciboRepository;
     }
 
+    private static final ZoneId ZONE = ZoneId.of("America/Bogota");
+
     @GetMapping("/stats")
     public ResponseEntity<?> stats(
             @RequestParam(required = false) String fechaDesde,
             @RequestParam(required = false) String fechaHasta) {
-        ZoneId zone = ZoneId.systemDefault();
+        ZoneId zone = ZONE;
         LocalDate dInicio;
         LocalDate dFin;
         if (fechaDesde != null && !fechaDesde.isBlank() && fechaHasta != null && !fechaHasta.isBlank()) {
@@ -60,19 +62,18 @@ public class DashboardController {
         int ordenes = recibosPeriodo.size();
         BigDecimal ventas = recibosPeriodo.stream().map(Recibo::getTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Últimos 12 meses para el gráfico
+        // Año actual: Ene a Dic (12 meses). Meses sin ventas = 0.
+        int anioActual = LocalDate.now(zone).getYear();
         List<Map<String, Object>> ventasPorMes = new ArrayList<>();
-        LocalDate mesFin = LocalDate.now(zone).plusMonths(1);
-        for (int i = 11; i >= 0; i--) {
-            LocalDate inicioMes = mesFin.minusMonths(i).withDayOfMonth(1);
+        for (int mes = 1; mes <= 12; mes++) {
+            LocalDate inicioMes = LocalDate.of(anioActual, mes, 1);
             LocalDate finMes = inicioMes.plusMonths(1);
             Instant instInicio = inicioMes.atStartOfDay(zone).toInstant();
             Instant instFin = finMes.atStartOfDay(zone).toInstant();
             List<Recibo> recibosMes = reciboRepository.findByFechaBetween(instInicio, instFin);
             BigDecimal totalMes = recibosMes.stream().map(Recibo::getTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
-            int mes = inicioMes.getMonthValue();
             ventasPorMes.add(Map.<String, Object>of(
-                    "anio", inicioMes.getYear(),
+                    "anio", anioActual,
                     "mes", mes,
                     "mesLabel", MES_LABELS[mes - 1],
                     "total", totalMes,
