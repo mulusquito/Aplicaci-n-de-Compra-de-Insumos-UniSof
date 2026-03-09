@@ -92,3 +92,108 @@ const authApi = {
         authApi.clearHadSession();
     }
 };
+
+// Aviso de inactividad: muestra feedback antes de cerrar sesión por timeout del servidor
+(function initInactivityWarning() {
+    if (typeof window === 'undefined') return;
+
+    // Solo tiene sentido si alguna vez hubo sesión
+    if (!sessionStorage.getItem('hadSession')) return;
+
+    const INACTIVITY_MS = 90 * 1000;       // 1,5 min sin actividad
+    const WARNING_DURATION_MS = 30 * 1000; // 30 s de aviso antes de cerrar
+
+    let inactivityTimeout = null;
+    let forceLogoutTimeout = null;
+    let countdownInterval = null;
+
+    function clearWarningTimers() {
+        if (inactivityTimeout) {
+            clearTimeout(inactivityTimeout);
+            inactivityTimeout = null;
+        }
+        if (forceLogoutTimeout) {
+            clearTimeout(forceLogoutTimeout);
+            forceLogoutTimeout = null;
+        }
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+        }
+    }
+
+    function closeWarningModal() {
+        const modal = document.getElementById('modal-aviso-inactividad');
+        if (modal) {
+            modal.classList.remove('visible');
+            setTimeout(() => modal.remove(), 250);
+        }
+    }
+
+    function showWarningModal() {
+        if (document.getElementById('modal-aviso-inactividad')) return;
+
+        const overlay = document.createElement('div');
+        overlay.id = 'modal-aviso-inactividad';
+        overlay.className = 'modal-sesion-expirada';
+        overlay.innerHTML = `
+            <div class="modal-sesion-contenido">
+                <span class="modal-sesion-icono">⏱</span>
+                <h3>Sesión a punto de cerrarse</h3>
+                <p>Por seguridad, tu sesión se cerrará por inactividad en
+                    <strong id="inactividad-countdown">30</strong> segundos.</p>
+                <button type="button" class="btn-primary" id="btn-seguir-activo">
+                    Seguir conectado
+                </button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        setTimeout(() => overlay.classList.add('visible'), 10);
+
+        const countdownEl = document.getElementById('inactividad-countdown');
+        let remaining = WARNING_DURATION_MS / 1000;
+        countdownInterval = setInterval(() => {
+            remaining -= 1;
+            if (remaining <= 0) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+            if (countdownEl) countdownEl.textContent = String(Math.max(remaining, 0));
+        }, 1000);
+
+        const btnSeguir = document.getElementById('btn-seguir-activo');
+        if (btnSeguir) {
+            btnSeguir.addEventListener('click', () => {
+                closeWarningModal();
+                clearWarningTimers();
+                startInactivityTimer(); // reinicia el conteo
+            });
+        }
+    }
+
+    async function forceLogout() {
+        closeWarningModal();
+        clearWarningTimers();
+        await authApi.logout();
+        authApi.mostrarSesionExpirada();
+    }
+
+    function startInactivityTimer() {
+        clearWarningTimers();
+        inactivityTimeout = setTimeout(() => {
+            showWarningModal();
+            forceLogoutTimeout = setTimeout(forceLogout, WARNING_DURATION_MS);
+        }, INACTIVITY_MS);
+    }
+
+    function registerActivity() {
+        // Si el usuario realiza cualquier acción, reiniciamos el contador
+        startInactivityTimer();
+    }
+
+    ['click', 'keydown', 'mousemove', 'touchstart'].forEach(evt =>
+        window.addEventListener(evt, registerActivity, { passive: true })
+    );
+
+    startInactivityTimer();
+})();
