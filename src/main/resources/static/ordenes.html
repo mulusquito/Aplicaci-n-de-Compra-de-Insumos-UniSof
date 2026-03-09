@@ -60,6 +60,36 @@
         .modal-recibo-total-wrap { margin-top: 16px; }
         .modal-recibo-total { text-align: right; font-size: 16px; font-weight: bold; color: #f5a623; margin: 0 0 8px; }
         .modal-recibo-vendedor { font-size: 13px; color: #888; margin: 0; }
+        /* Móvil: consulta pedidos – uno abajo del otro, alineados y simétricos */
+        @media (max-width: 768px) {
+            .crud-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 16px;
+                margin-bottom: 24px;
+            }
+            .crud-toolbar .search-group {
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            .crud-toolbar .search-group label {
+                margin-bottom: 0;
+            }
+            .crud-toolbar input,
+            .crud-toolbar select,
+            .crud-toolbar .btn {
+                width: 100% !important;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            .crud-toolbar .btn-primary-crud {
+                width: 100%;
+                padding: 12px 20px;
+                text-align: center;
+            }
+        }
     </style>
 </head>
 <body class="panel-admin-body">

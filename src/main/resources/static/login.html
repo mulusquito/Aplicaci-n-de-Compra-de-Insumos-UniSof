@@ -24,7 +24,10 @@
             </div>
             <div class="form-group">
                 <label for="contrasena" data-i18n-key="auth.password">Contraseña</label>
-                <input type="password" id="contrasena" name="contrasena" required data-i18n-placeholder="auth.passPlaceholder" placeholder="Ej: tu contraseña">
+                <div class="input-password-wrapper">
+                    <input type="password" id="contrasena" name="contrasena" required data-i18n-placeholder="auth.passPlaceholder" placeholder="Ej: tu contraseña">
+                    <button type="button" class="btn-toggle-password" id="btn-toggle-password" aria-label="Mostrar u ocultar contraseña"></button>
+                </div>
             </div>
             <div id="error-msg" class="error-msg" style="display:none"></div>
             <p class="auth-forgot"><a href="/recuperar-contrasena.html" data-i18n-key="auth.forgot">¿Olvidaste la contraseña?</a></p>
@@ -67,6 +70,18 @@
     <script src="/js/auth.js"></script>
     <script src="/js/accessibility.js"></script>
     <script>
+        // Mostrar/ocultar contraseña con un solo ojito
+        (function() {
+            const input = document.getElementById('contrasena');
+            const btn = document.getElementById('btn-toggle-password');
+            if (!input || !btn) return;
+
+            btn.addEventListener('click', () => {
+                const isPassword = input.type === 'password';
+                input.type = isPassword ? 'text' : 'password';
+            });
+        })();
+
         (function() {
             const form = document.getElementById('form-login');
             const submitBtn = document.getElementById('btn-login-submit');
