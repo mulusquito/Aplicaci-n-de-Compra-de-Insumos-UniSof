@@ -951,8 +951,10 @@ button.panel-btn:hover {
     overflow: hidden;
 }
 .admin-topbar {
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 260px;
+    right: 0;
     z-index: 100;
     padding: 20px 24px;
     border-bottom: 1px solid #222;
@@ -961,7 +963,7 @@ button.panel-btn:hover {
     align-items: center;
     background: #111;
     flex-shrink: 0;
-    width: 100%;
+    width: auto;
     box-sizing: border-box;
 }
 .admin-topbar-title {
@@ -994,6 +996,7 @@ button.panel-btn:hover {
     flex: 1;
     padding: 24px;
     overflow-y: auto;
+    margin-top: 64px;
 }
 .dashboard-toolbar {
     display: flex;
@@ -1259,6 +1262,9 @@ button.panel-btn:hover {
     }
     .admin-main-wrap {
         margin-left: 0;
+    }
+    .admin-topbar {
+        left: 0;
     }
     .admin-topbar .nav-cart-btn {
         display: flex;

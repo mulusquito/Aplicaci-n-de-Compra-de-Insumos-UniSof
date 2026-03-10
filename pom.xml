@@ -114,12 +114,26 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-report-plugin</artifactId>
+				<version>3.2.5</version>
+				<configuration>
+					<outputName>surefire-report</outputName>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<version>3.6.3</version>
 				<configuration>
 					<encoding>UTF-8</encoding>
 					<docencoding>UTF-8</docencoding>
 					<charset>UTF-8</charset>
+					<doclint>none</doclint>
+					<windowtitle>UNISOF Insumos - API Documentation</windowtitle>
+					<doctitle>Documentación de la aplicación UNISOF Insumos</doctitle>
+					<bottom> Sistema de Gestión y Análisis de Insumos - UNISOF </bottom>
+					<reportOutputDirectory>${project.build.directory}/site</reportOutputDirectory>
+					<destDir>apidocs</destDir>
 				</configuration>
 			</plugin>
 		</plugins>

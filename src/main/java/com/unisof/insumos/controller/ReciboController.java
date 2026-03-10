@@ -61,7 +61,7 @@ public class ReciboController {
             @RequestParam(required = false) String mes,
             @RequestParam(required = false) String fechaDesde,
             @RequestParam(required = false) String fechaHasta) {
-        ZoneId zone = ZoneId.systemDefault();
+        ZoneId zone = ZoneId.of("America/Bogota");
         List<Recibo> recibos = new ArrayList<>();
         if (numero != null && !numero.isBlank()) {
             try {
