@@ -297,6 +297,12 @@
             await loadDashboard();
             document.getElementById('dashboard-btn-actualizar').addEventListener('click', loadDashboard);
             document.getElementById('dashboard-btn-pdf').addEventListener('click', exportarPdf);
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') loadDashboard();
+            });
+            setInterval(() => {
+                if (document.visibilityState === 'visible') loadDashboard();
+            }, 25000);
         })();
 
         document.getElementById('btn-logout').addEventListener('click', () => logout());
