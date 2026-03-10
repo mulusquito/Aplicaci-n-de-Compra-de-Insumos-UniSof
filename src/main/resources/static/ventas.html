@@ -525,7 +525,13 @@
 
             await cargarEstadisticasVentas();
 
-            // Mensaje de bienvenida al iniciar sesión
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') cargarEstadisticasVentas();
+            });
+            setInterval(() => {
+                if (document.visibilityState === 'visible') cargarEstadisticasVentas();
+            }, 25000);
+
             const welcomeMsg = document.getElementById('welcome-toast');
             if (new URLSearchParams(window.location.search).get('welcome') === '1') {
                 welcomeMsg?.classList.add('visible');

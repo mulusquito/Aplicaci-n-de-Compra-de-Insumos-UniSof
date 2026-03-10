@@ -494,6 +494,20 @@ const esPagado = (o.estado || '').toUpperCase() === 'PAGADO' || (o.estado || '')
             if (e.target.id === 'modal-recibo-overlay') e.target.classList.add('hidden');
         });
 
+        function refrescarOrdenes() {
+            if (ultimoContexto === 'todos') cargarOrdenes();
+            else if (ultimoContexto === 'numero') cargarOrdenes({ numero: document.getElementById('buscar-numero').value.trim() });
+            else if (ultimoContexto === 'cedula') cargarOrdenes({ cedula: document.getElementById('buscar-cedula').value.trim() });
+            else if (ultimoContexto === 'fecha') cargarOrdenes({ fecha: document.getElementById('buscar-fecha').value });
+            else if (ultimoContexto === 'mes') cargarOrdenes({ mes: document.getElementById('buscar-mes').value });
+        }
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') refrescarOrdenes();
+        });
+        setInterval(() => {
+            if (document.visibilityState === 'visible') refrescarOrdenes();
+        }, 25000);
+
         cargarOrdenes();
     </script>
 </body>
