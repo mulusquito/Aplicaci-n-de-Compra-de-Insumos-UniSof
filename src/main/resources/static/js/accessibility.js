@@ -404,42 +404,6 @@
                         <option value="serif" data-i18n-key="a11y.fontSerif">Con serif</option>
                     </select>
                 </div>
-                <div class="a11y-slider-row">
-                    <label class="a11y-widget-label" data-i18n-key="a11y.contentScale">Escalamiento</label>
-                    <div class="a11y-slider-wrap">
-                        <button type="button" class="a11y-slider-btn" data-a11y-slider="contentScale" data-delta="-5">−</button>
-                        <input type="range" class="a11y-slider" data-a11y-slider="contentScale" min="90" max="120" value="100" step="5">
-                        <span class="a11y-slider-value" data-a11y-value="contentScale">100%</span>
-                        <button type="button" class="a11y-slider-btn" data-a11y-slider="contentScale" data-delta="5">+</button>
-                    </div>
-                </div>
-                <div class="a11y-slider-row">
-                    <label class="a11y-widget-label" data-i18n-key="a11y.fontSizeSlider">Tamaño de fuente</label>
-                    <div class="a11y-slider-wrap">
-                        <button type="button" class="a11y-slider-btn" data-a11y-slider="fontScale" data-delta="-5">−</button>
-                        <input type="range" class="a11y-slider" data-a11y-slider="fontScale" min="90" max="125" value="100" step="5">
-                        <span class="a11y-slider-value" data-a11y-value="fontScale">100%</span>
-                        <button type="button" class="a11y-slider-btn" data-a11y-slider="fontScale" data-delta="5">+</button>
-                    </div>
-                </div>
-                <div class="a11y-slider-row">
-                    <label class="a11y-widget-label" data-i18n-key="a11y.lineHeight">Altura de línea</label>
-                    <div class="a11y-slider-wrap">
-                        <button type="button" class="a11y-slider-btn" data-a11y-slider="lineHeight" data-delta="-10">−</button>
-                        <input type="range" class="a11y-slider" data-a11y-slider="lineHeight" min="100" max="180" value="100" step="10">
-                        <span class="a11y-slider-value" data-a11y-value="lineHeight">100%</span>
-                        <button type="button" class="a11y-slider-btn" data-a11y-slider="lineHeight" data-delta="10">+</button>
-                    </div>
-                </div>
-                <div class="a11y-slider-row">
-                    <label class="a11y-widget-label" data-i18n-key="a11y.letterSpacing">Espaciado letras</label>
-                    <div class="a11y-slider-wrap">
-                        <button type="button" class="a11y-slider-btn" data-a11y-slider="letterSpacing" data-delta="-5">−</button>
-                        <input type="range" class="a11y-slider" data-a11y-slider="letterSpacing" min="100" max="150" value="100" step="5">
-                        <span class="a11y-slider-value" data-a11y-value="letterSpacing">100%</span>
-                        <button type="button" class="a11y-slider-btn" data-a11y-slider="letterSpacing" data-delta="5">+</button>
-                    </div>
-                </div>
             </div>
             <div class="a11y-widget-section">
                 <label class="a11y-widget-label" data-i18n-key="a11y.lang">Idioma</label>
