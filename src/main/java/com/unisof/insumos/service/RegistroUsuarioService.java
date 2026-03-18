@@ -8,6 +8,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * Servicio para el registro de usuarios por el administrador.
  * SCRUM-12: Valida campos obligatorios y que el usuario no exista (correo o número de identificación).
@@ -18,6 +20,7 @@ public class RegistroUsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     /**
      * Registra un nuevo usuario. Valida que todos los campos estén presentes,
@@ -51,7 +54,22 @@ public class RegistroUsuarioService {
         u.setNumeroIdentificacion(request.getNumeroIdentificacion().trim());
         u.setCelular(request.getCelular() != null ? request.getCelular().trim() : null);
         u.setRol(normalizarRol(request.getRol()));
-        return usuarioRepository.save(u);
+        Usuario guardado = usuarioRepository.save(u);
+
+        // Enviar correo de bienvenida en segundo plano para no retrasar la respuesta
+        String correo = guardado.getCorreo();
+        String nombre = guardado.getNombre();
+        String rol = guardado.getRol();
+        String usuarioLogin = guardado.getUsuario();
+        CompletableFuture.runAsync(() -> {
+            try {
+                emailService.enviarBienvenidaNuevoUsuario(correo, nombre, rol, usuarioLogin);
+            } catch (Exception ignored) {
+                // El registro ya fue exitoso; el correo es informativo
+            }
+        });
+
+        return guardado;
     }
 
     private static String normalizarRol(String rol) {

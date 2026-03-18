@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -31,10 +32,20 @@ public class EmailService {
 
     private static final String RESEND_API_URL = "https://api.resend.com/emails";
 
+    private static final int RESEND_CONNECT_TIMEOUT_MS = 5_000;
+    private static final int RESEND_READ_TIMEOUT_MS = 10_000;
+
     @Autowired(required = false)
     private JavaMailSender mailSender;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate = createRestTemplateWithTimeouts();
+
+    private static RestTemplate createRestTemplateWithTimeouts() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(java.time.Duration.ofMillis(RESEND_CONNECT_TIMEOUT_MS));
+        factory.setReadTimeout(java.time.Duration.ofMillis(RESEND_READ_TIMEOUT_MS));
+        return new RestTemplate(factory);
+    }
 
     @Value("${spring.mail.username:no-reply@unisof.com}")
     private String remitente;
@@ -190,6 +201,90 @@ public class EmailService {
             log.error("Error enviando correo via Resend a {}: {}", correoDestino, e.getMessage());
             return false;
         }
+    }
+
+    /**
+     * Envía un correo de bienvenida cuando un nuevo usuario es registrado por el administrador.
+     * Informa el rol que desempeñará y que ya puede iniciar sesión.
+     * Orden: 1) Resend (si API key configurada), 2) SMTP (JavaMailSender), 3) fallback log si falla todo.
+     * Invocado en segundo plano desde {@link RegistroUsuarioService} para no retrasar la respuesta del registro.
+     */
+    public boolean enviarBienvenidaNuevoUsuario(String correoDestino, String nombreCompleto, String rol, String usuarioLogin) {
+        if (!emailHabilitado) {
+            log.info("Bienvenida usuario {} ({}), rol {}", nombreCompleto, correoDestino, rol);
+            return true;
+        }
+
+        String rolMostrar = (rol != null && !rol.isBlank()) ? rol : "VENDEDOR";
+        String subject = "Bienvenido a UNISOF - Registro exitoso";
+        String html = """
+                <!DOCTYPE html>
+                <html>
+                <head><meta charset="UTF-8"></head>
+                <body style="margin:0;font-family:Arial,sans-serif;background:#0d0d0d;padding:20px;">
+                  <div style="max-width:520px;margin:0 auto;background:#111;border-radius:12px;overflow:hidden;border:1px solid #333;">
+                    <div style="background:#f5a623;color:#1a1a1a;padding:24px;text-align:center;">
+                      <span style="font-size:26px;font-weight:bold;display:inline-block;width:46px;height:46px;line-height:46px;background:#1a1a1a;color:#f5a623;border-radius:8px;margin:0 8px 0 0;">U</span>
+                      <span style="font-size:22px;font-weight:bold;letter-spacing:2px;">UNISOF</span>
+                    </div>
+                    <div style="padding:28px;color:#f5f5f5;">
+                      <p style="font-size:16px;margin:0 0 14px;">Hola <strong>%s</strong>,</p>
+                      <p style="font-size:14px;margin:0 0 16px;">
+                        Te informamos que has sido registrado exitosamente en el sistema de insumos <strong>UNISOF</strong>.
+                      </p>
+                      <p style="font-size:14px;margin:0 0 16px;">
+                        <strong>Rol asignado:</strong> %s<br>
+                        <strong>Usuario para iniciar sesión:</strong> %s
+                      </p>
+                      <p style="font-size:13px;margin:0 0 18px;color:#cccccc;">
+                        Ya puedes ingresar al sistema usando tu usuario y la clave definida por el administrador.
+                        Si tienes dudas sobre tus credenciales, por favor contacta al administrador de UNISOF.
+                      </p>
+                      <p style="font-size:13px;margin:0;color:#999999;">
+                        Gracias por hacer parte del equipo UNISOF.
+                      </p>
+                    </div>
+                    <div style="background:#000;padding:14px;text-align:center;font-size:11px;color:#777;">
+                      Sistema de Insumos UNISOF
+                    </div>
+                  </div>
+                </body>
+                </html>
+                """.formatted(nombreCompleto != null ? nombreCompleto : "Usuario UNISOF",
+                rolMostrar,
+                usuarioLogin != null ? usuarioLogin : "");
+
+        // 1. Intentar Resend
+        if (resendApiKey != null && !resendApiKey.isBlank()) {
+            if (enviarViaResend(correoDestino, subject, html)) {
+                log.info("Correo de bienvenida enviado a {} (Resend)", correoDestino);
+                return true;
+            }
+        }
+
+        // 2. Intentar JavaMailSender
+        if (mailSender != null) {
+            try {
+                MimeMessage mensaje = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(mensaje, true, "UTF-8");
+                helper.setFrom(remitente);
+                helper.setTo(correoDestino);
+                helper.setSubject(subject);
+                helper.setText(html, true);
+                mailSender.send(mensaje);
+                log.info("Correo de bienvenida enviado a {} (SMTP)", correoDestino);
+                return true;
+            } catch (MessagingException | MailException e) {
+                log.error("Error enviando correo de bienvenida a {} (SMTP): {}", correoDestino, e.getMessage());
+            }
+        }
+
+        if (fallbackLogOnError) {
+            log.info(">>> BIENVENIDA PARA PRUEBAS: {} ({}) rol {}", nombreCompleto, correoDestino, rolMostrar);
+            return true;
+        }
+
+        return false;
     }
 
     /**

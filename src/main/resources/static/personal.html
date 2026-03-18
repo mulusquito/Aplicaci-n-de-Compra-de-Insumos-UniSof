@@ -86,27 +86,44 @@
                 <label for="reg-usuario" data-i18n-key="personal.userLogin">Usuario (para inicio de sesión)</label>
                 <input type="text" id="reg-usuario" name="usuario" autocomplete="username" required placeholder="Ej: jperez">
                 <span class="input-hint-small">Con este usuario y su clave ingresará al sistema</span>
+                <span class="input-hint-small campo-error" id="reg-usuario-error" hidden></span>
             </div>
             <div class="form-group">
                 <label for="reg-identificacion" data-i18n-key="personal.idNumber">Número de identificación</label>
                 <input type="text" id="reg-identificacion" name="numeroIdentificacion" required>
+                <span class="input-hint-small campo-error" id="reg-identificacion-error" hidden></span>
             </div>
             <div class="form-group">
                 <label for="reg-correo" data-i18n-key="personal.email">Correo electrónico</label>
                 <input type="email" id="reg-correo" name="correo" autocomplete="email" required>
+                <span class="input-hint-small campo-error" id="reg-correo-error" hidden></span>
             </div>
             <div class="form-group">
                 <label for="reg-celular" data-i18n-key="personal.cell">Celular</label>
                 <input type="tel" id="reg-celular" name="celular" required>
             </div>
-            <div class="form-group">
+            <div class="form-group" id="form-group-reg-clave">
                 <label for="reg-clave" data-i18n-key="personal.password">Clave de acceso</label>
-                <input type="password" id="reg-clave" name="clave" autocomplete="new-password" required>
-                <span class="input-hint-small" id="reg-clave-hint" hidden>Dejar en blanco para mantener la contraseña actual.</span>
+                <div class="input-password-wrapper">
+                    <input type="password" id="reg-clave" name="clave" autocomplete="new-password" required placeholder=" ">
+                    <button type="button" class="btn-toggle-password" id="btn-toggle-reg-clave" aria-label="Mostrar u ocultar clave"></button>
+                </div>
+                <div class="password-strength" id="reg-clave-strength">
+                    <div class="password-strength-bar" id="reg-clave-strength-bar"></div>
+                </div>
+                <ul class="input-hint-list" id="reg-clave-rules">
+                    <li data-rule="len">Mínimo 8 caracteres</li>
+                    <li data-rule="upper">Una letra mayúscula</li>
+                    <li data-rule="num">Un número</li>
+                </ul>
+                <span class="input-hint-small campo-error" id="reg-clave-error" hidden></span>
             </div>
             <div class="form-group">
                 <label for="reg-confirmar-clave" data-i18n-key="personal.confirmPassword">Confirmar clave</label>
-                <input type="password" id="reg-confirmar-clave" name="confirmarClave" autocomplete="new-password" required>
+                <div class="input-password-wrapper">
+                    <input type="password" id="reg-confirmar-clave" name="confirmarClave" autocomplete="new-password" required placeholder=" ">
+                    <button type="button" class="btn-toggle-password" id="btn-toggle-reg-confirmar" aria-label="Mostrar u ocultar confirmación de clave"></button>
+                </div>
             </div>
             <div class="form-group">
                 <label for="reg-rol" data-i18n-key="personal.role">Rol</label>
@@ -344,6 +361,10 @@
             const isActive = panel.dataset.tabPanel === tab;
             panel.hidden = !isActive;
         });
+        // Al cambiar de módulo (p. ej. a Gestionar) ocultar el mensaje de error/éxito del registro
+        if (tab !== 'registrar') {
+            hideRegistroAlert();
+        }
         if (tab === 'registrar') {
             if (editingUserId == null) {
                 btnRegistrarGuardar.textContent = 'Registrar';
@@ -537,6 +558,79 @@
         });
     }
 
+    const regClaveInput = document.getElementById('reg-clave');
+    const regConfirmarInput = document.getElementById('reg-confirmar-clave');
+    const regClaveRules = document.getElementById('reg-clave-rules');
+    const regClaveError = document.getElementById('reg-clave-error');
+    const regClaveGroup = document.getElementById('form-group-reg-clave');
+    const regClaveStrengthBar = document.getElementById('reg-clave-strength-bar');
+
+    function evaluarReglasClave(valor) {
+        const tieneLongitud = valor.length >= 8;
+        const tieneMayus = /[A-ZÁÉÍÓÚÑ]/.test(valor);
+        const tieneNumero = /\d/.test(valor);
+        if (regClaveRules) {
+            regClaveRules.querySelectorAll('li').forEach(li => {
+                const rule = li.getAttribute('data-rule');
+                let ok = false;
+                if (rule === 'len') ok = tieneLongitud;
+                else if (rule === 'upper') ok = tieneMayus;
+                else if (rule === 'num') ok = tieneNumero;
+                li.classList.toggle('rule-ok', ok);
+            });
+        }
+        if (regClaveGroup && regClaveError) {
+            regClaveGroup.classList.remove('form-group-error');
+            regClaveError.hidden = true;
+            regClaveError.textContent = '';
+        }
+        if (regClaveStrengthBar) {
+            const cumplidas = [tieneLongitud, tieneMayus, tieneNumero].filter(Boolean).length;
+            const porcentaje = (cumplidas / 3) * 100;
+            regClaveStrengthBar.style.width = porcentaje + '%';
+            if (cumplidas === 0) {
+                regClaveStrengthBar.style.backgroundColor = '#ff6b6b';
+            } else if (cumplidas === 1) {
+                regClaveStrengthBar.style.backgroundColor = '#ff6b6b';
+            } else if (cumplidas === 2) {
+                regClaveStrengthBar.style.backgroundColor = '#f5a623';
+            } else {
+                regClaveStrengthBar.style.backgroundColor = '#4caf50';
+            }
+        }
+        return { tieneLongitud, tieneMayus, tieneNumero };
+    }
+
+    if (regClaveInput) {
+        regClaveInput.addEventListener('input', () => evaluarReglasClave(regClaveInput.value || ''));
+    }
+
+    const btnToggleRegClave = document.getElementById('btn-toggle-reg-clave');
+    const btnToggleRegConfirmar = document.getElementById('btn-toggle-reg-confirmar');
+    if (btnToggleRegClave && regClaveInput) {
+        btnToggleRegClave.addEventListener('click', () => {
+            regClaveInput.type = regClaveInput.type === 'password' ? 'text' : 'password';
+        });
+    }
+    if (btnToggleRegConfirmar && regConfirmarInput) {
+        btnToggleRegConfirmar.addEventListener('click', () => {
+            regConfirmarInput.type = regConfirmarInput.type === 'password' ? 'text' : 'password';
+        });
+    }
+
+    function marcarErrorCampoPorInput(inputId, mensaje) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        const group = input.closest('.form-group');
+        if (!group) return;
+        group.classList.add('form-group-error');
+        const spanError = group.querySelector('.campo-error');
+        if (spanError) {
+            spanError.hidden = false;
+            spanError.textContent = mensaje;
+        }
+    }
+
     formRegistro.addEventListener('submit', async (e) => {
         e.preventDefault();
         hideRegistroAlert();
@@ -549,10 +643,13 @@
         const confirmarClave = document.getElementById('reg-confirmar-clave').value;
         const rol = document.getElementById('reg-rol').value;
 
+        // limpiar errores de campos antes de validar
+        document.querySelectorAll('.form-group-error').forEach(el => el.classList.remove('form-group-error'));
+        document.querySelectorAll('.campo-error').forEach(el => { el.hidden = true; el.textContent = ''; });
+
         const esActualizacion = editingUserId != null;
         if (!nombreCompleto || !usuario || !numeroIdentificacion || !correo || !celular || !rol) {
             showRegistroAlert('Todos los campos obligatorios deben estar llenos.', true);
-            return;
         }
         if (!esActualizacion) {
             const aceptoTerminos = document.getElementById('reg-acepto-terminos');
@@ -562,14 +659,31 @@
             }
         }
         if (!esActualizacion && (!clave || !confirmarClave)) {
-            showRegistroAlert('Al registrar, la clave y confirmar clave son obligatorios.', true);
+            if (regClaveGroup && regClaveError) {
+                regClaveGroup.classList.add('form-group-error');
+                regClaveError.hidden = false;
+                regClaveError.textContent = 'La clave y confirmar clave son obligatorias.';
+            }
             return;
         }
-        if (esActualizacion && (clave || confirmarClave)) {
-            if (clave !== confirmarClave) {
-                showRegistroAlert('La clave y confirmar clave no coinciden.', true);
+        if (clave) {
+            const reglas = evaluarReglasClave(clave);
+            if (!reglas.tieneLongitud || !reglas.tieneMayus || !reglas.tieneNumero) {
+                if (regClaveGroup && regClaveError) {
+                    regClaveGroup.classList.add('form-group-error');
+                    regClaveError.hidden = false;
+                    regClaveError.textContent = 'La clave debe cumplir: mínimo 8 caracteres, una letra mayúscula y un número.';
+                }
                 return;
             }
+        }
+        if (esActualizacion && (clave || confirmarClave) && clave !== confirmarClave) {
+            if (regClaveGroup && regClaveError) {
+                regClaveGroup.classList.add('form-group-error');
+                regClaveError.hidden = false;
+                regClaveError.textContent = 'La clave y confirmar clave no coinciden.';
+            }
+            return;
         }
 
         const payload = {
@@ -598,7 +712,7 @@
                 updateFormMode();
                 const textoExito = data.nombre
                     ? 'Usuario ' + data.nombre + ' registrado correctamente.'
-                    : (data.mensaje || (editingUserId != null ? 'Usuario actualizado correctamente.' : 'Usuario registrado correctamente.'));
+                    : (data.mensaje || 'Usuario actualizado correctamente.');
                 const successCenter = document.getElementById('registro-success-center');
                 const successText = document.getElementById('registro-success-text');
                 const formWrap = document.getElementById('modal-registro-form-wrap');
@@ -607,14 +721,39 @@
                     successText.textContent = textoExito;
                     successCenter.hidden = false;
                 }
+                // Limpiar formulario y estado visual por completo
                 formRegistro.reset();
+                hideRegistroAlert();
+                document.querySelectorAll('.form-group-error').forEach(el => el.classList.remove('form-group-error'));
+                document.querySelectorAll('.campo-error').forEach(el => { el.hidden = true; el.textContent = ''; });
+                if (regClaveStrengthBar) {
+                    regClaveStrengthBar.style.width = '0%';
+                    regClaveStrengthBar.style.backgroundColor = '#ff6b6b';
+                }
+                if (regClaveRules) {
+                    regClaveRules.querySelectorAll('li').forEach(li => li.classList.remove('rule-ok'));
+                }
+                if (regClaveInput) regClaveInput.type = 'password';
+                if (regConfirmarInput) regConfirmarInput.type = 'password';
                 showRegistroSuccessToast(textoExito);
                 setTimeout(function() {
                     if (successCenter) successCenter.hidden = true;
                     if (formWrap) formWrap.style.display = '';
                 }, 4500);
             } else {
-                showRegistroAlert(data.mensaje || 'Error al registrar. Verifique que el usuario, correo o número de identificación no estén ya en uso.', true);
+                const msg = data.mensaje || 'Error al registrar. Verifique que el usuario, correo o número de identificación no estén ya en uso.';
+                const lower = msg.toLowerCase();
+
+                // Priorizar el correo cuando el mensaje habla de correo electrónico
+                if (lower.includes('correo electrónico') || lower.includes('correo electronico') || lower.includes('correo')) {
+                    marcarErrorCampoPorInput('reg-correo', msg);
+                } else if (lower.includes('identificación') || lower.includes('identificacion')) {
+                    marcarErrorCampoPorInput('reg-identificacion', msg);
+                } else if (lower.includes('nombre de usuario') || lower.includes('con ese nombre de usuario') || lower.includes('usuario')) {
+                    marcarErrorCampoPorInput('reg-usuario', msg);
+                }
+
+                showRegistroAlert(msg, true);
             }
         } catch (err) {
             showRegistroAlert('Error de conexión. Intente de nuevo.', true);
