@@ -100,7 +100,7 @@ const authApi = {
     // Solo tiene sentido si alguna vez hubo sesión
     if (!sessionStorage.getItem('hadSession')) return;
 
-    const INACTIVITY_MS = 90 * 1000;       // 1,5 min sin actividad
+    const INACTIVITY_MS = 120 * 1000;      // 2 min sin actividad (alineado con sesión 2m30s)
     const WARNING_DURATION_MS = 30 * 1000; // 30 s de aviso antes de cerrar
 
     let inactivityTimeout = null;
