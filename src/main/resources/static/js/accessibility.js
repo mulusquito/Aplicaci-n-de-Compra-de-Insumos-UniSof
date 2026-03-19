@@ -340,10 +340,13 @@
         toggle.setAttribute('aria-label', 'Opciones de accesibilidad');
         toggle.innerHTML = `
             <span class="a11y-toggle-icon" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="32" height="32" fill="none" role="img" aria-label="">
-                    <circle cx="32" cy="32" r="30" fill="#7a7a7a"/>
-                    <circle cx="32" cy="18" r="5" fill="#fff"/>
-                    <path d="M32 24 v14 M32 38 l-8 18 M32 38 l8 18 M32 38 l-14 -6 M32 38 l14 -6" stroke="#fff" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="30" height="30" fill="none" role="img" aria-label="">
+                    <circle cx="32" cy="32" r="30" fill="#007AFF"/>
+                    <circle cx="32" cy="21" r="5" fill="#ffffff"/>
+                    <path d="M20 30 L44 30" stroke="#ffffff" stroke-width="4" stroke-linecap="round" />
+                    <path d="M32 28 L32 44" stroke="#ffffff" stroke-width="4" stroke-linecap="round" />
+                    <path d="M32 44 L24 54" stroke="#ffffff" stroke-width="4" stroke-linecap="round" />
+                    <path d="M32 44 L40 54" stroke="#ffffff" stroke-width="4" stroke-linecap="round" />
                 </svg>
             </span>
             <span class="sr-only">Accesibilidad</span>

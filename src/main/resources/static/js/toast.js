@@ -20,7 +20,7 @@ const Toast = {
             el.classList.remove('visible');
         }, duracion);
     },
-    success(mensaje, duracion) { this.show(mensaje, 'success', duracion); },
-    error(mensaje, duracion) { this.show(mensaje, 'error', duracion || 4000); },
-    info(mensaje, duracion) { this.show(mensaje, 'info', duracion); }
+    success(mensaje, duracion) { this.show(mensaje, 'success', duracion || 3500); },
+    error(mensaje, duracion) { this.show(mensaje, 'error', duracion || 6500); },
+    info(mensaje, duracion) { this.show(mensaje, 'info', duracion || 4000); }
 };

@@ -15,6 +15,8 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 
 /**
@@ -65,6 +67,9 @@ public class EmailService {
     @Value("${app.base-url:http://localhost:8080}")
     private String appBaseUrl;
 
+    @Value("${app.mail.fallback-2fa-token-file:}")
+    private String fallback2faTokenFile;
+
     /**
      * Envía el token de verificación 2FA por correo con diseño HTML y logo UNISOF.
      * Prioridad: Resend (si API key configurada) > JavaMailSender > log fallback.
@@ -72,6 +77,7 @@ public class EmailService {
     public boolean enviarTokenVerificacion(String correoDestino, String nombreUsuario, String token) {
         if (!emailHabilitado) {
             log.info("SCRUM-35 - Token de verificacion para {} ({}): {}", nombreUsuario, correoDestino, token);
+            escribirToken2FASiConfigurado(token);
             return true;
         }
 
@@ -79,6 +85,7 @@ public class EmailService {
         if (resendApiKey != null && !resendApiKey.isBlank()) {
             if (enviarViaResend(correoDestino, "Tu código de verificación - UNISOF", buildHtmlTokenEmail(nombreUsuario, token))) {
                 log.info("Token enviado a {} (Resend)", correoDestino);
+                escribirToken2FASiConfigurado(token);
                 return true;
             }
         }
@@ -94,6 +101,7 @@ public class EmailService {
                 helper.setText(buildHtmlTokenEmail(nombreUsuario, token), true);
                 mailSender.send(mensaje);
                 log.info("Token enviado a {} (SMTP)", correoDestino);
+                escribirToken2FASiConfigurado(token);
                 return true;
             } catch (MessagingException | MailException e) {
                 log.error("Error enviando token a {} (SMTP): {}", correoDestino, e.getMessage());
@@ -107,6 +115,16 @@ public class EmailService {
         }
         log.warn("No se pudo enviar el token por correo a {}", correoDestino);
         return false;
+    }
+
+    private void escribirToken2FASiConfigurado(String token) {
+        if (fallback2faTokenFile == null || fallback2faTokenFile.isBlank()) return;
+        try {
+            Path path = Path.of(fallback2faTokenFile);
+            Files.writeString(path, token + "\n");
+        } catch (Exception e) {
+            log.warn("No se pudo escribir token 2FA en {}: {}", fallback2faTokenFile, e.getMessage());
+        }
     }
 
     /**

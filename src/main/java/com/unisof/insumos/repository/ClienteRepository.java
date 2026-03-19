@@ -12,4 +12,6 @@ import java.util.Optional;
 public interface ClienteRepository extends JpaRepository<Cliente, Long> {
 
     Optional<Cliente> findByCedula(String cedula);
+
+    Optional<Cliente> findByCorreo(String correo);
 }

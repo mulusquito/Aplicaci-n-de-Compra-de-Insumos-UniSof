@@ -334,11 +334,32 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('form-id').value;
+            const correoVal = document.getElementById('form-correo').value.trim();
+            const telVal = document.getElementById('form-telefono').value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(correoVal)) {
+                Toast.error('Ingresa un correo electrónico válido (ej: nombre@dominio.com).');
+                document.getElementById('form-correo').focus();
+                return;
+            }
+            if (telVal) {
+                if (/[A-Za-z]/.test(telVal)) {
+                    Toast.error('El teléfono no debe contener letras.');
+                    document.getElementById('form-telefono').focus();
+                    return;
+                }
+                const soloDigitos = telVal.replace(/\D/g, '');
+                if (soloDigitos.length !== 10) {
+                    Toast.error('El teléfono debe tener exactamente 10 dígitos.');
+                    document.getElementById('form-telefono').focus();
+                    return;
+                }
+            }
             const body = {
                 nombre: document.getElementById('form-nombre').value.trim(),
                 cedula: document.getElementById('form-cedula').value.trim(),
-                correo: document.getElementById('form-correo').value.trim(),
-                telefono: document.getElementById('form-telefono').value.trim(),
+                correo: correoVal,
+                telefono: telVal,
                 direccion: document.getElementById('form-direccion').value.trim()
             };
             try {
@@ -350,13 +371,22 @@
                     credentials: 'include',
                     body: JSON.stringify(body)
                 });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.mensaje || 'Error al guardar');
-                Toast.success(id ? 'Cliente actualizado' : 'Cliente creado');
+                let data = {};
+                try {
+                    data = await res.json();
+                } catch (_) {
+                    data = {};
+                }
+                if (!res.ok) {
+                    const msg = data.mensaje || (res.status === 400 ? 'Ya existe un cliente con esa cédula o correo.' : 'Error al guardar');
+                    Toast.error(msg, 6500);
+                    return;
+                }
+                Toast.success(id ? 'Cliente actualizado' : 'Cliente creado', 3500);
                 modal.classList.add('hidden');
                 listarTodos();
             } catch (err) {
-                Toast.error(err.message);
+                Toast.error(err.message || 'Error al guardar', 6500);
             }
         });
 

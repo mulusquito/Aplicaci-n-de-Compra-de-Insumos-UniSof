@@ -892,6 +892,19 @@
             };
         }
 
+        function esEmailValido(correo) {
+            if (!correo) return false;
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(correo);
+        }
+
+        function esTelefonoValido(telefono) {
+            if (!telefono) return true;
+            if (/[A-Za-z]/.test(telefono)) return false;
+            const soloDigitos = telefono.replace(/\D/g, '');
+            return soloDigitos.length === 10;
+        }
+
         function validarCliente() {
             if (clienteEncontrado) return true;
             const form = document.getElementById('cart-cliente-form');
@@ -902,6 +915,18 @@
             ['cart-cliente-nombre', 'cart-cliente-cedula', 'cart-cliente-email'].forEach(id => {
                 document.getElementById(id).required = true;
             });
+            const correo = document.getElementById('cart-cliente-email').value.trim();
+            const telefono = document.getElementById('cart-cliente-telefono').value.trim();
+            if (!esEmailValido(correo)) {
+                Toast.error('Ingresa un correo electrónico válido (ej: nombre@dominio.com).');
+                document.getElementById('cart-cliente-email').focus();
+                return false;
+            }
+            if (!esTelefonoValido(telefono)) {
+                Toast.error('El teléfono debe tener exactamente 10 dígitos.');
+                document.getElementById('cart-cliente-telefono').focus();
+                return false;
+            }
             if (!form.checkValidity()) {
                 form.reportValidity();
                 return false;
@@ -925,11 +950,20 @@
                         credentials: 'include',
                         body: JSON.stringify({ nombre: c.nombre, cedula: c.cedula, correo: c.correo, telefono: c.telefono, direccion: c.direccion })
                     });
-                    const dataCliente = await resCliente.json();
-                    if (!resCliente.ok) throw new Error(dataCliente.mensaje || 'Error al guardar cliente');
+                    let dataCliente = {};
+                    try {
+                        dataCliente = await resCliente.json();
+                    } catch (_) {
+                        dataCliente = {};
+                    }
+                    if (!resCliente.ok) {
+                        const msg = dataCliente.mensaje || 'Error al guardar cliente';
+                        Toast.error(msg, 6000);
+                        return;
+                    }
                     clienteEncontrado = dataCliente;
                 } catch (err) {
-                    Toast.error(err.message || 'Error al guardar cliente');
+                    Toast.error(err.message || 'Error al guardar cliente', 6000);
                     return;
                 }
             }

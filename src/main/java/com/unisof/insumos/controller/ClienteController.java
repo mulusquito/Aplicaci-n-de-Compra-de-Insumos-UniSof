@@ -103,6 +103,9 @@ public class ClienteController {
         if (clienteRepository.findByCedula(cedulaLimpia).isPresent()) {
             return ResponseEntity.badRequest().body(Map.of("mensaje", "Ya existe un cliente con esa cédula"));
         }
+        if (clienteRepository.findByCorreo(correo).isPresent()) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "Ya existe un cliente con ese correo"));
+        }
         Cliente cliente = new Cliente(nombre, cedulaLimpia, correo, telefono, direccion);
         cliente = clienteRepository.save(cliente);
         return ResponseEntity.ok(Map.of(
@@ -134,7 +137,12 @@ public class ClienteController {
                         }
                         c.setCedula(cedulaLimpia);
                     }
-                    if (correo != null && !correo.isBlank()) c.setCorreo(correo);
+                    if (correo != null && !correo.isBlank()) {
+                        if (!correo.equalsIgnoreCase(c.getCorreo()) && clienteRepository.findByCorreo(correo).isPresent()) {
+                            return ResponseEntity.badRequest().<Object>body(Map.of("mensaje", "Ya existe un cliente con ese correo"));
+                        }
+                        c.setCorreo(correo);
+                    }
                     if (body.containsKey("telefono")) c.setTelefono(body.get("telefono") != null ? body.get("telefono") : "");
                     if (body.containsKey("direccion")) c.setDireccion(body.get("direccion") != null ? body.get("direccion") : "");
                     clienteRepository.save(c);
