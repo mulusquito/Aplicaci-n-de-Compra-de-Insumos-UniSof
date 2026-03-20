@@ -2649,7 +2649,11 @@ button.panel-btn:hover {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
     z-index: 9999;
     padding: 0;
+<<<<<<< Updated upstream
     transform: translateZ(0) translateY(-50%);
+=======
+    transform: translateY(-50%) translateZ(0);
+>>>>>>> Stashed changes
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
 }

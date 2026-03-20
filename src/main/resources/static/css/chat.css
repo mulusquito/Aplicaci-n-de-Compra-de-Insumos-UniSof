@@ -1,0 +1,489 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+
+/* Nova / artful-robot — adaptado a widget flotante UNISOF */
+.chat-widget {
+    --nova-bg: hsl(220, 20%, 7%);
+    --nova-fg: hsl(210, 20%, 92%);
+    --nova-muted: hsl(215, 15%, 50%);
+    --nova-primary: hsl(185, 80%, 55%);
+    --nova-primary-fg: hsl(220, 20%, 7%);
+    --nova-secondary: hsl(220, 15%, 16%);
+    --nova-border: hsl(220, 15%, 18%);
+    --nova-chat-bot: hsl(220, 18%, 12%);
+    --nova-font-heading: "Space Grotesk", Arial, sans-serif;
+    --nova-font-mono: "JetBrains Mono", monospace;
+
+    position: fixed;
+    bottom: 16px;
+    right: 80px;
+    left: auto;
+    z-index: 10040;
+    font-family: var(--nova-font-heading);
+}
+
+/* Lanzador: nube pequeña + avatar */
+.chat-widget-launcher {
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.45));
+}
+.chat-widget-launcher:hover {
+    transform: scale(1.04);
+}
+.chat-widget-launcher:focus-visible {
+    outline: 2px solid var(--nova-primary);
+    outline-offset: 4px;
+    border-radius: 50%;
+}
+
+.chat-widget-launcher-cloud {
+    display: block;
+    width: 52px;
+    height: 52px;
+    border-radius: 18px;
+    background: linear-gradient(145deg, hsl(185, 80%, 48%), hsl(185, 70%, 38%));
+    box-shadow:
+        0 0 0 2px rgba(255, 255, 255, 0.12),
+        0 0 24px hsla(185, 80%, 55%, 0.25);
+    position: relative;
+    overflow: visible;
+}
+.chat-widget-launcher-cloud::before,
+.chat-widget-launcher-cloud::after {
+    content: "";
+    position: absolute;
+    background: inherit;
+    border-radius: 50%;
+    z-index: -1;
+}
+.chat-widget-launcher-cloud::before {
+    width: 16px;
+    height: 16px;
+    top: -5px;
+    left: 8px;
+    opacity: 0.95;
+}
+.chat-widget-launcher-cloud::after {
+    width: 12px;
+    height: 12px;
+    bottom: 2px;
+    right: -4px;
+    opacity: 0.9;
+}
+
+.chat-widget-launcher-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 16px;
+    display: block;
+}
+
+/* Panel */
+.chat-widget-panel {
+    display: none;
+    position: absolute;
+    bottom: 64px;
+    right: 0;
+    left: auto;
+    width: 320px;
+    max-width: calc(100vw - 32px);
+    height: 460px;
+    max-height: min(72vh, 520px);
+    flex-direction: column;
+    background: var(--nova-bg);
+    border: 1px solid var(--nova-border);
+    border-radius: 18px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+    overflow: hidden;
+    color: var(--nova-fg);
+}
+.chat-widget-panel.open {
+    display: flex;
+}
+.chat-widget-panel::after {
+    content: "";
+    position: absolute;
+    right: 20px;
+    bottom: -9px;
+    width: 0;
+    height: 0;
+    border-left: 9px solid transparent;
+    border-right: 9px solid transparent;
+    border-top: 9px solid var(--nova-bg);
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.3));
+}
+
+/* Header Nova */
+.chat-nova-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid hsla(220, 15%, 100%, 0.08);
+    position: relative;
+    padding-right: 40px;
+}
+.chat-nova-avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+.chat-nova-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    box-shadow:
+        0 0 0 2px hsla(185, 80%, 55%, 0.35),
+        0 0 20px hsla(185, 80%, 55%, 0.15);
+}
+.chat-nova-online {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 11px;
+    height: 11px;
+    background: #34d399;
+    border-radius: 50%;
+    border: 2px solid var(--nova-bg);
+}
+.chat-nova-title-block {
+    flex: 1;
+    min-width: 0;
+}
+.chat-nova-title-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.chat-nova-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+.chat-nova-sparkle {
+    font-size: 14px;
+    color: var(--nova-primary);
+    animation: nova-pulse-glow 2s ease-in-out infinite;
+}
+.chat-nova-subtitle {
+    margin: 2px 0 0;
+    font-size: 11px;
+    color: var(--nova-muted);
+}
+.chat-nova-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--nova-secondary);
+    padding: 5px 10px;
+    border-radius: 999px;
+    flex-shrink: 0;
+}
+.chat-nova-badge-icon {
+    font-size: 12px;
+    line-height: 1;
+}
+.chat-nova-badge-ver {
+    font-size: 10px;
+    font-family: var(--nova-font-mono);
+    color: var(--nova-muted);
+}
+
+.chat-widget-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 8px;
+    background: var(--nova-secondary);
+    color: var(--nova-fg);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.chat-widget-close:hover {
+    background: hsl(220, 15%, 22%);
+    color: var(--nova-primary);
+}
+
+/* Mensajes */
+.chat-nova-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 14px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: hsl(220, 22%, 6%);
+}
+
+.chat-msg-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    animation: nova-msg-in 0.28s ease-out;
+}
+.chat-msg-row--bot {
+    justify-content: flex-start;
+}
+.chat-msg-row--user {
+    justify-content: flex-end;
+    flex-direction: row-reverse;
+}
+
+.chat-msg-avatar-wrap {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow:
+        0 0 0 2px hsla(185, 80%, 55%, 0.3),
+        0 0 16px hsla(185, 80%, 55%, 0.12);
+}
+.chat-msg-avatar-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.chat-msg-col {
+    max-width: 78%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.chat-msg-bubble {
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 13px;
+    line-height: 1.45;
+    word-wrap: break-word;
+}
+.chat-msg-bubble--bot {
+    background: var(--nova-chat-bot);
+    color: var(--nova-fg);
+    border-top-left-radius: 6px;
+}
+.chat-msg-bubble--user {
+    background: var(--nova-primary);
+    color: var(--nova-primary-fg);
+    border-top-right-radius: 6px;
+}
+
+.gradient-border-nova {
+    border: 1px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+}
+.gradient-border-nova::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+        135deg,
+        hsla(185, 80%, 55%, 0.45),
+        transparent 50%,
+        hsla(185, 80%, 55%, 0.2)
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+.chat-msg-time {
+    margin: 0;
+    font-size: 10px;
+    color: var(--nova-muted);
+    font-family: var(--nova-font-mono);
+}
+.chat-msg-row--bot .chat-msg-time {
+    text-align: left;
+    padding-left: 2px;
+}
+.chat-msg-row--user .chat-msg-time {
+    text-align: right;
+    padding-right: 2px;
+}
+
+.chat-msg-user-badge {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--nova-secondary);
+    color: var(--nova-fg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* Typing */
+.chat-typing-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+}
+.chat-typing-bubble {
+    padding: 14px 18px;
+    border-radius: 16px;
+    border-top-left-radius: 6px;
+    background: var(--nova-chat-bot);
+}
+.chat-typing-dots {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+.chat-typing-dots span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--nova-primary);
+}
+.chat-typing-dots span:nth-child(1) {
+    animation: nova-typing-dot 1.4s ease-in-out infinite;
+}
+.chat-typing-dots span:nth-child(2) {
+    animation: nova-typing-dot 1.4s ease-in-out 0.2s infinite;
+}
+.chat-typing-dots span:nth-child(3) {
+    animation: nova-typing-dot 1.4s ease-in-out 0.4s infinite;
+}
+
+/* Footer + input */
+.chat-nova-footer {
+    padding: 12px 14px 10px;
+    border-top: 1px solid hsla(220, 15%, 100%, 0.08);
+    background: var(--nova-bg);
+}
+.chat-nova-form {
+    margin: 0;
+}
+.chat-nova-input-shell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--nova-secondary);
+    border-radius: 16px;
+    padding: 6px 6px 6px 14px;
+}
+.chat-nova-input-shell:focus-within {
+    box-shadow: 0 0 0 1px hsla(185, 80%, 55%, 0.35);
+}
+.chat-nova-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--nova-fg);
+    font-size: 13px;
+    font-family: var(--nova-font-heading);
+    outline: none;
+    padding: 8px 0;
+    min-width: 0;
+}
+.chat-nova-input::placeholder {
+    color: var(--nova-muted);
+}
+.chat-nova-send {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 12px;
+    background: var(--nova-primary);
+    color: var(--nova-primary-fg);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: opacity 0.15s, transform 0.15s;
+}
+.chat-nova-send:hover:not(:disabled) {
+    transform: scale(1.05);
+}
+.chat-nova-send:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+.chat-nova-disclaimer {
+    margin: 8px 0 0;
+    text-align: center;
+    font-size: 10px;
+    color: var(--nova-muted);
+    font-family: var(--nova-font-mono);
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsla(215, 15%, 50%, 0.35);
+    border-radius: 2px;
+}
+
+@keyframes nova-pulse-glow {
+    0%,
+    100% {
+        opacity: 0.45;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+@keyframes nova-typing-dot {
+    0%,
+    60%,
+    100% {
+        opacity: 0.3;
+        transform: scale(0.85);
+    }
+    30% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+@keyframes nova-msg-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .chat-widget {
+        right: 16px;
+    }
+    .chat-widget-panel {
+        width: calc(100vw - 28px);
+        right: -6px;
+        height: min(68vh, 440px);
+    }
+    .chat-nova-badge {
+        display: none;
+    }
+}
