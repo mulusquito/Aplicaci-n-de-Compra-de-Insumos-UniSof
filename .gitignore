@@ -37,8 +37,5 @@ build/
 run-local.ps1
 .env.local
 
-# Logs locales
+# Logs de aplicación (local)
 logs/
-
-# Clon temporal de referencia (Lovable / artful-robot)
-artful-robot-temp/

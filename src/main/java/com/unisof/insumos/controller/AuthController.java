@@ -24,7 +24,7 @@ import java.util.Map;
  * <p>
  * SCRUM-7: Endpoint de login con usuario y contrasena.
  * SCRUM-35: Endpoint de verificacion del token 2FA recibido por correo.
- * SCRUM-36: Sesion expira tras 1 min de inactividad. Endpoints /me y /logout.
+ * Sesión HTTP: timeout en server.servlet.session.timeout; el front renueva con /me al interactuar.
  * </p>
  */
 @RestController
@@ -56,7 +56,7 @@ public class AuthController {
 
     /**
      * Verifica el token 2FA recibido por correo. Si es valido, crea la sesion y retorna el usuario.
-     * SCRUM-36: La sesion expira tras 1 minuto de inactividad.
+     * Tras verificar, queda sesión HTTP; timeout en configuración; el cliente controla avisos de inactividad.
      * POST /api/auth/verify-token
      *
      * @param request usuario y codigo de 6 digitos

@@ -93,36 +93,45 @@ const authApi = {
     }
 };
 
-// Aviso de inactividad: muestra feedback antes de cerrar sesión por timeout del servidor
+// Inactividad: aviso a los 2 min; cierre a los 2 min más sin actividad.
+// Spring solo alarga la sesión con peticiones HTTP: ping ligero al interactuar (cursor, teclas, scroll).
 (function initInactivityWarning() {
     if (typeof window === 'undefined') return;
 
-    // Solo tiene sentido si alguna vez hubo sesión
     if (!sessionStorage.getItem('hadSession')) return;
 
-    const INACTIVITY_MS = 120 * 1000;      // 2 min sin actividad (alineado con sesión 2m30s)
-    const WARNING_DURATION_MS = 30 * 1000; // 30 s de aviso antes de cerrar
+    const INACTIVITY_MS = 120 * 1000;
+    const WARNING_DURATION_MS = 120 * 1000;
+    const PING_MIN_INTERVAL_MS = 45 * 1000;
 
-    let inactivityTimeout = null;
-    let forceLogoutTimeout = null;
+    let inactiveUntilWarningTimer = null;
+    let forceLogoutAfterWarningTimer = null;
     let countdownInterval = null;
+    let lastSessionPing = 0;
+    let lastIdleSchedule = 0;
+    const IDLE_SCHEDULE_THROTTLE_MS = 500;
 
-    function clearWarningTimers() {
-        if (inactivityTimeout) {
-            clearTimeout(inactivityTimeout);
-            inactivityTimeout = null;
-        }
-        if (forceLogoutTimeout) {
-            clearTimeout(forceLogoutTimeout);
-            forceLogoutTimeout = null;
-        }
+    function clearCountdown() {
         if (countdownInterval) {
             clearInterval(countdownInterval);
             countdownInterval = null;
         }
     }
 
+    function clearIdleTimers() {
+        if (inactiveUntilWarningTimer) {
+            clearTimeout(inactiveUntilWarningTimer);
+            inactiveUntilWarningTimer = null;
+        }
+        if (forceLogoutAfterWarningTimer) {
+            clearTimeout(forceLogoutAfterWarningTimer);
+            forceLogoutAfterWarningTimer = null;
+        }
+        clearCountdown();
+    }
+
     function closeWarningModal() {
+        clearCountdown();
         const modal = document.getElementById('modal-aviso-inactividad');
         if (modal) {
             modal.classList.remove('visible');
@@ -130,9 +139,34 @@ const authApi = {
         }
     }
 
+    function pingSessionRenew() {
+        const now = Date.now();
+        if (now - lastSessionPing < PING_MIN_INTERVAL_MS) return;
+        lastSessionPing = now;
+        fetch('/api/auth/me', { credentials: 'include' })
+            .then((res) => {
+                if (res.status === 401 && sessionStorage.getItem('hadSession')) {
+                    clearIdleTimers();
+                    closeWarningModal();
+                    authApi.mostrarSesionExpirada();
+                }
+            })
+            .catch(() => {});
+    }
+
+    function scheduleInactiveChain() {
+        clearIdleTimers();
+        inactiveUntilWarningTimer = setTimeout(() => {
+            inactiveUntilWarningTimer = null;
+            showWarningModal();
+            forceLogoutAfterWarningTimer = setTimeout(forceLogout, WARNING_DURATION_MS);
+        }, INACTIVITY_MS);
+    }
+
     function showWarningModal() {
         if (document.getElementById('modal-aviso-inactividad')) return;
 
+        const secs = Math.round(WARNING_DURATION_MS / 1000);
         const overlay = document.createElement('div');
         overlay.id = 'modal-aviso-inactividad';
         overlay.className = 'modal-sesion-expirada';
@@ -141,7 +175,8 @@ const authApi = {
                 <span class="modal-sesion-icono">⏱</span>
                 <h3>Sesión a punto de cerrarse</h3>
                 <p>Por seguridad, tu sesión se cerrará por inactividad en
-                    <strong id="inactividad-countdown">30</strong> segundos.</p>
+                    <strong id="inactividad-countdown">${secs}</strong> segundos.
+                    Mueva el cursor, pulse una tecla o use «Seguir conectado» para continuar.</p>
                 <button type="button" class="btn-primary" id="btn-seguir-activo">
                     Seguir conectado
                 </button>
@@ -151,12 +186,11 @@ const authApi = {
         setTimeout(() => overlay.classList.add('visible'), 10);
 
         const countdownEl = document.getElementById('inactividad-countdown');
-        let remaining = WARNING_DURATION_MS / 1000;
+        let remaining = secs;
         countdownInterval = setInterval(() => {
             remaining -= 1;
             if (remaining <= 0) {
-                clearInterval(countdownInterval);
-                countdownInterval = null;
+                clearCountdown();
             }
             if (countdownEl) countdownEl.textContent = String(Math.max(remaining, 0));
         }, 1000);
@@ -165,35 +199,47 @@ const authApi = {
         if (btnSeguir) {
             btnSeguir.addEventListener('click', () => {
                 closeWarningModal();
-                clearWarningTimers();
-                startInactivityTimer(); // reinicia el conteo
+                clearIdleTimers();
+                lastSessionPing = 0;
+                pingSessionRenew();
+                scheduleInactiveChain();
             });
         }
     }
 
     async function forceLogout() {
         closeWarningModal();
-        clearWarningTimers();
+        clearIdleTimers();
         await authApi.logout();
         authApi.mostrarSesionExpirada();
     }
 
-    function startInactivityTimer() {
-        clearWarningTimers();
-        inactivityTimeout = setTimeout(() => {
-            showWarningModal();
-            forceLogoutTimeout = setTimeout(forceLogout, WARNING_DURATION_MS);
-        }, INACTIVITY_MS);
-    }
-
     function registerActivity() {
-        // Si el usuario realiza cualquier acción, reiniciamos el contador
-        startInactivityTimer();
+        if (document.getElementById('modal-aviso-inactividad')) {
+            closeWarningModal();
+            if (forceLogoutAfterWarningTimer) {
+                clearTimeout(forceLogoutAfterWarningTimer);
+                forceLogoutAfterWarningTimer = null;
+            }
+            lastSessionPing = 0;
+            pingSessionRenew();
+            lastIdleSchedule = Date.now();
+            scheduleInactiveChain();
+            return;
+        }
+        pingSessionRenew();
+        const now = Date.now();
+        if (now - lastIdleSchedule < IDLE_SCHEDULE_THROTTLE_MS) return;
+        lastIdleSchedule = now;
+        scheduleInactiveChain();
     }
 
-    ['click', 'keydown', 'mousemove', 'touchstart'].forEach(evt =>
+    const activityEvents = ['click', 'keydown', 'mousemove', 'touchstart', 'scroll', 'wheel'];
+    activityEvents.forEach((evt) =>
         window.addEventListener(evt, registerActivity, { passive: true })
     );
 
-    startInactivityTimer();
+    lastSessionPing = 0;
+    pingSessionRenew();
+    scheduleInactiveChain();
 })();

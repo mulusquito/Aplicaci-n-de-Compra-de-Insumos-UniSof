@@ -2,34 +2,423 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Compras - UNISOF</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Dashboard Jefe de Compras — UNISOF Sistema de Gestión Textil.">
+    <title>Dashboard — Jefe de Compras | UNISOF</title>
     <link rel="stylesheet" href="/css/styles.css">
 </head>
-<body>
+<body class="compras-jefe-body">
 
     <div class="welcome-toast" id="welcome-toast">¡Bienvenido a UNISOF!</div>
 
-    <header class="navbar">
-        <a href="/" class="link-atras">← Atrás</a>
-        <a href="/" class="logo">
-            <span class="logo-icon">U</span>
-            <span class="logo-text">UNISOF</span>
-        </a>
-        <div class="nav-user-info" id="nav-user-info">
-            <span class="user-name" id="user-name">—</span>
-            <span class="user-rol" id="user-rol">JEFE DE COMPRAS</span>
+    <aside class="admin-sidebar" id="compras-jefe-sidebar" aria-label="Módulos de compras">
+        <div class="admin-sidebar-header">
+            <a href="/" class="admin-logo admin-logo--sin-icono" aria-label="UNISOF — Inicio">
+                <span class="admin-logo-text">UNISOF</span>
+            </a>
         </div>
-        <button type="button" class="btn-logout btn-logout-nav" id="btn-logout">Cerrar Sesión</button>
-    </header>
+        <p class="compras-modulos-label">Módulos</p>
+        <nav class="admin-nav admin-nav--compras-modulos">
+            <a href="/compras.html" class="admin-nav-item active" data-nav="dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+                <span class="admin-nav-text">Dashboard</span>
+            </a>
+            <span class="admin-nav-item admin-nav-item--disabled">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>
+                </svg>
+                <span class="admin-nav-text">Pedidos</span>
+                <span class="admin-nav-hint">(Próximamente)</span>
+            </span>
+            <a href="#compras-analisis-chart" class="admin-nav-item" data-nav="analisis">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="8" width="5" height="13" rx="1"/><rect x="17" y="13" width="5" height="8" rx="1"/>
+                </svg>
+                <span class="admin-nav-text">Análisis de insumos</span>
+            </a>
+            <a href="/inventario-insumos.html" class="admin-nav-item" data-nav="inventario">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <path d="M3.27 6.96L12 12.01l8.73-5.05"/><path d="M12 22.08V12"/>
+                </svg>
+                <span class="admin-nav-text">Inventario</span>
+            </a>
+            <span class="admin-nav-item admin-nav-item--disabled">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
+                </svg>
+                <span class="admin-nav-text">Reporte faltantes</span>
+                <span class="admin-nav-hint">(Próximamente)</span>
+            </span>
+            <span class="admin-nav-item admin-nav-item--disabled">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                </svg>
+                <span class="admin-nav-text">Órdenes de compra</span>
+                <span class="admin-nav-hint">(Próximamente)</span>
+            </span>
+        </nav>
+        <div class="admin-sidebar-footer">
+            <div class="admin-user-info">
+                <span class="admin-user-name" id="user-name">—</span>
+                <span class="admin-user-rol" id="user-rol">Jefe de Compras</span>
+            </div>
+            <button type="button" class="admin-btn-logout" id="btn-logout">Cerrar sesión</button>
+        </div>
+    </aside>
 
-    <main class="panel-main">
-        <h1 class="panel-title">Compras y producción</h1>
-        <p class="panel-placeholder">Interfaz de compras de insumos en desarrollo. Se implementará junto con el backend correspondiente.</p>
-    </main>
+    <div class="compras-jefe-main">
+        <header class="compras-jefe-topbar" aria-label="Cabecera del panel"></header>
 
+        <div class="compras-jefe-content">
+            <div class="compras-jefe-kpis">
+                <article class="compras-jefe-kpi compras-jefe-kpi--blue">
+                    <div class="compras-jefe-kpi-text">
+                        <p class="compras-jefe-kpi-label">Pedidos activos</p>
+                        <p class="compras-jefe-kpi-value" id="cj-kpi-pedidos">—</p>
+                        <p class="compras-jefe-kpi-desc" id="cj-kpi-pedidos-sub">—</p>
+                    </div>
+                    <div class="compras-jefe-kpi-iconwrap compras-jefe-kpi-iconwrap--blue" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+                    </div>
+                </article>
+                <article class="compras-jefe-kpi compras-jefe-kpi--teal">
+                    <div class="compras-jefe-kpi-text">
+                        <p class="compras-jefe-kpi-label">Insumos requeridos</p>
+                        <p class="compras-jefe-kpi-value" id="cj-kpi-insumos-req">—</p>
+                        <p class="compras-jefe-kpi-desc" id="cj-kpi-insumos-req-sub">—</p>
+                    </div>
+                    <div class="compras-jefe-kpi-iconwrap compras-jefe-kpi-iconwrap--teal" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    </div>
+                </article>
+                <article class="compras-jefe-kpi compras-jefe-kpi--amber">
+                    <div class="compras-jefe-kpi-text">
+                        <p class="compras-jefe-kpi-label">Faltantes</p>
+                        <p class="compras-jefe-kpi-value"><em id="cj-kpi-faltantes">—</em></p>
+                        <p class="compras-jefe-kpi-desc" id="cj-kpi-faltantes-sub">—</p>
+                    </div>
+                    <div class="compras-jefe-kpi-iconwrap compras-jefe-kpi-iconwrap--amber" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                    </div>
+                </article>
+                <article class="compras-jefe-kpi compras-jefe-kpi--navy">
+                    <div class="compras-jefe-kpi-text">
+                        <p class="compras-jefe-kpi-label">Unidades totales</p>
+                        <p class="compras-jefe-kpi-value" id="cj-kpi-unidades">—</p>
+                        <p class="compras-jefe-kpi-desc" id="cj-kpi-unidades-sub">—</p>
+                    </div>
+                    <div class="compras-jefe-kpi-iconwrap compras-jefe-kpi-iconwrap--navy" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    </div>
+                </article>
+            </div>
+
+            <section class="compras-jefe-section compras-jefe-section--chart" id="compras-analisis-chart" aria-label="Análisis de insumos">
+                <div class="compras-jefe-chart-card">
+                    <div class="compras-jefe-chart-toolbar">
+                        <div class="form-group">
+                            <label for="cj-chart-categoria">Categoría en el gráfico</label>
+                            <select id="cj-chart-categoria" aria-label="Filtrar gráfico por categoría de insumo">
+                                <option value="">Todas las categorías</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="compras-jefe-chartjs-box">
+                        <canvas id="cj-chart-canvas" aria-label="Gráfico requerido versus disponible"></canvas>
+                    </div>
+                    <p class="compras-jefe-chart-note" id="cj-chart-note">Cargando datos…</p>
+                </div>
+            </section>
+
+            <div class="compras-jefe-dash-table-wrap" id="compras-analisis-tabla">
+                <table class="compras-jefe-dash-table" id="cj-tabla-analisis">
+                    <thead>
+                        <tr>
+                            <th>Material</th>
+                            <th>Código ref.</th>
+                            <th>Categoría</th>
+                            <th>Ref. tela</th>
+                            <th>Color</th>
+                            <th>Requerido</th>
+                            <th>Disponible</th>
+                            <th>Diferencia</th>
+                            <th>Unidad</th>
+                            <th>Uso en catálogo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cj-analisis-tbody">
+                        <tr><td colspan="10" class="usuarios-empty">Cargando datos…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <button type="button" class="compras-jefe-sidebar-toggle" id="compras-jefe-sidebar-toggle" aria-label="Abrir menú">☰</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
     <script src="/js/auth.js"></script>
+    <script src="/js/accessibility.js"></script>
+    <script src="/js/unisof-brand-info.js" defer></script>
     <script>
+        var cjDashboardState = { filas: [], categorias: [], chart: null };
+
+        function esRolPanelCompras(rol) {
+            var r = (rol || '').toUpperCase();
+            return r === 'JEFE DE COMPRAS' || r === 'JEFE DE VENTAS' || r === 'ADMINISTRADOR';
+        }
+
+        function fmtNum(v) {
+            if (v == null || v === '') return '—';
+            var n = typeof v === 'number' ? v : Number(v);
+            if (Number.isNaN(n)) return '—';
+            return new Intl.NumberFormat('es-CO', { maximumFractionDigits: 3 }).format(n);
+        }
+
+        function fmtMoneyCOP(v) {
+            if (v == null || v === '') return null;
+            var n = typeof v === 'number' ? v : Number(v);
+            if (Number.isNaN(n)) return null;
+            return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
+        }
+
+        function escapeHtml(s) {
+            if (s == null || s === '') return '';
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function filasFiltradasPorCategoria(catCodigo) {
+            var rows = cjDashboardState.filas || [];
+            if (!catCodigo) return rows.slice();
+            return rows.filter(function (r) { return (r.categoriaCodigo || '') === catCodigo; });
+        }
+
+        function renderTablaAnalisis(rows) {
+            var tbody = document.getElementById('cj-analisis-tbody');
+            if (!tbody) return;
+            if (!rows.length) {
+                tbody.innerHTML = '<tr><td colspan="10" class="usuarios-empty">Sin datos registrados en inventario. Use Inventario para cargar insumos.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = rows.map(function (r) {
+                return '<tr>' +
+                    '<td>' + escapeHtml(r.insumoNombre || r.insumo || '—') + '</td>' +
+                    '<td>' + escapeHtml(r.codigo || '—') + '</td>' +
+                    '<td>' + escapeHtml(r.categoria || '—') + '</td>' +
+                    '<td>' + escapeHtml(r.referenciaTela || '—') + '</td>' +
+                    '<td>' + escapeHtml(r.color || '—') + '</td>' +
+                    '<td>' + fmtNum(r.stockMinimo != null ? r.stockMinimo : r.requerido) + '</td>' +
+                    '<td>' + fmtNum(r.disponible) + '</td>' +
+                    '<td>' + fmtNum(r.diferencia) + '</td>' +
+                    '<td>' + escapeHtml(r.unidad || '—') + '</td>' +
+                    '<td class="cj-cell-catalogo">' + escapeHtml(r.productosCatalogo || '—') + '</td>' +
+                    '</tr>';
+            }).join('');
+        }
+
+        function renderChartCompras(rows) {
+            var canvas = document.getElementById('cj-chart-canvas');
+            var note = document.getElementById('cj-chart-note');
+            if (!canvas || typeof Chart === 'undefined') {
+                if (note) note.textContent = 'No se pudo cargar la librería del gráfico.';
+                return;
+            }
+            if (cjDashboardState.chart) {
+                cjDashboardState.chart.destroy();
+                cjDashboardState.chart = null;
+            }
+            var maxBars = 18;
+            var slice = rows.slice(0, maxBars);
+            if (rows.length > maxBars && note) {
+                note.textContent = 'Mostrando ' + maxBars + ' insumos. Cambie la categoría o revise la tabla para el listado completo.';
+            } else if (note && rows.length) {
+                note.textContent = 'Requerido (azul) y disponible (verde azulado) por material.';
+            }
+
+            var ctx = canvas.getContext('2d');
+            if (!slice.length) {
+                if (note) note.textContent = 'No hay insumos en esta categoría para graficar.';
+                return;
+            }
+
+            var labels = slice.map(function (r) {
+                var n = r.insumo || r.codigo || '';
+                return n.length > 14 ? n.slice(0, 13) + '…' : n;
+            });
+            var req = slice.map(function (r) {
+                var v = r.requerido != null ? Number(r.requerido) : (r.stockMinimo != null ? Number(r.stockMinimo) : 0);
+                return Number.isNaN(v) ? 0 : v;
+            });
+            var disp = slice.map(function (r) {
+                var v = r.disponible != null ? Number(r.disponible) : 0;
+                return Number.isNaN(v) ? 0 : v;
+            });
+
+            var blue = 'rgba(37, 99, 235, 0.88)';
+            var blueBorder = 'rgb(37, 99, 235)';
+            var teal = 'rgba(13, 148, 136, 0.88)';
+            var tealBorder = 'rgb(13, 148, 136)';
+
+            cjDashboardState.chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Requerido',
+                            data: req,
+                            backgroundColor: blue,
+                            borderColor: blueBorder,
+                            borderWidth: 1,
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Disponible',
+                            data: disp,
+                            backgroundColor: teal,
+                            borderColor: tealBorder,
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { color: '#333', font: { size: 12, weight: '600' } }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#444', maxRotation: 45, minRotation: 0, font: { size: 10 } },
+                            grid: { display: false },
+                            border: { color: '#ccc' }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#444' },
+                            grid: { color: 'rgba(0, 0, 0, 0.08)' },
+                            border: { color: '#ccc' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function actualizarVistaAnalisis() {
+            var sel = document.getElementById('cj-chart-categoria');
+            var cod = sel ? sel.value : '';
+            var rowsChart = filasFiltradasPorCategoria(cod);
+            renderChartCompras(rowsChart);
+            renderTablaAnalisis(cjDashboardState.filas || []);
+        }
+
+        function llenarSelectCategorias(cats) {
+            var sel = document.getElementById('cj-chart-categoria');
+            if (!sel) return;
+            var v = sel.value;
+            sel.innerHTML = '<option value="">Todas las categorías</option>';
+            (cats || []).forEach(function (c) {
+                var o = document.createElement('option');
+                o.value = c.codigo || '';
+                o.textContent = c.nombre || c.codigo || '';
+                sel.appendChild(o);
+            });
+            if (v) sel.value = v;
+        }
+
+        function aplicarKpisDashboard(dash) {
+            var pAct = dash.pedidosActivos;
+            var pAlta = dash.pedidosAltaPrioridad;
+            document.getElementById('cj-kpi-pedidos').textContent = pAct != null ? String(pAct) : '—';
+            if (pAct != null && pAlta != null) {
+                document.getElementById('cj-kpi-pedidos-sub').textContent = String(pAlta) + ' de alta prioridad';
+            } else if (pAct != null) {
+                document.getElementById('cj-kpi-pedidos-sub').textContent = 'Sin desglose de prioridad';
+            } else {
+                document.getElementById('cj-kpi-pedidos-sub').textContent = 'Integración de pedidos pendiente';
+            }
+
+            var totalIns = dash.totalInsumos;
+            var conStock = dash.insumosConStockPositivo;
+            document.getElementById('cj-kpi-insumos-req').textContent = totalIns != null ? String(totalIns) : '—';
+            if (conStock != null && totalIns != null) {
+                document.getElementById('cj-kpi-insumos-req-sub').textContent = String(conStock) + ' con stock disponible';
+            } else {
+                document.getElementById('cj-kpi-insumos-req-sub').textContent = 'Referencias en catálogo de insumos';
+            }
+
+            var fal = dash.faltantes;
+            document.getElementById('cj-kpi-faltantes').textContent = fal != null ? String(fal) : '—';
+            var cop = fmtMoneyCOP(dash.faltantesEstimadoCOP);
+            document.getElementById('cj-kpi-faltantes-sub').textContent = cop ? cop + ' estimado' : 'Bajo stock mínimo (sin estimación COP)';
+
+            var uni = dash.insumosDisponibles;
+            document.getElementById('cj-kpi-unidades').textContent = uni != null ? fmtNum(uni) : '—';
+            document.getElementById('cj-kpi-unidades-sub').textContent = 'Suma de stock disponible en inventario';
+        }
+
+        async function cargarDashboardCompras() {
+            var note = document.getElementById('cj-chart-note');
+
+            function vaciarKpis() {
+                document.getElementById('cj-kpi-pedidos').textContent = '—';
+                document.getElementById('cj-kpi-pedidos-sub').textContent = '—';
+                document.getElementById('cj-kpi-insumos-req').textContent = '—';
+                document.getElementById('cj-kpi-insumos-req-sub').textContent = '—';
+                document.getElementById('cj-kpi-faltantes').textContent = '—';
+                document.getElementById('cj-kpi-faltantes-sub').textContent = '—';
+                document.getElementById('cj-kpi-unidades').textContent = '—';
+                document.getElementById('cj-kpi-unidades-sub').textContent = '—';
+            }
+
+            try {
+                var resDash = await fetch('/api/compras/dashboard', { credentials: 'include' });
+                var resCat = await fetch('/api/compras/categorias-insumo', { credentials: 'include' });
+
+                if (!resDash.ok || !resCat.ok) {
+                    vaciarKpis();
+                    cjDashboardState.filas = [];
+                    llenarSelectCategorias([]);
+                    if (note) note.textContent = 'No hay conexión con /api/compras. Inicie sesión con un rol autorizado.';
+                    renderChartCompras([]);
+                    renderTablaAnalisis([]);
+                    return;
+                }
+
+                var dash = await resDash.json();
+                var categorias = await resCat.json();
+                var filas = Array.isArray(dash.analisisInsumos) ? dash.analisisInsumos : [];
+                var cats = Array.isArray(categorias) ? categorias : [];
+
+                cjDashboardState.filas = filas;
+                cjDashboardState.categorias = cats;
+
+                aplicarKpisDashboard(dash);
+                llenarSelectCategorias(cats);
+                actualizarVistaAnalisis();
+            } catch (e) {
+                vaciarKpis();
+                if (note) note.textContent = 'Error al cargar. Intente de nuevo más tarde.';
+                cjDashboardState.filas = [];
+                renderChartCompras([]);
+                renderTablaAnalisis([]);
+            }
+        }
+
+        (function () {
+            var selCat = document.getElementById('cj-chart-categoria');
+            if (selCat) selCat.addEventListener('change', actualizarVistaAnalisis);
+        })();
+
         (async () => {
             const result = await authApi.getMe();
             if (!result.ok) {
@@ -37,12 +426,12 @@
                 return;
             }
             const rol = (result.usuario?.rol || '').toUpperCase();
-            if (rol !== 'JEFE DE COMPRAS') {
+            if (!esRolPanelCompras(rol)) {
                 window.location.href = '/';
                 return;
             }
             document.getElementById('user-name').textContent = result.usuario?.nombre || result.usuario?.usuario;
-            document.getElementById('user-rol').textContent = result.usuario?.rol || 'JEFE DE COMPRAS';
+            document.getElementById('user-rol').textContent = result.usuario?.rol || 'Jefe de Compras';
 
             const welcomeMsg = document.getElementById('welcome-toast');
             if (new URLSearchParams(window.location.search).get('welcome') === '1') {
@@ -50,13 +439,27 @@
                 window.history.replaceState({}, '', '/compras.html');
                 setTimeout(() => welcomeMsg?.classList.remove('visible'), 3000);
             }
+
+            await cargarDashboardCompras();
         })();
 
         document.getElementById('btn-logout').addEventListener('click', async () => {
-            const confirmar = window.confirm('¿Desea cerrar sesión?');
-            if (!confirmar) return;
+            if (!window.confirm('¿Desea cerrar sesión?')) return;
             await authApi.logout();
             window.location.href = '/';
+        });
+
+        const sb = document.getElementById('compras-jefe-sidebar');
+        const tg = document.getElementById('compras-jefe-sidebar-toggle');
+        function toggleComprasSidebar() {
+            sb?.classList.toggle('open');
+            var open = sb?.classList.contains('open');
+            tg?.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+        }
+        if (tg && sb) tg.addEventListener('click', toggleComprasSidebar);
+
+        document.querySelectorAll('#compras-jefe-sidebar .admin-nav a[href^="#"]').forEach((a) => {
+            a.addEventListener('click', () => sb?.classList.remove('open'));
         });
     </script>
     <link rel="stylesheet" href="/css/chat.css">

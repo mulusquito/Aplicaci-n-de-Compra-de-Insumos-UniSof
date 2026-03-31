@@ -873,10 +873,11 @@ button.panel-btn:hover {
     display: flex;
     min-height: 100vh;
     background: #1a1a1a;
+    --admin-sidebar-w: 288px;
 }
 .admin-sidebar {
-    width: 260px;
-    min-width: 260px;
+    width: var(--admin-sidebar-w);
+    min-width: var(--admin-sidebar-w);
     background: #111;
     border-right: 1px solid #222;
     display: flex;
@@ -910,10 +911,19 @@ button.panel-btn:hover {
     justify-content: center;
     font-size: 18px;
 }
+/* Módulo jefe de compras (compras + inventario): solo texto UNISOF, misma cabecera en ambas pantallas */
+.admin-logo--sin-icono {
+    gap: 0;
+}
+.admin-nav--compras-modulos .admin-nav-item {
+    min-height: 46px;
+    box-sizing: border-box;
+}
 .admin-nav {
     flex: 1;
     padding: 16px 12px;
     overflow-y: auto;
+    scrollbar-gutter: stable;
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -926,8 +936,17 @@ button.panel-btn:hover {
     border-radius: 10px;
     color: #ccc;
     text-decoration: none;
-    font-size: 14px;
+    font-size: 13px;
+    line-height: 1.35;
     transition: background 0.2s, color 0.2s;
+}
+.admin-nav-item-label {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
 }
 .admin-nav-item:hover:not(.admin-nav-item--disabled) {
     background: rgba(255,255,255,0.06);
@@ -947,12 +966,18 @@ button.panel-btn:hover {
     flex-shrink: 0;
 }
 .admin-nav-text {
-    flex: 1;
     font-weight: 500;
 }
+/* Módulo compras (SVG + texto sin .admin-nav-item-label) */
+.admin-nav-item > .admin-nav-text {
+    flex: 1;
+    min-width: 0;
+}
 .admin-nav-hint {
-    font-size: 11px;
+    font-size: 10px;
     color: #888;
+    line-height: 1.25;
+    white-space: nowrap;
 }
 .admin-sidebar-footer {
     padding: 16px 20px;
@@ -987,19 +1012,29 @@ button.panel-btn:hover {
     color: #f5a623;
 }
 .admin-btn-logout {
+    width: 100%;
+    box-sizing: border-box;
     padding: 10px 14px;
     border-radius: 8px;
-    border: 1px solid #333;
+    border: 1px solid rgba(245, 166, 35, 0.55);
     background: transparent;
-    color: #ccc;
+    color: #fff;
     font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
     text-align: center;
-    transition: border-color 0.2s, color 0.2s;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
 }
 .admin-btn-logout:hover {
     border-color: #f5a623;
-    color: #f5a623;
+    color: #fff;
+    background: rgba(245, 166, 35, 0.12);
+}
+.admin-nav-item > svg {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    color: currentColor;
 }
 .admin-main-wrap {
     flex: 1;
@@ -1013,7 +1048,7 @@ button.panel-btn:hover {
 .admin-topbar {
     position: fixed;
     top: 0;
-    left: 260px;
+    left: var(--admin-sidebar-w, 288px);
     right: 0;
     z-index: 100;
     padding: 20px 24px;
@@ -1058,6 +1093,756 @@ button.panel-btn:hover {
     overflow-y: auto;
     margin-top: 64px;
 }
+
+/* ========== Módulo Compras / Inventario de insumos ==========
+   El modal debe ser position:fixed + z-index alto. Si no, en .panel-admin-body (flex)
+   el overlay queda como tercera columna y Nova/accesibilidad tapan el formulario. */
+.inventario-modal-overlay {
+    position: fixed !important;
+    inset: 0;
+    z-index: 10200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    background: rgba(0, 0, 0, 0.82);
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+.inventario-modal-overlay.hidden {
+    display: none !important;
+}
+.inventario-modal-box {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 14px;
+    padding: 24px 22px;
+    width: 100%;
+    max-width: 560px;
+    max-height: min(90vh, 880px);
+    overflow-y: auto;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.65);
+    position: relative;
+    margin: auto;
+}
+.inventario-modal-box h3 {
+    margin: 0 0 20px 0;
+    color: #f5a623;
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+.inventario-modal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 16px;
+}
+.inventario-modal-grid .form-group {
+    margin-bottom: 0;
+}
+.inventario-modal-grid .form-group label {
+    display: block;
+    margin-bottom: 6px;
+    color: #aaa;
+    font-size: 13px;
+}
+.inventario-form-full {
+    grid-column: 1 / -1;
+}
+.inventario-modal-grid input,
+.inventario-modal-grid select,
+.inventario-modal-grid textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #444;
+    background: #222;
+    color: #fff;
+    font-size: 14px;
+}
+.inventario-modal-grid textarea {
+    min-height: 64px;
+    resize: vertical;
+}
+.inventario-modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid #333;
+    flex-wrap: wrap;
+}
+.inventario-modal-btn {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 26px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: Arial, Helvetica, sans-serif;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+.inventario-modal-btn--secondary {
+    background: transparent;
+    color: #eee;
+    border: 1px solid rgba(255, 255, 255, 0.42);
+}
+.inventario-modal-btn--secondary:hover {
+    border-color: rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+}
+.inventario-modal-btn--primary {
+    background: transparent;
+    border: 1px solid #f5a623;
+    color: #f5a623;
+}
+.inventario-modal-btn--primary:hover {
+    background: rgba(245, 166, 35, 0.15);
+    border-color: #f5a623;
+    color: #ffc266;
+}
+.inventario-input-readonly {
+    opacity: 0.88;
+    cursor: not-allowed;
+}
+.compras-modulos-label {
+    padding: 8px 20px 4px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #888;
+    margin: 0;
+}
+.compras-topbar-titles {
+    flex: 1;
+    min-width: 0;
+}
+.compras-topbar-subtitle {
+    margin: 6px 0 0 0;
+    font-size: 13px;
+    color: #888;
+    line-height: 1.45;
+}
+.admin-topbar--compras-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+}
+
+/* Inventario insumos: ctx=admin = solo panel administrador (sin mezclar UI de jefe de compras) */
+.inv-logo-admin {
+    display: none;
+}
+.inv-logo-compras {
+    display: flex;
+}
+html.inventario-admin-entry .inv-logo-admin {
+    display: flex;
+}
+html.inventario-admin-entry .inv-logo-compras {
+    display: none !important;
+}
+.admin-nav.inventario-admin-nav {
+    display: none;
+    flex-direction: column;
+}
+html.inventario-admin-entry .admin-nav.inventario-admin-nav {
+    display: flex;
+}
+html.inventario-admin-entry #compras-nav {
+    display: none !important;
+}
+html.inventario-admin-entry #inventario-sidebar-label {
+    display: none !important;
+}
+html.inventario-admin-entry #inventario-topbar.admin-topbar--compras-head {
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+html.inventario-admin-entry .compras-topbar-subtitle {
+    display: none !important;
+}
+
+.inventario-panel-crud .inventario-cat-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-end;
+    margin-bottom: 20px;
+}
+.inventario-panel-crud .inventario-cat-group {
+    flex: 1 1 220px;
+    max-width: 360px;
+}
+.inventario-panel-crud .inventario-cat-row .form-group label {
+    font-size: 14px;
+    color: #ccc;
+    margin-bottom: 8px;
+    display: block;
+}
+.inventario-panel-crud .inventario-cat-row .form-group select {
+    width: 100%;
+    min-width: min(240px, 100%);
+    box-sizing: border-box;
+    min-height: 44px;
+    height: 44px;
+    padding: 0 14px;
+    border: 1px solid #333;
+    border-radius: 8px;
+    background: #1a1a1a;
+    color: #eee;
+    font-size: 14px;
+    font-family: Arial, Helvetica, sans-serif;
+    cursor: pointer;
+}
+.inventario-panel-crud .inventario-cat-row .form-group select:focus {
+    outline: none;
+    border-color: #f5a623;
+}
+.inventario-cat-actions {
+    display: flex;
+    align-items: flex-end;
+}
+/* Inventario: botones tipo píldora, fondo transparente, borde fino (estilo personal / captura UNISOF) */
+.inventario-toolbar-btn {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    height: 44px;
+    padding: 0 26px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: Arial, Helvetica, sans-serif;
+    line-height: 1.2;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.2s, background 0.2s, color 0.2s;
+    background: transparent;
+}
+.inventario-toolbar-btn--secondary {
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    color: #eee;
+}
+.inventario-toolbar-btn--secondary:hover {
+    border-color: rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+}
+.inventario-toolbar-btn--primary {
+    border: 1px solid #f5a623;
+    color: #f5a623;
+}
+.inventario-toolbar-btn--primary:hover {
+    background: rgba(245, 166, 35, 0.12);
+    border-color: #f5a623;
+    color: #ffc266;
+}
+.inventario-search-bar {
+    margin-bottom: 20px;
+}
+.inventario-panel-crud .inventario-search-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 10px;
+}
+/* Solo bajo la tabla: botones compactos tipo panel Personal (la toolbar superior no se toca) */
+.inventario-panel-crud .usuarios-actions-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    width: auto;
+    max-width: 100%;
+    flex-shrink: 0;
+}
+.inventario-panel-crud .usuarios-actions-buttons .btn-usuario-editar,
+.inventario-panel-crud .usuarios-actions-buttons .btn-usuario-eliminar,
+.inventario-panel-crud .usuarios-actions-buttons .btn-usuario-limpiar {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    min-height: 0;
+    height: auto;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+    white-space: nowrap;
+    line-height: 1.25;
+    background: transparent;
+}
+.inventario-panel-crud .usuarios-actions-buttons .btn-usuario-editar,
+.inventario-panel-crud .usuarios-actions-buttons .btn-usuario-limpiar {
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    color: #eee;
+}
+.inventario-panel-crud .usuarios-actions-buttons .btn-usuario-editar:hover {
+    border-color: #f5a623;
+    color: #f5a623;
+    background: rgba(245, 166, 35, 0.08);
+}
+.inventario-panel-crud .usuarios-actions-buttons .btn-usuario-eliminar {
+    border: 1px solid rgba(255, 130, 130, 0.75);
+    color: #f8a8a8;
+}
+.inventario-panel-crud .usuarios-actions-buttons .btn-usuario-eliminar:hover {
+    background: rgba(90, 30, 30, 0.45);
+    border-color: #ff9090;
+    color: #ffd0d0;
+}
+.inventario-panel-crud .usuarios-actions-buttons .btn-usuario-limpiar:hover {
+    border-color: rgba(255, 255, 255, 0.65);
+    color: #fff;
+    background: rgba(255, 255, 255, 0.06);
+}
+@media (max-width: 640px) {
+    .inventario-panel-crud .inventario-actions-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    .inventario-panel-crud .usuarios-actions-buttons {
+        justify-content: flex-start;
+    }
+}
+.inventario-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 640px) {
+    .inventario-modal-grid {
+        grid-template-columns: 1fr;
+    }
+    .inventario-modal-overlay {
+        padding: 12px 10px;
+        align-items: flex-start;
+    }
+}
+
+/* Con el modal abierto, ocultar Nova y accesibilidad para que no tapen Guardar/Cancelar */
+body.inventario-modal-open .chat-widget,
+body.inventario-modal-open .a11y-widget-toggle,
+body.inventario-modal-open .a11y-widget-panel {
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+/* ========== Dashboard Jefe de compras (misma línea visual que panel admin UNISOF) ========== */
+.compras-jefe-body {
+    --admin-sidebar-w: 288px;
+    --cj-amber: #f5a623;
+    --cj-ink: #0d0d0d;
+    --cj-navy: #1a1f2b;
+    --cj-sidebar: #111;
+    --cj-blue: #2563eb;
+    --cj-teal: #0d9488;
+    --cj-muted: #888;
+    margin: 0;
+    min-height: 100vh;
+    background: #1a1a1a;
+    color: #eee;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.compras-jefe-body .welcome-toast {
+    z-index: 20000;
+}
+/* Sidebar de compras: mismas clases que panel admin (.admin-sidebar, .admin-logo, .admin-btn-logout) */
+.compras-jefe-body .admin-sidebar {
+    z-index: 300;
+    box-shadow: 4px 0 28px rgba(0, 0, 0, 0.25);
+}
+.compras-jefe-main {
+    margin-left: var(--admin-sidebar-w, 288px);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+.compras-jefe-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    margin: 0;
+    padding: 0;
+    min-height: 8px;
+    background: #111;
+    border-bottom: 2px solid #f5a623;
+    box-shadow: none;
+}
+.compras-jefe-content {
+    flex: 1;
+    padding: 26px 28px 48px;
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+.compras-jefe-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+}
+.compras-jefe-kpi {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    background: #111;
+    border-radius: 12px;
+    padding: 18px 16px 18px 18px;
+    border: 1px solid #222;
+    box-shadow: none;
+    overflow: hidden;
+}
+.compras-jefe-kpi:hover {
+    border-color: #333;
+}
+.compras-jefe-kpi-text {
+    min-width: 0;
+    flex: 1;
+}
+.compras-jefe-kpi::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--cj-amber);
+}
+.compras-jefe-kpi--blue::before {
+    background: var(--cj-blue);
+}
+.compras-jefe-kpi--teal::before {
+    background: var(--cj-teal);
+}
+.compras-jefe-kpi--amber::before {
+    background: var(--cj-amber);
+}
+.compras-jefe-kpi--navy::before {
+    background: var(--cj-navy);
+}
+.compras-jefe-kpi-iconwrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.compras-jefe-kpi-iconwrap--blue {
+    background: rgba(37, 99, 235, 0.12);
+    color: var(--cj-blue);
+}
+.compras-jefe-kpi-iconwrap--teal {
+    background: rgba(13, 148, 136, 0.12);
+    color: var(--cj-teal);
+}
+.compras-jefe-kpi-iconwrap--amber {
+    background: rgba(245, 166, 35, 0.18);
+    color: #c77d00;
+}
+.compras-jefe-kpi-iconwrap--navy {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ccc;
+}
+.compras-jefe-kpi-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #888;
+    margin: 0 0 10px;
+}
+.compras-jefe-kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+    line-height: 1.1;
+}
+.compras-jefe-kpi-value em {
+    font-style: normal;
+    color: var(--cj-amber);
+}
+.compras-jefe-kpi-desc {
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: #666;
+}
+.compras-jefe-section {
+    margin-bottom: 32px;
+}
+.compras-jefe-section--accent {
+    padding: 22px 24px 24px;
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid rgba(26, 29, 38, 0.08);
+    box-shadow: 0 4px 20px rgba(26, 31, 43, 0.05);
+    border-left: 4px solid var(--cj-amber);
+}
+.compras-jefe-section--chart {
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+.compras-jefe-section-title {
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: #eee;
+    margin: 0 0 8px;
+}
+.compras-jefe-section-desc {
+    font-size: 14px;
+    color: #888;
+    margin: 0 0 18px;
+    line-height: 1.55;
+}
+.compras-jefe-section-desc strong {
+    color: #fff;
+}
+.compras-jefe-chart-card {
+    background: #111;
+    border-radius: 12px;
+    border: 1px solid #222;
+    box-shadow: none;
+    overflow: hidden;
+}
+.compras-jefe-chart-card::before {
+    content: "";
+    display: block;
+    height: 3px;
+    background: var(--cj-amber);
+}
+.compras-jefe-chart-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 16px;
+    padding: 18px 22px 0;
+    margin-bottom: 12px;
+}
+.compras-jefe-chart-toolbar .form-group {
+    margin: 0;
+}
+.compras-jefe-chart-toolbar label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 8px;
+}
+.compras-jefe-chart-toolbar select {
+    min-width: 240px;
+    padding: 11px 14px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: #0d0d0d;
+    font-size: 14px;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #eee;
+}
+.compras-jefe-chart-toolbar select:focus {
+    outline: none;
+    border-color: var(--cj-amber);
+    box-shadow: 0 0 0 2px rgba(245, 166, 35, 0.2);
+}
+.compras-jefe-chartjs-box {
+    position: relative;
+    width: calc(100% - 32px);
+    height: min(420px, 55vh);
+    min-height: 280px;
+    margin: 0 16px 8px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 12px 8px 8px;
+    box-sizing: border-box;
+}
+.compras-jefe-chartjs-box canvas {
+    background: #fff;
+    border-radius: 6px;
+}
+.compras-jefe-chart-note {
+    font-size: 12px;
+    color: #888;
+    margin: 0;
+    padding: 0 22px 18px;
+}
+.compras-jefe-dash-table-wrap {
+    margin-top: 32px;
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 12px;
+    overflow-x: auto;
+    box-shadow: none;
+}
+.compras-jefe-dash-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.compras-jefe-dash-table th,
+.compras-jefe-dash-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid #2a2a2a;
+    vertical-align: top;
+    color: #e8e8e8;
+}
+.compras-jefe-dash-table th {
+    background: #161616;
+    font-weight: 600;
+    color: #f5a623;
+    white-space: nowrap;
+}
+.compras-jefe-dash-table tbody tr:hover {
+    background: rgba(245, 166, 35, 0.08);
+}
+.compras-jefe-dash-table .cj-cell-catalogo {
+    max-width: 220px;
+    font-size: 12px;
+    color: #aaa;
+    line-height: 1.35;
+}
+.compras-jefe-links {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.compras-jefe-link-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #fff 0%, #fafbfc 100%);
+    border: 1px solid rgba(26, 29, 38, 0.1);
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--cj-navy);
+    font-weight: 600;
+    font-size: 14px;
+    box-shadow: 0 2px 14px rgba(13, 13, 13, 0.05);
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+.compras-jefe-link-card:hover {
+    border-color: var(--cj-amber);
+    box-shadow: 0 6px 22px rgba(245, 166, 35, 0.18);
+    transform: translateY(-1px);
+}
+.compras-jefe-link-card--secondary {
+    background: #fff;
+    border-style: dashed;
+}
+.compras-jefe-link-card-inner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+.compras-jefe-link-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    background: var(--cj-amber);
+    color: #000;
+    font-weight: 800;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.compras-jefe-link-icon--outline {
+    background: transparent;
+    border: 2px solid var(--cj-amber);
+    color: var(--cj-amber);
+    font-size: 1.15rem;
+    line-height: 1;
+}
+.compras-jefe-link-text {
+    font-weight: 700;
+    color: var(--cj-navy);
+}
+.compras-jefe-link-arrow {
+    flex-shrink: 0;
+    color: var(--cj-amber);
+    font-size: 13px;
+    font-weight: 700;
+}
+.compras-jefe-sidebar-toggle {
+    display: none;
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 10050;
+    width: 46px;
+    height: 46px;
+    border-radius: 8px;
+    border: 2px solid var(--cj-amber);
+    background: var(--cj-ink);
+    color: var(--cj-amber);
+    font-size: 20px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+}
+@media (max-width: 1200px) {
+    .compras-jefe-kpis {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 1024px) {
+    .compras-jefe-kpis {
+        grid-template-columns: 1fr;
+    }
+}
+@media (max-width: 900px) {
+    .compras-jefe-body #compras-jefe-sidebar.admin-sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+    }
+    .compras-jefe-body #compras-jefe-sidebar.admin-sidebar.open {
+        transform: translateX(0);
+    }
+    .compras-jefe-main {
+        margin-left: 0;
+    }
+    .compras-jefe-sidebar-toggle {
+        display: flex;
+    }
+    .compras-jefe-topbar {
+        padding-left: 0;
+    }
+}
+
 .dashboard-toolbar {
     display: flex;
     flex-wrap: wrap;
@@ -1217,6 +2002,10 @@ button.panel-btn:hover {
     gap: 12px;
     align-items: stretch;
     margin-bottom: 16px;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 10px;
+    padding: 16px;
 }
 .dashboard-chart-y-axis {
     display: flex;
@@ -1224,11 +2013,11 @@ button.panel-btn:hover {
     justify-content: space-between;
     min-width: 28px;
     padding-right: 8px;
-    border-right: 1px solid #333;
+    border-right: 1px solid #ddd;
 }
 .dashboard-y-label {
     font-size: 11px;
-    color: #888;
+    color: #555;
 }
 .dashboard-chart-area {
     flex: 1;
@@ -1251,13 +2040,13 @@ button.panel-btn:hover {
 .dashboard-chart-bar-wrap::after {
     content: attr(data-mes);
     font-size: 11px;
-    color: #666;
+    color: #444;
     margin-top: 8px;
 }
 .dashboard-chart-bar-count {
     display: block;
     font-size: 10px;
-    color: #888;
+    color: #666;
     margin-top: 2px;
 }
 .dashboard-chart-bar {
@@ -1294,6 +2083,19 @@ button.panel-btn:hover {
 .dashboard-summary-value {
     font-size: 13px;
     color: #888;
+}
+a.dashboard-summary-item.compras-quick-link {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+a.dashboard-summary-item.compras-quick-link:hover {
+    border-color: #f5a623;
+    background: #161616;
+}
+a.dashboard-summary-item.compras-quick-link .dashboard-summary-value {
+    color: #f5a623;
 }
 .admin-sidebar-toggle {
     display: none;
@@ -2482,6 +3284,14 @@ button.panel-btn:hover {
         width: 100%;
         text-align: center;
     }
+    .inventario-panel-crud .inventario-search-actions .inventario-toolbar-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    .inventario-panel-crud .inventario-cat-actions .inventario-toolbar-btn {
+        width: 100%;
+        justify-content: center;
+    }
 }
 .usuarios-table-wrapper {
     border-radius: 10px;
@@ -2634,10 +3444,13 @@ button.panel-btn:hover {
 .a11y-widget-toggle {
     position: fixed !important;
     right: 16px;
-    top: 50%;
+    left: auto;
+    /* Centro vertical real del viewport (vh/dvh evita desfases con % en algunos layouts) */
+    top: 50vh;
+    top: 50dvh;
     bottom: auto;
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     border: none;
     background: transparent;
@@ -2647,25 +3460,21 @@ button.panel-btn:hover {
     justify-content: center;
     cursor: pointer;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-    z-index: 9999;
+    z-index: 10035;
     padding: 0;
-<<<<<<< Updated upstream
-    transform: translateZ(0) translateY(-50%);
-=======
     transform: translateY(-50%) translateZ(0);
->>>>>>> Stashed changes
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
 }
 .a11y-widget-toggle .a11y-toggle-icon {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #007AFF;
-    box-shadow: none;
+    background: transparent;
+    box-shadow: 0 4px 18px rgba(245, 166, 35, 0.35);
 }
 .a11y-widget-toggle .a11y-toggle-icon svg {
     display: block;
@@ -2684,12 +3493,13 @@ button.panel-btn:hover {
 
 .a11y-widget-panel {
     position: fixed !important;
-    right: 16px;
+    right: 72px;
     left: auto;
-    top: 50%;
+    top: 50vh;
+    top: 50dvh;
     bottom: auto;
     width: 300px;
-    max-width: calc(100% - 32px);
+    max-width: calc(100% - 96px);
     max-height: 85vh;
     overflow-y: auto;
     background: #111;
@@ -2699,8 +3509,8 @@ button.panel-btn:hover {
     box-shadow: 0 14px 40px rgba(0, 0, 0, 0.75);
     color: #f5f5f5;
     font-size: 13px;
-    z-index: 9998;
-    transform: translateZ(0) translateY(-50%);
+    z-index: 10034;
+    transform: translateY(-50%) translateZ(0);
     backface-visibility: hidden;
 }
 .a11y-widget-panel-header {
@@ -2922,6 +3732,8 @@ button.panel-btn:hover {
     .a11y-widget-toggle {
         position: fixed !important;
         right: 12px;
+        left: auto;
+        top: auto;
         bottom: 12px;
         width: 44px;
         height: 44px;
@@ -2932,6 +3744,7 @@ button.panel-btn:hover {
         position: fixed !important;
         right: 10px;
         left: auto;
+        top: auto;
         bottom: 64px;
         max-width: calc(100% - 20px);
         transform: translateZ(0);
@@ -3069,4 +3882,155 @@ body[data-a11y-theme="light"] .a11y-widget-panel .a11y-widget-select {
     background: #2a2a2a !important;
     color: #f0f0f0 !important;
     border-color: #444 !important;
+}
+
+/* Modal información corporativa (clic en logo UNISOF) */
+body.unisof-brand-modal-open {
+    overflow: hidden;
+}
+.unisof-brand-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    background: rgba(0, 0, 0, 0.72);
+    box-sizing: border-box;
+}
+.unisof-brand-overlay.is-hidden {
+    display: none !important;
+}
+.unisof-brand-dialog {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    max-height: min(88vh, 640px);
+    overflow-y: auto;
+    background: #141414;
+    border: 1px solid #333;
+    border-radius: 14px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+    color: #e8e8e8;
+}
+.unisof-brand-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-size: 26px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.unisof-brand-close:hover {
+    background: rgba(245, 166, 35, 0.25);
+    color: #f5a623;
+}
+.unisof-brand-dialog-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 22px 48px 16px 22px;
+    border-bottom: 1px solid #2a2a2a;
+}
+.unisof-brand-dialog-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #f5a623;
+    color: #111;
+    font-weight: 800;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.unisof-brand-dialog-header h2 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #f5a623;
+    letter-spacing: 0.04em;
+}
+.unisof-brand-dialog-body {
+    padding: 14px 22px 8px;
+}
+.unisof-brand-dialog-hint {
+    margin: 0 0 14px 0;
+    font-size: 0.82rem;
+    color: #888;
+    line-height: 1.4;
+}
+/* Mismo patrón que .dropdown-catalogo del inicio (Ver Catálogo), ancho completo en el modal */
+.unisof-brand-dropdown-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.unisof-brand-dialog-body .dropdown-catalogo.unisof-brand-dd {
+    width: 100%;
+}
+.unisof-brand-dialog-body .dropdown-catalogo.unisof-brand-dd .btn-catalogo {
+    width: 100%;
+    justify-content: space-between;
+    box-sizing: border-box;
+    font-weight: 600;
+    font-size: 15px;
+}
+.unisof-brand-dialog-body .dropdown-catalogo-menu.unisof-brand-dd-menu {
+    position: static;
+    left: auto;
+    right: auto;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    margin-top: 8px;
+    z-index: auto;
+}
+.unisof-brand-dialog-body .dropdown-catalogo.open .dropdown-catalogo-menu.unisof-brand-dd-menu {
+    display: block;
+}
+.unisof-brand-dd-menu .unisof-brand-dd-text {
+    padding: 4px 0 0 0;
+}
+.unisof-brand-dd-menu .unisof-brand-dd-text p {
+    margin: 0;
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: #ccc;
+}
+.unisof-brand-dialog-footer {
+    padding: 14px 22px 20px;
+    border-top: 1px solid #2a2a2a;
+    text-align: center;
+}
+.unisof-brand-home-link {
+    display: inline-block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #f5a623;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s, color 0.2s;
+}
+.unisof-brand-home-link:hover {
+    border-bottom-color: #f5a623;
+    color: #ffc266;
+}
+@media (max-width: 480px) {
+    .unisof-brand-dialog-header {
+        padding-right: 44px;
+    }
+    .unisof-brand-dd-menu .unisof-brand-dd-text p {
+        font-size: 0.875rem;
+    }
 }

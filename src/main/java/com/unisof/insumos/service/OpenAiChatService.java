@@ -54,7 +54,7 @@ public class OpenAiChatService {
         if (!enabled) {
             log.info("Nova/OpenAI: desactivado (app.openai.enabled=false). Solo respuestas FAQ.");
         } else if (apiKey == null || apiKey.isBlank()) {
-            log.info("Nova/OpenAI: no hay clave (OPENAI_API_KEY o app.openai.api-key vacía). Solo FAQ hasta que reinicies con la variable definida.");
+            log.info("Nova/OpenAI: no hay clave. Define OPENAI_API_KEY en el entorno antes de arrancar, o app.openai.api-key en application.properties. Mientras tanto solo FAQ.");
         } else {
             log.info("Nova/OpenAI: listo — modelo={}, clave configurada (longitud {}).", model, apiKey.trim().length());
         }
@@ -136,7 +136,7 @@ public class OpenAiChatService {
                     + "ventas/compras con sesion.\n"
                     + "- Login con usuario y contrasena; luego 2FA con codigo de 6 digitos por correo "
                     + "(revisar spam; expira en unos minutos).\n"
-                    + "- Roles: Administrador, Vendedor, Jefe de ventas. Admin registra usuarios en Gestion de personal.\n"
+                    + "- Roles: Administrador, Vendedor, Jefe de compras. Admin registra usuarios en Gestion de personal.\n"
                     + "- Ordenes: modulo con listado y detalle Ver pedido.\n"
                     + "- Panel admin: dashboard, filtros por fechas, exportar PDF.\n"
                     + "- Sesion puede cerrarse por inactividad; puede haber aviso previo.\n"

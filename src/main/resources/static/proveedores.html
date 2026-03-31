@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Proveedores de insumos - UNISOF</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .proveedores-crud .usuarios-search-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        .proveedores-crud .usuarios-search-actions .btn-registro-cancelar,
+        .proveedores-crud .usuarios-search-actions .btn-registro-enviar {
+            min-width: 140px;
+            min-height: 44px;
+            box-sizing: border-box;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .proveedores-crud .usuarios-actions-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        .proveedor-modal-actions .btn-registro-cancelar,
+        .proveedor-modal-actions .btn-registro-enviar {
+            min-height: 44px;
+            min-width: 120px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* Mismo criterio visual que la barra de búsqueda (desplegable oscuro + borde ámbar al foco) */
+        .proveedor-modal-box .form-group select.proveedor-categoria-insumo-select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px 16px;
+            min-height: 44px;
+            height: 44px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: #1a1a1a;
+            color: #eee;
+            font-size: 14px;
+            cursor: pointer;
+            appearance: auto;
+        }
+        .proveedor-modal-box .form-group select.proveedor-categoria-insumo-select:focus {
+            outline: none;
+            border-color: #f5a623;
+        }
+        .proveedor-cat-hint { color: #888; font-size: 12px; margin: 0 0 8px; line-height: 1.4; }
+        .badge-activo { color: #6fcf97; font-weight: 600; }
+        .badge-inactivo { color: #888; }
+        .proveedor-search-field-nit[hidden],
+        .proveedor-search-field-cat[hidden] { display: none !important; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
+        .modal-overlay.hidden { display: none !important; }
+        .proveedor-modal-box { background: #1a1a1a; border-radius: 12px; padding: 24px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; border: 1px solid #333; }
+        .proveedor-modal-box h3 { margin-bottom: 20px; color: #f5a623; }
+        .proveedor-modal-box .form-group { margin-bottom: 14px; }
+        .proveedor-modal-box .form-group label { display: block; margin-bottom: 6px; color: #aaa; font-size: 13px; }
+        .proveedor-modal-box .form-group input,
+        .proveedor-modal-box .form-group textarea,
+        .proveedor-modal-box .form-group select:not(.proveedor-categoria-insumo-select) { width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid #444; background: #222; color: white; box-sizing: border-box; font-size: 14px; }
+        .proveedor-modal-box .form-group textarea { min-height: 72px; resize: vertical; }
+        .proveedor-modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; flex-wrap: wrap; }
+    </style>
+</head>
+<body class="panel-admin-body">
+
+<div class="welcome-toast" id="welcome-toast">Proveedores UNISOF</div>
+
+<aside class="admin-sidebar" id="admin-sidebar">
+    <div class="admin-sidebar-header">
+        <a href="/" class="admin-logo">
+            <span class="admin-logo-icon">U</span>
+            <span class="admin-logo-text">UNISOF</span>
+        </a>
+    </div>
+    <nav class="admin-nav">
+        <a href="/panel-admin.html" class="admin-nav-item" data-section="dashboard">
+            <span class="admin-nav-icon">📊</span>
+            <span class="admin-nav-item-label">
+                <span class="admin-nav-text" data-i18n-key="nav.dashboard">Dashboard</span>
+            </span>
+        </a>
+        <a href="/personal.html" class="admin-nav-item" data-section="personal">
+            <span class="admin-nav-icon">👤</span>
+            <span class="admin-nav-item-label">
+                <span class="admin-nav-text" data-i18n-key="nav.personal">Personal</span>
+            </span>
+        </a>
+        <a href="/ordenes.html" class="admin-nav-item" data-section="ordenes">
+            <span class="admin-nav-icon">📋</span>
+            <span class="admin-nav-item-label">
+                <span class="admin-nav-text" data-i18n-key="nav.orders">Consultar órdenes de compra</span>
+            </span>
+        </a>
+        <a href="#compras-insumos" class="admin-nav-item admin-nav-item--disabled" data-section="compras">
+            <span class="admin-nav-icon">📦</span>
+            <span class="admin-nav-item-label">
+                <span class="admin-nav-text" data-i18n-key="nav.purchases">Consultar compras insumos</span>
+                <span class="admin-nav-hint">(Próximamente)</span>
+            </span>
+        </a>
+        <a href="/inventario-insumos.html?ctx=admin" class="admin-nav-item" data-section="inventario">
+            <span class="admin-nav-icon">📁</span>
+            <span class="admin-nav-item-label">
+                <span class="admin-nav-text" data-i18n-key="nav.inventory">Consultar inventario</span>
+            </span>
+        </a>
+        <a href="/proveedores.html" class="admin-nav-item active" data-section="proveedores">
+            <span class="admin-nav-icon">🏭</span>
+            <span class="admin-nav-item-label">
+                <span class="admin-nav-text" data-i18n-key="nav.suppliers">Proveedores</span>
+            </span>
+        </a>
+    </nav>
+    <div class="admin-sidebar-footer">
+        <div class="admin-user-info" id="admin-sidebar-user">
+            <span class="admin-user-name" id="user-name">—</span>
+            <span class="admin-user-rol" id="user-rol">ADMINISTRADOR</span>
+        </div>
+        <button type="button" class="admin-btn-logout" id="btn-logout" data-i18n-key="common.logout">Cerrar sesión</button>
+    </div>
+</aside>
+
+<div class="admin-main-wrap">
+    <header class="admin-topbar">
+        <h1 class="admin-topbar-title" data-i18n-key="title.suppliers">Proveedores de insumos</h1>
+    </header>
+
+    <main class="admin-dashboard">
+        <div class="panel-main proveedores-crud">
+            <h1 class="panel-title">Registro de proveedores</h1>
+            <p style="color:#888;margin-top:-12px;margin-bottom:20px;max-width:720px;">Gestione los proveedores de telas, accesorios y demás insumos que abastece UNISOF. Busque por categoría o NIT; use <strong>Registrar</strong> para dar de alta un proveedor.</p>
+
+            <div class="modal-registro-alert" id="proveedor-alert" role="alert" hidden></div>
+
+            <div class="modal-registro-form-wrap" id="proveedor-form-wrap">
+                    <div class="usuarios-search-bar">
+                        <div class="form-group">
+                            <label for="search-tipo">Tipo de búsqueda</label>
+                            <select id="search-tipo" aria-label="Tipo de búsqueda">
+                                <option value="categoria">Por categoría de insumo</option>
+                                <option value="nit">Por NIT o documento</option>
+                            </select>
+                        </div>
+                        <div class="form-group proveedor-search-field-cat" id="wrap-search-categoria">
+                            <label for="search-categoria">Categoría de insumo</label>
+                            <select id="search-categoria" aria-label="Categoría para filtrar">
+                                <option value="">Seleccione una categoría</option>
+                            </select>
+                        </div>
+                        <div class="form-group proveedor-search-field-nit" id="wrap-search-nit" hidden>
+                            <label for="search-nit">NIT o documento</label>
+                            <input type="text" id="search-nit" placeholder="Escriba el NIT o parte del documento" autocomplete="off">
+                        </div>
+                        <div class="usuarios-search-actions">
+                            <button type="button" class="btn-registro-enviar" id="btn-buscar-proveedores">Buscar</button>
+                            <button type="button" class="btn-registro-cancelar" id="btn-abrir-registrar">Registrar</button>
+                        </div>
+                    </div>
+
+                    <div class="usuarios-table-wrapper">
+                        <table class="usuarios-table">
+                            <thead>
+                            <tr>
+                                <th>Proveedor</th>
+                                <th>NIT / Doc.</th>
+                                <th>Categorías</th>
+                                <th>Contacto</th>
+                                <th>Correo</th>
+                                <th>Celular</th>
+                                <th>Estado</th>
+                            </tr>
+                            </thead>
+                            <tbody id="proveedores-tbody">
+                            <tr>
+                                <td colspan="7" class="usuarios-empty" id="proveedores-msg-inicial">Use «Buscar» con categoría o NIT para ver proveedores.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="usuarios-actions-bar">
+                        <span id="proveedor-seleccion-info">Ningún proveedor seleccionado.</span>
+                        <div class="usuarios-actions-buttons">
+                            <button type="button" class="btn-usuario-editar" id="btn-actualizar-proveedor" disabled>Actualizar proveedor</button>
+                            <button type="button" class="btn-usuario-eliminar" id="btn-eliminar-proveedor" disabled>Eliminar proveedor</button>
+                            <button type="button" class="btn-usuario-limpiar" id="btn-limpiar-busqueda">Limpiar campos</button>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<button type="button" class="admin-sidebar-toggle" id="admin-sidebar-toggle" aria-label="Abrir menú">☰</button>
+
+<div class="modal-overlay hidden" id="modal-proveedor" role="dialog" aria-modal="true" aria-labelledby="modal-proveedor-titulo">
+    <div class="proveedor-modal-box">
+        <h3 id="modal-proveedor-titulo">Registrar proveedor</h3>
+        <form id="form-proveedor">
+            <input type="hidden" id="form-id">
+            <div class="form-group">
+                <label for="form-nombre">Nombre o razón social *</label>
+                <input type="text" id="form-nombre" required maxlength="200" placeholder="Ej: Textiles del Valle S.A.S.">
+            </div>
+            <div class="form-group">
+                <label for="form-categoria-insumo">Categoría de insumo *</label>
+                <select id="form-categoria-insumo" class="proveedor-categoria-insumo-select" aria-label="Categoría de insumo">
+                    <option value="">Seleccione una categoría</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="form-nit">NIT o documento fiscal</label>
+                <input type="text" id="form-nit" maxlength="32" placeholder="Opcional; único si lo informa">
+            </div>
+            <div class="form-group">
+                <label for="form-contacto">Persona de contacto</label>
+                <input type="text" id="form-contacto" maxlength="120">
+            </div>
+            <div class="form-group">
+                <label for="form-telefono">Celular / teléfono</label>
+                <input type="text" id="form-telefono" maxlength="40">
+            </div>
+            <div class="form-group">
+                <label for="form-correo">Correo</label>
+                <input type="email" id="form-correo" maxlength="160" placeholder="proveedor@ejemplo.com">
+            </div>
+            <div class="form-group">
+                <label for="form-direccion">Dirección</label>
+                <input type="text" id="form-direccion" maxlength="300">
+            </div>
+            <div class="form-group">
+                <label for="form-obs">Observaciones</label>
+                <textarea id="form-obs" placeholder="Notas internas, condiciones comerciales…"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="form-activo">Estado</label>
+                <select id="form-activo">
+                    <option value="true">Activo</option>
+                    <option value="false">Inactivo</option>
+                </select>
+            </div>
+            <div class="proveedor-modal-actions">
+                <button type="button" class="btn-registro-cancelar" id="btn-cerrar-modal-proveedor">Cancelar</button>
+                <button type="submit" class="btn-registro-enviar" id="btn-proveedor-guardar">Registrar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="/js/auth.js"></script>
+<script src="/js/toast.js"></script>
+<script src="/js/accessibility.js"></script>
+<script src="/js/unisof-brand-info.js" defer></script>
+<link rel="stylesheet" href="/css/chat.css">
+<script src="/js/chat.js" defer></script>
+<script>
+(function () {
+    var MSJ_TABLA_INICIAL = 'Use «Buscar» con categoría o NIT para ver proveedores.';
+    var categoriasInsumo = [];
+    var editingProveedorId = null;
+    var selectedProveedorId = null;
+
+    (async function () {
+        var result = await authApi.getMe();
+        if (!result.ok) { window.location.href = '/login.html'; return; }
+        var rol = (result.usuario && result.usuario.rol || '').toUpperCase();
+        if (rol !== 'ADMINISTRADOR') { window.location.href = '/'; return; }
+        document.getElementById('user-name').textContent = result.usuario.nombre || result.usuario.usuario;
+        document.getElementById('user-rol').textContent = result.usuario.rol || 'ADMINISTRADOR';
+    })();
+
+    document.getElementById('btn-logout').addEventListener('click', async function () {
+        if (!window.confirm('¿Desea cerrar sesión?')) return;
+        await authApi.logout();
+        window.location.href = '/';
+    });
+
+    var sidebar = document.getElementById('admin-sidebar');
+    var toggle = document.getElementById('admin-sidebar-toggle');
+    if (toggle && sidebar) {
+        toggle.addEventListener('click', function () {
+            sidebar.classList.toggle('open');
+            toggle.setAttribute('aria-label', sidebar.classList.contains('open') ? 'Cerrar menú' : 'Abrir menú');
+        });
+    }
+
+    var alertEl = document.getElementById('proveedor-alert');
+    var modal = document.getElementById('modal-proveedor');
+    var form = document.getElementById('form-proveedor');
+    var tbody = document.getElementById('proveedores-tbody');
+    var btnGuardar = document.getElementById('btn-proveedor-guardar');
+    var modalTitulo = document.getElementById('modal-proveedor-titulo');
+    var searchTipo = document.getElementById('search-tipo');
+    var wrapCat = document.getElementById('wrap-search-categoria');
+    var wrapNit = document.getElementById('wrap-search-nit');
+    var searchCategoria = document.getElementById('search-categoria');
+    var searchNit = document.getElementById('search-nit');
+
+    function showAlert(msg, isError) {
+        alertEl.textContent = msg;
+        alertEl.className = 'modal-registro-alert ' + (isError ? 'error' : 'success');
+        alertEl.hidden = false;
+    }
+    function hideAlert() {
+        alertEl.hidden = true;
+        alertEl.textContent = '';
+    }
+
+    function cerrarModalProveedor() {
+        if (modal) modal.classList.add('hidden');
+        resetRegistrarForm();
+        editingProveedorId = null;
+        updateFormMode();
+    }
+
+    function abrirModalProveedor() {
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    function updateFormMode() {
+        if (!btnGuardar || !modalTitulo) return;
+        if (editingProveedorId == null) {
+            btnGuardar.textContent = 'Registrar';
+            modalTitulo.textContent = 'Registrar proveedor';
+        } else {
+            btnGuardar.textContent = 'Guardar cambios';
+            modalTitulo.textContent = 'Editar proveedor';
+        }
+    }
+
+    function resetRegistrarForm() {
+        form.reset();
+        document.getElementById('form-id').value = '';
+        document.getElementById('form-activo').value = 'true';
+        renderCategoriaSelect([]);
+        hideAlert();
+    }
+
+    function escapeHtml(s) {
+        if (s == null || s === '') return '';
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    function escapeAttr(s) {
+        return String(s == null ? '' : s).replace(/"/g, '&quot;');
+    }
+
+    function actualizarCamposBusqueda() {
+        var tipo = searchTipo ? searchTipo.value : 'categoria';
+        if (tipo === 'nit') {
+            wrapCat.hidden = true;
+            wrapNit.hidden = false;
+        } else {
+            wrapCat.hidden = false;
+            wrapNit.hidden = true;
+        }
+    }
+    if (searchTipo) {
+        searchTipo.addEventListener('change', actualizarCamposBusqueda);
+        actualizarCamposBusqueda();
+    }
+
+    async function cargarCategoriasInsumo() {
+        try {
+            var res = await fetch('/api/compras/categorias-insumo', { credentials: 'include' });
+            var data = await res.json().catch(function () { return null; });
+            if (!res.ok) {
+                Toast.error((data && data.mensaje) || 'No se pudieron cargar las categorías');
+                categoriasInsumo = [];
+                return;
+            }
+            categoriasInsumo = Array.isArray(data) ? data : [];
+            var prev = searchCategoria.value;
+            searchCategoria.innerHTML = '<option value="">Seleccione una categoría</option>';
+            categoriasInsumo.forEach(function (c) {
+                var opt = document.createElement('option');
+                opt.value = c.codigo;
+                opt.textContent = c.nombre || c.codigo;
+                searchCategoria.appendChild(opt);
+            });
+            if (prev && [].some.call(searchCategoria.options, function (o) { return o.value === prev; })) {
+                searchCategoria.value = prev;
+            }
+            renderCategoriaSelect([]);
+        } catch (e) {
+            categoriasInsumo = [];
+            Toast.error('Error al cargar categorías');
+        }
+    }
+
+    function renderCategoriaSelect(codigosSeleccionados) {
+        var sel = document.getElementById('form-categoria-insumo');
+        if (!sel) return;
+        sel.innerHTML = '<option value="">Seleccione una categoría</option>';
+        if (!categoriasInsumo.length) {
+            var optLoad = document.createElement('option');
+            optLoad.textContent = 'Cargando categorías…';
+            optLoad.disabled = true;
+            sel.appendChild(optLoad);
+            return;
+        }
+        var sorted = categoriasInsumo.slice().sort(function (a, b) {
+            var na = (a.nombre || a.codigo || '').toLowerCase();
+            var nb = (b.nombre || b.codigo || '').toLowerCase();
+            return na.localeCompare(nb, 'es');
+        });
+        sorted.forEach(function (c) {
+            var opt = document.createElement('option');
+            opt.value = c.codigo;
+            opt.textContent = c.nombre || c.codigo;
+            sel.appendChild(opt);
+        });
+        var pick = '';
+        if (codigosSeleccionados && codigosSeleccionados.length) {
+            pick = String(codigosSeleccionados[0]).trim();
+        }
+        if (pick && [].some.call(sel.options, function (o) { return o.value === pick; })) {
+            sel.value = pick;
+        } else {
+            sel.value = '';
+        }
+    }
+
+    function leerCategoriaCodigosDelFormulario() {
+        var sel = document.getElementById('form-categoria-insumo');
+        if (!sel || !sel.value || !String(sel.value).trim()) {
+            return [];
+        }
+        return [String(sel.value).trim()];
+    }
+
+    function actualizarSeleccion(idStr, fila) {
+        selectedProveedorId = idStr;
+        document.querySelectorAll('.usuarios-table tbody tr').forEach(function (tr) {
+            tr.classList.toggle('usuarios-row-selected', fila && tr === fila);
+        });
+        var info = document.getElementById('proveedor-seleccion-info');
+        var btnAct = document.getElementById('btn-actualizar-proveedor');
+        var btnEl = document.getElementById('btn-eliminar-proveedor');
+        if (idStr && fila) {
+            var nombre = fila.children[0] ? fila.children[0].textContent : '';
+            info.textContent = 'Seleccionado: ' + nombre;
+            btnAct.disabled = false;
+            btnEl.disabled = false;
+        } else {
+            info.textContent = 'Ningún proveedor seleccionado.';
+            btnAct.disabled = true;
+            btnEl.disabled = true;
+        }
+    }
+
+    function buildListUrl(esListarTodos) {
+        var params = [];
+        if (esListarTodos) return '/api/proveedores';
+        var tipo = searchTipo ? searchTipo.value : 'categoria';
+        if (tipo === 'categoria') {
+            var cod = (searchCategoria.value || '').trim();
+            if (!cod) return null;
+            params.push('categoriaCodigo=' + encodeURIComponent(cod));
+        } else {
+            var nit = (searchNit.value || '').trim();
+            if (!nit) return null;
+            params.push('nit=' + encodeURIComponent(nit));
+        }
+        return '/api/proveedores?' + params.join('&');
+    }
+
+    async function cargarProveedores(esListarTodos) {
+        try {
+            var url = buildListUrl(esListarTodos);
+            if (url === null) {
+                if (searchTipo && searchTipo.value === 'categoria') {
+                    Toast.error('Seleccione una categoría de insumo.');
+                } else {
+                    Toast.error('Escriba un NIT o documento para buscar.');
+                }
+                return;
+            }
+            var res = await fetch(url, { credentials: 'include' });
+            var data = await res.json().catch(function () { return null; });
+            if (!res.ok) {
+                tbody.innerHTML = '<tr><td colspan="7" class="usuarios-empty">Error al cargar proveedores.</td></tr>';
+                Toast.error((data && data.mensaje) || 'No se pudo cargar la lista');
+                return;
+            }
+            var rows = Array.isArray(data) ? data : [];
+            if (!rows.length) {
+                var esBusqueda = !esListarTodos;
+                var msg = esBusqueda ? 'No hay proveedores que coincidan con la búsqueda.' : 'No se encontraron proveedores.';
+                tbody.innerHTML = '<tr><td colspan="7" class="usuarios-empty' + (esBusqueda ? ' usuarios-empty--no-existe' : '') + '">' + msg + '</td></tr>';
+                actualizarSeleccion(null, null);
+                return;
+            }
+            tbody.innerHTML = rows.map(function (p) {
+                var est = p.activo ? '<span class="badge-activo">Activo</span>' : '<span class="badge-inactivo">Inactivo</span>';
+                var catCell = '—';
+                if (p.categorias && p.categorias.length) {
+                    catCell = p.categorias.map(function (c) { return escapeHtml(c.nombre != null && c.nombre !== '' ? c.nombre : c.codigo); }).join(', ');
+                }
+                return '<tr data-id="' + p.id + '">' +
+                    '<td>' + escapeHtml(p.nombre) + '</td>' +
+                    '<td>' + escapeHtml(p.nit || '—') + '</td>' +
+                    '<td style="max-width:200px;">' + catCell + '</td>' +
+                    '<td>' + escapeHtml(p.contactoNombre || '—') + '</td>' +
+                    '<td>' + escapeHtml(p.correo || '—') + '</td>' +
+                    '<td>' + escapeHtml(p.telefono || '—') + '</td>' +
+                    '<td>' + est + '</td>' +
+                    '</tr>';
+            }).join('');
+            actualizarSeleccion(null, null);
+        } catch (e) {
+            tbody.innerHTML = '<tr><td colspan="7" class="usuarios-empty">Error de conexión.</td></tr>';
+            Toast.error('Error de conexión');
+        }
+    }
+
+    if (tbody) {
+        tbody.addEventListener('click', function (e) {
+            var fila = e.target.closest('tr[data-id]');
+            if (fila) {
+                var id = fila.getAttribute('data-id');
+                if (selectedProveedorId === id) {
+                    actualizarSeleccion(null, null);
+                } else {
+                    actualizarSeleccion(id, fila);
+                }
+            } else {
+                actualizarSeleccion(null, null);
+            }
+        });
+    }
+
+    document.getElementById('btn-buscar-proveedores').addEventListener('click', function () {
+        hideAlert();
+        cargarProveedores(false);
+    });
+    document.getElementById('btn-limpiar-busqueda').addEventListener('click', function () {
+        hideAlert();
+        if (searchTipo) searchTipo.value = 'categoria';
+        actualizarCamposBusqueda();
+        searchCategoria.value = '';
+        searchNit.value = '';
+        tbody.innerHTML = '<tr><td colspan="7" class="usuarios-empty">' + MSJ_TABLA_INICIAL + '</td></tr>';
+        actualizarSeleccion(null, null);
+    });
+
+    document.getElementById('btn-abrir-registrar').addEventListener('click', function () {
+        hideAlert();
+        editingProveedorId = null;
+        resetRegistrarForm();
+        updateFormMode();
+        abrirModalProveedor();
+    });
+
+    document.getElementById('btn-cerrar-modal-proveedor').addEventListener('click', cerrarModalProveedor);
+    if (modal) {
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) cerrarModalProveedor();
+        });
+    }
+
+    document.getElementById('btn-actualizar-proveedor').addEventListener('click', async function () {
+        if (!selectedProveedorId) {
+            showAlert('Seleccione un proveedor en la tabla para actualizar.', true);
+            return;
+        }
+        try {
+            var res = await fetch('/api/proveedores/' + encodeURIComponent(selectedProveedorId), { credentials: 'include' });
+            if (!res.ok) {
+                Toast.error('No se pudo cargar el proveedor.');
+                return;
+            }
+            var p = await res.json();
+            editingProveedorId = p.id;
+            document.getElementById('form-id').value = p.id;
+            document.getElementById('form-nombre').value = p.nombre || '';
+            document.getElementById('form-nit').value = p.nit || '';
+            document.getElementById('form-contacto').value = p.contactoNombre || '';
+            document.getElementById('form-telefono').value = p.telefono || '';
+            document.getElementById('form-correo').value = p.correo || '';
+            document.getElementById('form-direccion').value = p.direccion || '';
+            document.getElementById('form-obs').value = p.observaciones || '';
+            document.getElementById('form-activo').value = p.activo ? 'true' : 'false';
+            renderCategoriaSelect((p.categorias || []).map(function (c) { return c.codigo; }));
+            hideAlert();
+            updateFormMode();
+            abrirModalProveedor();
+        } catch (e) {
+            Toast.error('Error de conexión al cargar el proveedor.');
+        }
+    });
+
+    document.getElementById('btn-eliminar-proveedor').addEventListener('click', async function () {
+        if (!selectedProveedorId) {
+            showAlert('Seleccione un proveedor para eliminar.', true);
+            return;
+        }
+        var fila = document.querySelector('.usuarios-table tbody tr[data-id="' + selectedProveedorId + '"]');
+        var nombre = fila && fila.children[0] ? fila.children[0].textContent : '';
+        if (!window.confirm('¿Eliminar el proveedor "' + nombre + '"? Esta acción no se puede deshacer.')) return;
+        try {
+            var res = await fetch('/api/proveedores/' + encodeURIComponent(selectedProveedorId), {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            var data = await res.json().catch(function () { return {}; });
+            if (res.ok) {
+                Toast.success(data.mensaje || 'Proveedor eliminado');
+                selectedProveedorId = null;
+                cargarProveedores(true);
+            } else {
+                Toast.error(data.mensaje || 'No se pudo eliminar');
+            }
+        } catch (e) {
+            Toast.error('Error de conexión');
+        }
+    });
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        hideAlert();
+        var id = document.getElementById('form-id').value.trim();
+        var categoriaCodigos = leerCategoriaCodigosDelFormulario();
+        if (!categoriaCodigos.length) {
+            Toast.error('Seleccione al menos una categoría de insumo.');
+            return;
+        }
+        var body = {
+            nombre: document.getElementById('form-nombre').value.trim(),
+            categoriaCodigos: categoriaCodigos,
+            nit: document.getElementById('form-nit').value.trim() || null,
+            contactoNombre: document.getElementById('form-contacto').value.trim() || null,
+            telefono: document.getElementById('form-telefono').value.trim() || null,
+            correo: document.getElementById('form-correo').value.trim() || null,
+            direccion: document.getElementById('form-direccion').value.trim() || null,
+            observaciones: document.getElementById('form-obs').value.trim() || null,
+            activo: document.getElementById('form-activo').value === 'true'
+        };
+        try {
+            var url = id ? '/api/proveedores/' + encodeURIComponent(id) : '/api/proveedores';
+            var method = id ? 'PUT' : 'POST';
+            var res = await fetch(url, {
+                method: method,
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            var data = await res.json().catch(function () { return {}; });
+            if (!res.ok) {
+                Toast.error(data.mensaje || 'Error al guardar');
+                return;
+            }
+            Toast.success(data.mensaje || 'Guardado correctamente');
+            cerrarModalProveedor();
+            cargarProveedores(true);
+        } catch (err) {
+            Toast.error('Error de conexión al guardar.');
+        }
+    });
+
+    cargarCategoriasInsumo();
+    updateFormMode();
+})();
+</script>
+</body>
+</html>

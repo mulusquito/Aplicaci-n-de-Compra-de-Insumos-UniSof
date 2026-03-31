@@ -104,15 +104,21 @@
         <nav class="admin-nav" id="admin-nav">
             <a href="/ventas.html" class="admin-nav-item" data-section="ventas">
                 <span class="admin-nav-icon">💼</span>
-                <span class="admin-nav-text" data-i18n-key="nav.sales">Ventas</span>
+                <span class="admin-nav-item-label">
+                    <span class="admin-nav-text" data-i18n-key="nav.sales">Ventas</span>
+                </span>
             </a>
             <a href="/clientes.html" class="admin-nav-item" data-section="clientes">
                 <span class="admin-nav-icon">👥</span>
-                <span class="admin-nav-text" data-i18n-key="nav.clients">Clientes</span>
+                <span class="admin-nav-item-label">
+                    <span class="admin-nav-text" data-i18n-key="nav.clients">Clientes</span>
+                </span>
             </a>
             <a href="/ordenes.html" class="admin-nav-item active" data-section="ordenes">
                 <span class="admin-nav-icon">📋</span>
-                <span class="admin-nav-text" data-i18n-key="nav.requests">Pedidos</span>
+                <span class="admin-nav-item-label">
+                    <span class="admin-nav-text" data-i18n-key="nav.requests">Pedidos</span>
+                </span>
             </a>
         </nav>
         <div class="admin-sidebar-footer">
@@ -222,6 +228,9 @@
     <script src="/js/auth.js"></script>
     <script src="/js/toast.js"></script>
     <script src="/js/accessibility.js"></script>
+    <script src="/js/unisof-brand-info.js" defer></script>
+    <link rel="stylesheet" href="/css/chat.css">
+    <script src="/js/chat.js" defer></script>
     <script>
         (async () => {
             const result = await authApi.getMe();
@@ -236,19 +245,21 @@
                 nav.innerHTML = `
                     <a href="/panel-admin.html" class="admin-nav-item" data-section="dashboard">
                         <span class="admin-nav-icon">📊</span>
-                        <span class="admin-nav-text">Dashboard</span>
+                        <span class="admin-nav-item-label"><span class="admin-nav-text" data-i18n-key="nav.dashboard">Dashboard</span></span>
                     </a>
                     <a href="/personal.html" class="admin-nav-item" data-section="personal">
                         <span class="admin-nav-icon">👤</span>
-                        <span class="admin-nav-text">Personal</span>
+                        <span class="admin-nav-item-label"><span class="admin-nav-text" data-i18n-key="nav.personal">Personal</span></span>
                     </a>
                     <a href="/ordenes.html" class="admin-nav-item active" data-section="ordenes">
                         <span class="admin-nav-icon">📋</span>
-                        <span class="admin-nav-text">Consultar órdenes de compra</span>
+                        <span class="admin-nav-item-label"><span class="admin-nav-text" data-i18n-key="nav.orders">Consultar órdenes de compra</span></span>
                     </a>
-                    <a href="#compras-insumos" class="admin-nav-item admin-nav-item--disabled"><span class="admin-nav-icon">📦</span><span class="admin-nav-text">Consultar compras insumos</span><span class="admin-nav-hint">(Próximamente)</span></a>
-                    <a href="#inventario" class="admin-nav-item admin-nav-item--disabled"><span class="admin-nav-icon">📁</span><span class="admin-nav-text">Consultar inventario</span><span class="admin-nav-hint">(Próximamente)</span></a>
+                    <a href="#compras-insumos" class="admin-nav-item admin-nav-item--disabled" data-section="compras"><span class="admin-nav-icon">📦</span><span class="admin-nav-item-label"><span class="admin-nav-text" data-i18n-key="nav.purchases">Consultar compras insumos</span><span class="admin-nav-hint">(Próximamente)</span></span></a>
+                    <a href="/inventario-insumos.html?ctx=admin" class="admin-nav-item" data-section="inventario"><span class="admin-nav-icon">📁</span><span class="admin-nav-item-label"><span class="admin-nav-text" data-i18n-key="nav.inventory">Consultar inventario</span></span></a>
+                    <a href="/proveedores.html" class="admin-nav-item" data-section="proveedores"><span class="admin-nav-icon">🏭</span><span class="admin-nav-item-label"><span class="admin-nav-text" data-i18n-key="nav.suppliers">Proveedores</span></span></a>
                 `;
+                if (typeof window.__a11yReapplyLanguage === 'function') window.__a11yReapplyLanguage();
             }
         })();
 
@@ -510,7 +521,5 @@ const esPagado = (o.estado || '').toUpperCase() === 'PAGADO' || (o.estado || '')
 
         cargarOrdenes();
     </script>
-    <link rel="stylesheet" href="/css/chat.css">
-    <script src="/js/chat.js" defer></script>
 </body>
 </html>

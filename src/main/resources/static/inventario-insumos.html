@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Inventario de insumos - UNISOF</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        (function () {
+            try {
+                if (new URLSearchParams(window.location.search).get('ctx') === 'admin') {
+                    document.documentElement.classList.add('inventario-admin-entry');
+                    document.title = 'Consultar inventario - UNISOF';
+                }
+            } catch (e) { /* noop */ }
+        })();
+    </script>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="panel-admin-body">
+
+    <script>
+        (function () {
+            if (document.documentElement.classList.contains('inventario-admin-entry')) {
+                document.body.classList.add('inventario-desde-admin');
+            } else {
+                document.body.classList.add('page-compras');
+            }
+        })();
+    </script>
+
+    <div class="welcome-toast" id="welcome-toast">Inventario UNISOF</div>
+
+    <aside class="admin-sidebar" id="admin-sidebar">
+        <div class="admin-sidebar-header">
+            <a href="/" class="admin-logo inv-logo-admin" aria-label="UNISOF — Inicio">
+                <span class="admin-logo-icon">U</span>
+                <span class="admin-logo-text">UNISOF</span>
+            </a>
+            <a href="/" class="admin-logo admin-logo--sin-icono inv-logo-compras" aria-label="UNISOF — Inicio">
+                <span class="admin-logo-text">UNISOF</span>
+            </a>
+        </div>
+        <p class="compras-modulos-label" id="inventario-sidebar-label">Módulos</p>
+        <nav class="admin-nav admin-nav--compras-modulos" id="compras-nav">
+            <a href="/compras.html" class="admin-nav-item" data-context="compras">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+                <span class="admin-nav-text">Dashboard</span>
+            </a>
+            <span class="admin-nav-item admin-nav-item--disabled" data-context="compras">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>
+                </svg>
+                <span class="admin-nav-text">Pedidos</span>
+                <span class="admin-nav-hint">(Próximamente)</span>
+            </span>
+            <a href="/compras.html#compras-analisis-chart" class="admin-nav-item" data-context="compras">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="8" width="5" height="13" rx="1"/><rect x="17" y="13" width="5" height="8" rx="1"/>
+                </svg>
+                <span class="admin-nav-text">Análisis de insumos</span>
+            </a>
+            <a href="/inventario-insumos.html" class="admin-nav-item active" data-context="compras">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <path d="M3.27 6.96L12 12.01l8.73-5.05"/><path d="M12 22.08V12"/>
+                </svg>
+                <span class="admin-nav-text">Inventario</span>
+            </a>
+            <span class="admin-nav-item admin-nav-item--disabled" data-context="compras">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
+                </svg>
+                <span class="admin-nav-text">Reporte faltantes</span>
+                <span class="admin-nav-hint">(Próximamente)</span>
+            </span>
+            <span class="admin-nav-item admin-nav-item--disabled" data-context="compras">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                </svg>
+                <span class="admin-nav-text">Órdenes de compra</span>
+                <span class="admin-nav-hint">(Próximamente)</span>
+            </span>
+        </nav>
+        <nav class="admin-nav inventario-admin-nav" id="admin-nav-inventario" aria-label="Módulos administrador">
+            <a href="/panel-admin.html" class="admin-nav-item" data-section="dashboard">
+                <span class="admin-nav-icon">📊</span>
+                <span class="admin-nav-item-label">
+                    <span class="admin-nav-text" data-i18n-key="nav.dashboard">Dashboard</span>
+                </span>
+            </a>
+            <a href="/personal.html" class="admin-nav-item" data-section="personal">
+                <span class="admin-nav-icon">👤</span>
+                <span class="admin-nav-item-label">
+                    <span class="admin-nav-text" data-i18n-key="nav.personal">Personal</span>
+                </span>
+            </a>
+            <a href="/ordenes.html" class="admin-nav-item" data-section="ordenes">
+                <span class="admin-nav-icon">📋</span>
+                <span class="admin-nav-item-label">
+                    <span class="admin-nav-text" data-i18n-key="nav.orders">Consultar órdenes de compra</span>
+                </span>
+            </a>
+            <a href="#compras-insumos" class="admin-nav-item admin-nav-item--disabled" data-section="compras">
+                <span class="admin-nav-icon">📦</span>
+                <span class="admin-nav-item-label">
+                    <span class="admin-nav-text" data-i18n-key="nav.purchases">Consultar compras insumos</span>
+                    <span class="admin-nav-hint">(Próximamente)</span>
+                </span>
+            </a>
+            <a href="/inventario-insumos.html?ctx=admin" class="admin-nav-item active" data-section="inventario">
+                <span class="admin-nav-icon">📁</span>
+                <span class="admin-nav-item-label">
+                    <span class="admin-nav-text" data-i18n-key="nav.inventory">Consultar inventario</span>
+                </span>
+            </a>
+            <a href="/proveedores.html" class="admin-nav-item" data-section="proveedores">
+                <span class="admin-nav-icon">🏭</span>
+                <span class="admin-nav-item-label">
+                    <span class="admin-nav-text" data-i18n-key="nav.suppliers">Proveedores</span>
+                </span>
+            </a>
+        </nav>
+        <div class="admin-sidebar-footer">
+            <div class="admin-user-info">
+                <span class="admin-user-name" id="user-name">—</span>
+                <span class="admin-user-rol" id="user-rol">JEFE DE COMPRAS</span>
+            </div>
+            <button type="button" class="admin-btn-logout" id="btn-logout">Cerrar sesión</button>
+        </div>
+    </aside>
+
+    <div class="admin-main-wrap">
+        <header class="admin-topbar admin-topbar--compras-head" id="inventario-topbar">
+            <div class="compras-topbar-titles">
+                <h1 class="admin-topbar-title" id="inventario-topbar-title">Inventario de insumos</h1>
+                <script>
+                    (function () {
+                        if (document.documentElement.classList.contains('inventario-admin-entry')) {
+                            var el = document.getElementById('inventario-topbar-title');
+                            if (el) el.textContent = 'Consultar inventario';
+                        }
+                    })();
+                </script>
+                <p class="compras-topbar-subtitle" id="inventario-topbar-subtitle">Gestión de telas, cremalleras, hilos, botones y más — CRUD alineado al catálogo UNISOF</p>
+            </div>
+        </header>
+
+        <main class="admin-dashboard compras-dashboard-main">
+            <div class="panel-main inventario-panel-crud">
+                <div class="inventario-cat-row">
+                    <div class="form-group inventario-cat-group">
+                        <label for="filtro-categoria">Categoría</label>
+                        <select id="filtro-categoria" aria-label="Filtrar por categoría">
+                            <option value="">Todas</option>
+                        </select>
+                    </div>
+                    <div class="inventario-cat-actions">
+                        <button type="button" class="inventario-toolbar-btn inventario-toolbar-btn--secondary inventario-btn-listar-cat" id="btn-listar-todos-insumos">Listar todos</button>
+                    </div>
+                </div>
+
+                <div class="usuarios-search-bar inventario-search-bar">
+                    <div class="form-group">
+                        <label for="ins-search-tipo">Tipo de búsqueda</label>
+                        <select id="ins-search-tipo" aria-label="Tipo de búsqueda">
+                            <option value="nombre">Por nombre del insumo</option>
+                            <option value="codigo">Por código</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="ins-search-criterio" id="ins-search-criterio-label">Dato a buscar</label>
+                        <input type="text" id="ins-search-criterio" placeholder="Escriba el nombre del insumo" autocomplete="off">
+                    </div>
+                    <div class="usuarios-search-actions inventario-search-actions">
+                        <button type="button" class="inventario-toolbar-btn inventario-toolbar-btn--primary" id="btn-buscar-insumos">Buscar</button>
+                        <button type="button" class="inventario-toolbar-btn inventario-toolbar-btn--secondary" id="btn-nuevo-insumo">+ Nuevo insumo</button>
+                    </div>
+                </div>
+
+                <section class="dashboard-section inventario-crud-section">
+                    <div class="usuarios-table-wrapper compras-table-wrap inventario-table-scroll">
+                        <table class="usuarios-table inventario-crud-table" id="tabla-inventario">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Nombre (insumo)</th>
+                                    <th>Categoría</th>
+                                    <th>Stock actual</th>
+                                    <th>Stock mínimo</th>
+                                    <th>Unidad</th>
+                                    <th>Ref. tela</th>
+                                    <th>Color</th>
+                                    <th>Prendas catálogo</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventario-tbody">
+                                <tr><td colspan="9" class="usuarios-empty" id="inventario-msg-inicial">Use la búsqueda o «Listar todos» para ver insumos.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <div class="usuarios-actions-bar inventario-actions-bar">
+                    <span id="inventario-seleccion-info">Ningún insumo seleccionado.</span>
+                    <div class="usuarios-actions-buttons">
+                        <button type="button" class="btn-usuario-editar" id="btn-actualizar-insumo" disabled>Actualizar insumo</button>
+                        <button type="button" class="btn-usuario-eliminar" id="btn-eliminar-insumo" disabled>Eliminar insumo</button>
+                        <button type="button" class="btn-usuario-limpiar" id="btn-limpiar-inventario">Limpiar campos</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <button type="button" class="admin-sidebar-toggle" id="admin-sidebar-toggle" aria-label="Abrir menú">☰</button>
+
+    <!-- Modal antes de los scripts: el JS necesita #modal-insumo en el DOM (centrado, z-index alto en styles.css) -->
+    <div class="inventario-modal-overlay hidden" id="modal-insumo" role="dialog" aria-modal="true" aria-labelledby="modal-insumo-titulo">
+        <div class="inventario-modal-box">
+            <h3 id="modal-insumo-titulo">Nuevo insumo</h3>
+            <form id="form-insumo">
+                <input type="hidden" id="ins-form-id" value="">
+                <div class="inventario-modal-grid">
+                    <div class="form-group">
+                        <label for="ins-codigo">Código * <span class="input-hint-small">Único, no editable al editar</span></label>
+                        <input type="text" id="ins-codigo" name="codigo" required maxlength="48" autocomplete="off" placeholder="Ej: TEL-ALG-001">
+                    </div>
+                    <div class="form-group">
+                        <label for="ins-nombre">Nombre *</label>
+                        <input type="text" id="ins-nombre" name="nombre" required maxlength="200" placeholder="Nombre del insumo">
+                    </div>
+                    <div class="form-group">
+                        <label for="ins-categoria">Categoría *</label>
+                        <select id="ins-categoria" name="categoriaCodigo" required>
+                            <option value="">Seleccione…</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="ins-unidad">Unidad de medida *</label>
+                        <input type="text" id="ins-unidad" name="unidadMedida" required maxlength="24" placeholder="m, ud, cono, docena…" list="ins-unidades-sugeridas">
+                        <datalist id="ins-unidades-sugeridas">
+                            <option value="m">
+                            <option value="ud">
+                            <option value="cono">
+                            <option value="docena">
+                            <option value="m_lineal">
+                        </datalist>
+                    </div>
+                    <div class="form-group">
+                        <label for="ins-stock">Stock disponible *</label>
+                        <input type="number" id="ins-stock" name="stockDisponible" required step="any" min="0" value="0" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="ins-minimo">Stock mínimo</label>
+                        <input type="number" id="ins-minimo" name="stockMinimo" step="any" min="0" placeholder="Opcional">
+                    </div>
+                    <div class="form-group">
+                        <label for="ins-ref">Referencia tela</label>
+                        <input type="text" id="ins-ref" name="referenciaTela" maxlength="80" placeholder="Opcional">
+                    </div>
+                    <div class="form-group">
+                        <label for="ins-color">Color</label>
+                        <input type="text" id="ins-color" name="color" maxlength="64" placeholder="Opcional">
+                    </div>
+                    <div class="form-group inventario-form-full">
+                        <label for="ins-obs">Observaciones</label>
+                        <textarea id="ins-obs" name="observaciones" rows="2" maxlength="1000" placeholder="Notas internas"></textarea>
+                    </div>
+                    <div class="form-group inventario-form-full">
+                        <label for="ins-catalogo">Productos catálogo (prendas UNISOF)</label>
+                        <textarea id="ins-catalogo" name="productosCatalogo" rows="2" placeholder="Ej.: prendas del catálogo UNISOF (mujer/hombre: blaizer, camisas, chaquetas, pantalones)"></textarea>
+                    </div>
+                </div>
+                <div class="inventario-modal-actions">
+                    <button type="button" class="inventario-modal-btn inventario-modal-btn--secondary" id="btn-cerrar-modal-insumo">Cancelar</button>
+                    <button type="submit" class="inventario-modal-btn inventario-modal-btn--primary" id="btn-guardar-insumo">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/toast.js"></script>
+    <script src="/js/accessibility.js"></script>
+    <script src="/js/unisof-brand-info.js" defer></script>
+    <script>
+        var MSJ_INICIAL = 'Use la búsqueda o «Listar todos» para ver insumos.';
+
+        function esRolJefeCompras(rol) {
+            var r = (rol || '').toUpperCase();
+            return r === 'JEFE DE COMPRAS' || r === 'JEFE DE VENTAS' || r === 'ADMINISTRADOR';
+        }
+
+        function aplicarVistaAdministradorInventario() {
+            document.documentElement.classList.add('inventario-admin-entry');
+            document.body.classList.add('inventario-desde-admin');
+            document.body.classList.remove('page-compras');
+            document.title = 'Consultar inventario - UNISOF';
+            var tb = document.getElementById('inventario-topbar');
+            if (tb) tb.classList.remove('admin-topbar--compras-head');
+            var t = document.getElementById('inventario-topbar-title');
+            if (t) t.textContent = 'Consultar inventario';
+            if (typeof window.__a11yReapplyLanguage === 'function') window.__a11yReapplyLanguage();
+        }
+        function fmtQty(v) {
+            if (v == null || v === '') return '—';
+            var n = typeof v === 'number' ? v : Number(v);
+            if (Number.isNaN(n)) return String(v);
+            return new Intl.NumberFormat('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 3 }).format(n);
+        }
+        function escapeHtml(s) {
+            if (!s) return '';
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        var inventarioCache = [];
+        var categoriasLista = [];
+        var estadoLista = { modo: 'idle' };
+        var selectedInsumoId = null;
+
+        async function cargarCategoriasFiltro() {
+            var sel = document.getElementById('filtro-categoria');
+            var selModal = document.getElementById('ins-categoria');
+            var res = await fetch('/api/compras/categorias-insumo', { credentials: 'include' });
+            if (!res.ok) return;
+            categoriasLista = await res.json();
+            while (sel.options.length > 1) sel.remove(1);
+            categoriasLista.forEach(function (c) {
+                var o = document.createElement('option');
+                o.value = c.codigo;
+                o.textContent = c.nombre;
+                sel.appendChild(o);
+            });
+            selModal.innerHTML = '<option value="">Seleccione…</option>';
+            categoriasLista.forEach(function (c) {
+                var o = document.createElement('option');
+                o.value = c.codigo;
+                o.textContent = c.nombre;
+                selModal.appendChild(o);
+            });
+        }
+
+        function actualizarPlaceholderBusqueda() {
+            var tipo = document.getElementById('ins-search-tipo').value;
+            var lab = document.getElementById('ins-search-criterio-label');
+            var inp = document.getElementById('ins-search-criterio');
+            if (tipo === 'codigo') {
+                lab.textContent = 'Código del insumo';
+                inp.placeholder = 'Escriba el código (p. ej. TEL-ALG-001)';
+            } else {
+                lab.textContent = 'Nombre del insumo';
+                inp.placeholder = 'Escriba el nombre del insumo';
+            }
+        }
+
+        function renderTablaInventario(rows) {
+            var tbody = document.getElementById('inventario-tbody');
+            tbody.innerHTML = rows.map(function (r) {
+                return '<tr data-id="' + r.id + '" class="usuarios-row-clickable">' +
+                    '<td>' + escapeHtml(r.codigo || '—') + '</td>' +
+                    '<td>' + escapeHtml(r.nombre || '—') + '</td>' +
+                    '<td>' + escapeHtml(r.categoriaNombre || '—') + '</td>' +
+                    '<td>' + fmtQty(r.stockDisponible) + '</td>' +
+                    '<td>' + fmtQty(r.stockMinimo) + '</td>' +
+                    '<td>' + escapeHtml(r.unidadMedida || '—') + '</td>' +
+                    '<td>' + escapeHtml(r.referenciaTela || '—') + '</td>' +
+                    '<td>' + escapeHtml(r.color || '—') + '</td>' +
+                    '<td class="compras-cell-catalogo">' + escapeHtml(r.productosCatalogo || '—') + '</td>' +
+                    '</tr>';
+            }).join('');
+        }
+
+        function actualizarSeleccion(id, fila) {
+            selectedInsumoId = id ? String(id) : null;
+            document.querySelectorAll('#inventario-tbody tr[data-id]').forEach(function (tr) {
+                tr.classList.toggle('usuarios-row-selected', tr === fila);
+            });
+            var info = document.getElementById('inventario-seleccion-info');
+            var b1 = document.getElementById('btn-actualizar-insumo');
+            var b2 = document.getElementById('btn-eliminar-insumo');
+            if (id && fila) {
+                var nombre = fila.children[1] ? fila.children[1].textContent : '';
+                var cod = fila.children[0] ? fila.children[0].textContent : '';
+                info.textContent = 'Seleccionado: ' + nombre + ' (' + cod + ')';
+                b1.disabled = false;
+                b2.disabled = false;
+            } else {
+                info.textContent = 'Ningún insumo seleccionado.';
+                b1.disabled = true;
+                b2.disabled = true;
+            }
+        }
+
+        function restaurarSeleccionTrasRender() {
+            if (!selectedInsumoId) return;
+            var tr = document.querySelector('#inventario-tbody tr[data-id="' + selectedInsumoId + '"]');
+            if (tr) actualizarSeleccion(selectedInsumoId, tr);
+            else actualizarSeleccion(null, null);
+        }
+
+        async function cargarDesdeApi(url) {
+            var tbody = document.getElementById('inventario-tbody');
+            try {
+                var res = await fetch(url, { credentials: 'include' });
+                if (res.status === 401) { window.location.href = '/login.html'; return; }
+                if (!res.ok) throw new Error();
+                inventarioCache = await res.json();
+                if (!inventarioCache.length) {
+                    tbody.innerHTML = '<tr><td colspan="9" class="usuarios-empty usuarios-empty--no-existe">No se encontraron insumos.</td></tr>';
+                    actualizarSeleccion(null, null);
+                    return;
+                }
+                renderTablaInventario(inventarioCache);
+                restaurarSeleccionTrasRender();
+            } catch (e) {
+                inventarioCache = [];
+                tbody.innerHTML = '<tr><td colspan="9" class="usuarios-empty">Error al cargar inventario.</td></tr>';
+                actualizarSeleccion(null, null);
+            }
+        }
+
+        async function listarTodos() {
+            var cat = document.getElementById('filtro-categoria').value;
+            var params = new URLSearchParams();
+            if (cat) params.set('categoria', cat);
+            var q = params.toString();
+            estadoLista = { modo: 'todos' };
+            await cargarDesdeApi('/api/compras/insumos' + (q ? '?' + q : ''));
+        }
+
+        async function buscarInsumos() {
+            var criterio = document.getElementById('ins-search-criterio').value.trim();
+            if (!criterio) {
+                Toast.error('Ingrese un dato para buscar.');
+                return;
+            }
+            var tipo = document.getElementById('ins-search-tipo').value;
+            var cat = document.getElementById('filtro-categoria').value;
+            var params = new URLSearchParams();
+            params.set('criterio', criterio);
+            params.set('tipo', tipo);
+            if (cat) params.set('categoria', cat);
+            estadoLista = { modo: 'buscar' };
+            await cargarDesdeApi('/api/compras/insumos?' + params.toString());
+        }
+
+        async function refetchActual() {
+            if (estadoLista.modo === 'todos') return listarTodos();
+            if (estadoLista.modo === 'buscar') return buscarInsumos();
+        }
+
+        async function despuesDeMutacion() {
+            if (estadoLista.modo === 'idle') {
+                await listarTodos();
+            } else {
+                await refetchActual();
+            }
+            actualizarSeleccion(null, null);
+        }
+
+        function limpiarPantalla() {
+            document.getElementById('ins-search-criterio').value = '';
+            document.getElementById('ins-search-tipo').value = 'nombre';
+            actualizarPlaceholderBusqueda();
+            document.getElementById('filtro-categoria').value = '';
+            inventarioCache = [];
+            estadoLista = { modo: 'idle' };
+            document.getElementById('inventario-tbody').innerHTML =
+                '<tr><td colspan="9" class="usuarios-empty">' + MSJ_INICIAL + '</td></tr>';
+            actualizarSeleccion(null, null);
+        }
+
+        var modal = document.getElementById('modal-insumo');
+        var formInsumo = document.getElementById('form-insumo');
+
+        function setInventarioModalOpen(open) {
+            document.body.classList.toggle('inventario-modal-open', !!open);
+        }
+
+        function abrirModalNuevo() {
+            document.getElementById('modal-insumo-titulo').textContent = 'Nuevo insumo';
+            document.getElementById('ins-form-id').value = '';
+            formInsumo.reset();
+            document.getElementById('ins-stock').value = '0';
+            var cod = document.getElementById('ins-codigo');
+            cod.readOnly = false;
+            cod.classList.remove('inventario-input-readonly');
+            modal.classList.remove('hidden');
+            setInventarioModalOpen(true);
+            cod.focus();
+        }
+
+        async function abrirEditarInsumo(id) {
+            try {
+                var res = await fetch('/api/compras/insumos/' + encodeURIComponent(id), { credentials: 'include' });
+                if (!res.ok) throw new Error('No encontrado');
+                var r = await res.json();
+                document.getElementById('modal-insumo-titulo').textContent = 'Editar insumo';
+                document.getElementById('ins-form-id').value = r.id;
+                var cod = document.getElementById('ins-codigo');
+                cod.value = r.codigo || '';
+                cod.readOnly = true;
+                cod.classList.add('inventario-input-readonly');
+                document.getElementById('ins-nombre').value = r.nombre || '';
+                document.getElementById('ins-categoria').value = r.categoriaCodigo || '';
+                document.getElementById('ins-unidad').value = r.unidadMedida || '';
+                document.getElementById('ins-stock').value = r.stockDisponible != null ? r.stockDisponible : '0';
+                document.getElementById('ins-minimo').value = r.stockMinimo != null ? r.stockMinimo : '';
+                document.getElementById('ins-ref').value = r.referenciaTela || '';
+                document.getElementById('ins-color').value = r.color || '';
+                document.getElementById('ins-obs').value = r.observaciones || '';
+                document.getElementById('ins-catalogo').value = r.productosCatalogo || '';
+                modal.classList.remove('hidden');
+                setInventarioModalOpen(true);
+            } catch (e) {
+                Toast.error('No se pudo cargar el insumo.');
+            }
+        }
+
+        async function eliminarInsumoPorId(id) {
+            var row = document.querySelector('#inventario-tbody tr[data-id="' + id + '"]');
+            var nombre = row && row.children[1] ? row.children[1].textContent : '';
+            if (!confirm('¿Eliminar el insumo "' + (nombre || id) + '"? Esta acción no se puede deshacer.')) return;
+            try {
+                var res = await fetch('/api/compras/insumos/' + encodeURIComponent(id), {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                var data = await res.json().catch(function () { return {}; });
+                if (!res.ok) {
+                    Toast.error(data.mensaje || 'No se pudo eliminar.');
+                    return;
+                }
+                Toast.success(data.mensaje || 'Insumo eliminado');
+                await despuesDeMutacion();
+            } catch (e) {
+                Toast.error('Error de conexión al eliminar.');
+            }
+        }
+
+        function cerrarModalInsumo() {
+            modal.classList.add('hidden');
+            setInventarioModalOpen(false);
+        }
+
+        document.getElementById('inventario-tbody').addEventListener('click', function (e) {
+            var tr = e.target.closest('tr[data-id]');
+            if (!tr) {
+                actualizarSeleccion(null, null);
+                return;
+            }
+            var id = tr.getAttribute('data-id');
+            if (selectedInsumoId === id) {
+                actualizarSeleccion(null, null);
+            } else {
+                actualizarSeleccion(id, tr);
+            }
+        });
+
+        document.getElementById('btn-cerrar-modal-insumo').addEventListener('click', cerrarModalInsumo);
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) cerrarModalInsumo();
+        });
+        document.getElementById('btn-nuevo-insumo').addEventListener('click', abrirModalNuevo);
+        document.getElementById('btn-buscar-insumos').addEventListener('click', buscarInsumos);
+        document.getElementById('btn-listar-todos-insumos').addEventListener('click', listarTodos);
+        document.getElementById('ins-search-tipo').addEventListener('change', actualizarPlaceholderBusqueda);
+        document.getElementById('filtro-categoria').addEventListener('change', function () {
+            if (estadoLista.modo === 'todos') listarTodos();
+            else if (estadoLista.modo === 'buscar') buscarInsumos();
+        });
+        document.getElementById('btn-actualizar-insumo').addEventListener('click', function () {
+            if (!selectedInsumoId) {
+                Toast.error('Seleccione un insumo en la tabla.');
+                return;
+            }
+            abrirEditarInsumo(selectedInsumoId);
+        });
+        document.getElementById('btn-eliminar-insumo').addEventListener('click', function () {
+            if (!selectedInsumoId) {
+                Toast.error('Seleccione un insumo en la tabla.');
+                return;
+            }
+            eliminarInsumoPorId(selectedInsumoId);
+        });
+        document.getElementById('btn-limpiar-inventario').addEventListener('click', limpiarPantalla);
+
+        formInsumo.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            var id = document.getElementById('ins-form-id').value.trim();
+            var stock = parseFloat(document.getElementById('ins-stock').value);
+            if (Number.isNaN(stock) || stock < 0) {
+                Toast.error('Stock disponible inválido.');
+                return;
+            }
+            var minEl = document.getElementById('ins-minimo');
+            var minVal = minEl.value.trim() === '' ? null : parseFloat(minEl.value);
+            if (minVal !== null && (Number.isNaN(minVal) || minVal < 0)) {
+                Toast.error('Stock mínimo inválido.');
+                return;
+            }
+            var body = {
+                codigo: document.getElementById('ins-codigo').value.trim(),
+                nombre: document.getElementById('ins-nombre').value.trim(),
+                categoriaCodigo: document.getElementById('ins-categoria').value.trim(),
+                unidadMedida: document.getElementById('ins-unidad').value.trim(),
+                stockDisponible: stock,
+                stockMinimo: minVal,
+                referenciaTela: document.getElementById('ins-ref').value.trim() || null,
+                color: document.getElementById('ins-color').value.trim() || null,
+                observaciones: document.getElementById('ins-obs').value.trim() || null,
+                productosCatalogo: document.getElementById('ins-catalogo').value.trim() || null
+            };
+            try {
+                var url = id ? '/api/compras/insumos/' + encodeURIComponent(id) : '/api/compras/insumos';
+                var method = id ? 'PUT' : 'POST';
+                var res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(body)
+                });
+                var data = await res.json().catch(function () { return {}; });
+                if (!res.ok) {
+                    Toast.error(data.mensaje || 'Error al guardar', 6500);
+                    return;
+                }
+                Toast.success(data.mensaje || (id ? 'Insumo actualizado' : 'Insumo creado'));
+                cerrarModalInsumo();
+                await despuesDeMutacion();
+            } catch (err) {
+                Toast.error('Error de conexión al guardar.');
+            }
+        });
+
+        (async function () {
+            var result = await authApi.getMe();
+            if (!result.ok) { window.location.href = '/login.html'; return; }
+            if (!esRolJefeCompras((result.usuario && result.usuario.rol) || '')) {
+                window.location.href = '/';
+                return;
+            }
+            document.getElementById('user-name').textContent = result.usuario.nombre || result.usuario.usuario;
+            document.getElementById('user-rol').textContent = result.usuario.rol || 'JEFE DE COMPRAS';
+            var rolUp = (result.usuario.rol || '').toUpperCase();
+            var adminEntry = document.documentElement.classList.contains('inventario-admin-entry');
+            if (adminEntry && rolUp !== 'ADMINISTRADOR') {
+                document.documentElement.classList.remove('inventario-admin-entry');
+                document.body.classList.remove('inventario-desde-admin');
+                document.body.classList.add('page-compras');
+                try {
+                    var u = new URL(window.location.href);
+                    u.searchParams.delete('ctx');
+                    if (history.replaceState) history.replaceState(null, '', u.pathname + u.search + u.hash);
+                } catch (e2) { /* noop */ }
+            } else if (rolUp === 'ADMINISTRADOR') {
+                if (!adminEntry) {
+                    aplicarVistaAdministradorInventario();
+                } else {
+                    var tbFix = document.getElementById('inventario-topbar');
+                    if (tbFix) tbFix.classList.remove('admin-topbar--compras-head');
+                    if (typeof window.__a11yReapplyLanguage === 'function') window.__a11yReapplyLanguage();
+                }
+            }
+            await cargarCategoriasFiltro();
+            actualizarPlaceholderBusqueda();
+        })();
+
+        document.getElementById('btn-logout').addEventListener('click', async function () {
+            if (!confirm('¿Desea cerrar sesión?')) return;
+            await authApi.logout();
+            window.location.href = '/';
+        });
+        var sidebar = document.getElementById('admin-sidebar');
+        var toggle = document.getElementById('admin-sidebar-toggle');
+        if (toggle && sidebar) {
+            toggle.addEventListener('click', function () {
+                sidebar.classList.toggle('open');
+                toggle.setAttribute('aria-label', sidebar.classList.contains('open') ? 'Cerrar menú' : 'Abrir menú');
+            });
+        }
+    </script>
+
+    <link rel="stylesheet" href="/css/chat.css">
+    <script src="/js/chat.js" defer></script>
+</body>
+</html>

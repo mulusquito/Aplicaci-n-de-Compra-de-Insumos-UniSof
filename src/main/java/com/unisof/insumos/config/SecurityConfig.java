@@ -24,7 +24,7 @@ import java.util.Map;
  * Configuracion de Spring Security.
  * <p>
  * Permite acceso publico a /api/auth/login y /api/auth/verify-token.
- * SCRUM-36: Sesion expira tras 1 min de inactividad (server.servlet.session.timeout).
+ * Timeout de sesión en servidor: ver application.properties; la política de aviso/cierre por inactividad la aplica el cliente (auth.js).
  * Resto de endpoints requiere autenticacion.
  * </p>
  */
@@ -57,7 +57,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health", "/actuator/prometheus").permitAll()
                         .requestMatchers("/api/auth/login", "/api/auth/verify-token", "/api/auth/solicitar-recuperacion", "/api/auth/restablecer-contrasena", "/api/webhooks/**", "/api/chat").permitAll()
-                        .requestMatchers("/api/usuarios/**", "/api/dashboard/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers("/api/usuarios/**", "/api/dashboard/**", "/api/proveedores/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers("/api/compras/**").hasAnyRole("ADMINISTRADOR", "JEFE DE COMPRAS", "JEFE DE VENTAS")
                         .requestMatchers("/api/auth/logout", "/api/auth/me", "/api/checkout/create-preference", "/api/clientes/**", "/api/recibos/**").authenticated()
                         .requestMatchers(
                                 "/",
@@ -71,8 +72,10 @@ public class SecurityConfig {
                                 "/terminos-y-condiciones.html",
                                 "/ventas.html",
                                 "/compras.html",
+                                "/inventario-insumos.html",
                                 "/clientes.html",
                                 "/ordenes.html",
+                                "/proveedores.html",
                                 "/css/**",
                                 "/js/**",
                                 "/images/**"

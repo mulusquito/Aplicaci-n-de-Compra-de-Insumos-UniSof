@@ -11,7 +11,7 @@ import java.util.Locale;
 public class ChatService {
 
     private static final String DEFAULT_RESPONSE = "No encontré información sobre eso. Puedes preguntar por: "
-            + "carrito, pedidos, contraseña, inicio de sesión, código de verificación, roles, catálogo, pagos o sesión.";
+            + "carrito, pedidos, clientes, inventario, insumos, contraseña, inicio de sesión, código de verificación, roles, catálogo, pagos o sesión.";
 
     private final List<FaqRegla> reglas = new ArrayList<>();
 
@@ -42,13 +42,20 @@ public class ChatService {
         reglas.add(new FaqRegla("dashboard, reportes, ventas, estadísticas",
                 "El dashboard está en el panel de administrador. Muestra usuarios, pedidos y ventas. Puedes filtrar por fechas y exportar PDF."));
         reglas.add(new FaqRegla("sesión, inactividad, cerrar sesión, expira, tiempo",
-                "La sesión se cierra tras 2 minutos de inactividad. Verás un aviso con cuenta regresiva; 'Seguir conectado' renueva la sesión."));
+                "Tras 2 minutos sin usar la app verás un aviso; si pasan 2 minutos más sin actividad, la sesión se cierra. Mover el ratón o pulsar teclas cuenta como actividad; «Seguir conectado» también renueva la sesión."));
         reglas.add(new FaqRegla("cerrar sesión, salir",
                 "Usa el menú de usuario (icono en la barra) y elige 'Cerrar sesión'."));
         reglas.add(new FaqRegla("catálogo, productos, mujer, hombre, camisa",
                 "En la página principal ves el catálogo por categorías. Es solo visual; para comprar usa el módulo de ventas/compras con sesión iniciada."));
         reglas.add(new FaqRegla("hola, ayuda, ayuda unisof, qué puedes",
                 "Hola, soy el asistente de UNISOF. Puedo ayudarte con: carrito, pedidos, contraseña, inicio de sesión, código, roles, dashboard, sesión. Escribe una pregunta o palabra clave."));
+        reglas.add(new FaqRegla("cliente, clientes, buscar cliente, buscar un cliente, listado clientes",
+                "Los clientes los gestiona el vendedor o administrador en el módulo **Clientes** (con sesión iniciada). "
+                        + "Allí puedes buscar por nombre o documento, ver el listado y editar datos. "
+                        + "Si eres jefe de compras, tu módulo es **Compras** e **Inventario de insumos**."));
+        reglas.add(new FaqRegla("insumo, insumos, inventario, stock, telas, categoría insumo, jefe de compras, compras y produccion",
+                "El **Jefe de compras** entra a **Compras** (panel con resumen) y a **Inventario de insumos** para listar, buscar y dar de alta insumos (telas, hilos, etc.). "
+                        + "Usa categoría, búsqueda por nombre o código, y «Listar todos» si hace falta."));
     }
 
     public String responder(String mensaje) {

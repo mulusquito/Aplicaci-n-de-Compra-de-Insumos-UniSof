@@ -21,25 +21,40 @@
         <nav class="admin-nav">
             <a href="/panel-admin.html" class="admin-nav-item active" data-section="dashboard">
                 <span class="admin-nav-icon">📊</span>
-                <span class="admin-nav-text" data-i18n-key="nav.dashboard">Dashboard</span>
+                <span class="admin-nav-item-label">
+                    <span class="admin-nav-text" data-i18n-key="nav.dashboard">Dashboard</span>
+                </span>
             </a>
             <a href="/personal.html" class="admin-nav-item" data-section="personal">
                 <span class="admin-nav-icon">👤</span>
-                <span class="admin-nav-text" data-i18n-key="nav.personal">Personal</span>
+                <span class="admin-nav-item-label">
+                    <span class="admin-nav-text" data-i18n-key="nav.personal">Personal</span>
+                </span>
             </a>
             <a href="/ordenes.html" class="admin-nav-item" data-section="ordenes">
                 <span class="admin-nav-icon">📋</span>
-                <span class="admin-nav-text" data-i18n-key="nav.orders">Consultar órdenes de compra</span>
+                <span class="admin-nav-item-label">
+                    <span class="admin-nav-text" data-i18n-key="nav.orders">Consultar órdenes de compra</span>
+                </span>
             </a>
             <a href="#compras-insumos" class="admin-nav-item admin-nav-item--disabled" data-section="compras">
                 <span class="admin-nav-icon">📦</span>
-                <span class="admin-nav-text" data-i18n-key="nav.purchases">Consultar compras insumos</span>
-                <span class="admin-nav-hint">(Próximamente)</span>
+                <span class="admin-nav-item-label">
+                    <span class="admin-nav-text" data-i18n-key="nav.purchases">Consultar compras insumos</span>
+                    <span class="admin-nav-hint">(Próximamente)</span>
+                </span>
             </a>
-            <a href="#inventario" class="admin-nav-item admin-nav-item--disabled" data-section="inventario">
+            <a href="/inventario-insumos.html?ctx=admin" class="admin-nav-item" data-section="inventario">
                 <span class="admin-nav-icon">📁</span>
-                <span class="admin-nav-text" data-i18n-key="nav.inventory">Consultar inventario</span>
-                <span class="admin-nav-hint">(Próximamente)</span>
+                <span class="admin-nav-item-label">
+                    <span class="admin-nav-text" data-i18n-key="nav.inventory">Consultar inventario</span>
+                </span>
+            </a>
+            <a href="/proveedores.html" class="admin-nav-item" data-section="proveedores">
+                <span class="admin-nav-icon">🏭</span>
+                <span class="admin-nav-item-label">
+                    <span class="admin-nav-text" data-i18n-key="nav.suppliers">Proveedores</span>
+                </span>
             </a>
         </nav>
         <div class="admin-sidebar-footer">
@@ -137,6 +152,7 @@
 
     <script src="/js/auth.js"></script>
     <script src="/js/accessibility.js"></script>
+    <script src="/js/unisof-brand-info.js" defer></script>
     <script src="/js/jspdf.umd.min.js"></script>
     <script>
         let lastDashboardStats = null;

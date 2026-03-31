@@ -13,11 +13,11 @@
     --nova-font-heading: "Space Grotesk", Arial, sans-serif;
     --nova-font-mono: "JetBrains Mono", monospace;
 
-    position: fixed;
+    position: fixed !important;
     bottom: 16px;
     right: 80px;
     left: auto;
-    z-index: 10040;
+    z-index: 10250;
     font-family: var(--nova-font-heading);
 }
 
@@ -486,4 +486,47 @@
     .chat-nova-badge {
         display: none;
     }
+}
+
+/* Alineado con styles.css @media (max-width: 600px) del botón accesibilidad: ambos van abajo a la derecha — subir Nova para no taparse */
+@media (max-width: 600px) {
+    .chat-widget {
+        bottom: 76px;
+        right: 12px;
+    }
+}
+
+/*
+ * Accesibilidad global (styles.css): body[data-a11y-theme="light"] * y
+ * body[data-a11y-text-color] * usan !important y rompen el contraste del chat.
+ * Restauramos la paleta Nova dentro del widget.
+ */
+body[data-a11y-theme="light"] .chat-widget * {
+    color: var(--nova-fg) !important;
+}
+body[data-a11y-theme="light"] .chat-widget .chat-msg-bubble--user,
+body[data-a11y-theme="light"] .chat-widget .chat-nova-send {
+    color: var(--nova-primary-fg) !important;
+}
+
+body[data-a11y-text-color="black"] .chat-widget *,
+body[data-a11y-text-color="white"] .chat-widget *,
+body[data-a11y-text-color="blue"] .chat-widget * {
+    color: var(--nova-fg) !important;
+}
+body[data-a11y-text-color="black"] .chat-widget .chat-msg-bubble--user,
+body[data-a11y-text-color="black"] .chat-widget .chat-nova-send,
+body[data-a11y-text-color="white"] .chat-widget .chat-msg-bubble--user,
+body[data-a11y-text-color="white"] .chat-widget .chat-nova-send,
+body[data-a11y-text-color="blue"] .chat-widget .chat-msg-bubble--user,
+body[data-a11y-text-color="blue"] .chat-widget .chat-nova-send {
+    color: var(--nova-primary-fg) !important;
+}
+
+body[data-a11y-text-color="white"] .chat-widget .chat-nova-input,
+body[data-a11y-text-color="black"] .chat-widget .chat-nova-input,
+body[data-a11y-text-color="blue"] .chat-widget .chat-nova-input {
+    background: var(--nova-secondary) !important;
+    border-color: var(--nova-border) !important;
+    color: var(--nova-fg) !important;
 }

@@ -78,7 +78,7 @@ public class AuthService {
 
     /**
      * SCRUM-35: Verifica el token 2FA recibido por correo.
-     * SCRUM-36: Si es valido, establece la sesion (onSessionCreated) y la inactividad la invalida en 1 min.
+     * Si es valido, establece la sesion (onSessionCreated). La expiracion por inactividad depende de server.servlet.session.timeout y del cliente (auth.js).
      * <p>
      * El token debe coincidir, no estar expirado y no haber sido usado.
      * </p>
@@ -117,7 +117,7 @@ public class AuthService {
 
     /**
      * Establece la sesion del usuario en el contexto de seguridad.
-     * SCRUM-36: La sesion expira tras 1 min de inactividad.
+     * La sesion HTTP sigue server.servlet.session.timeout; el navegador renueva con peticiones (p. ej. GET /api/auth/me).
      *
      * @param usuario usuario autenticado
      */

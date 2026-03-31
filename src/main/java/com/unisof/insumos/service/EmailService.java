@@ -17,7 +17,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * SCRUM-35: Servicio de envío de correos electrónicos.
@@ -165,6 +167,93 @@ public class EmailService {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Notifica al correo del proveedor que UNISOF lo ha registrado para las categorías de insumo indicadas.
+     */
+    public boolean enviarNotificacionRegistroProveedor(String correoDestino, String nombreProveedor,
+                                                       List<String> nombresCategorias) {
+        if (!emailHabilitado) {
+            log.info("Registro proveedor {} <{}> categorías: {}", nombreProveedor, correoDestino, nombresCategorias);
+            return true;
+        }
+        if (correoDestino == null || correoDestino.isBlank()) {
+            return false;
+        }
+        String nombre = nombreProveedor != null && !nombreProveedor.isBlank() ? nombreProveedor : "Proveedor";
+        List<String> cats = nombresCategorias == null ? List.of() : nombresCategorias;
+        String itemsHtml = cats.stream()
+                .map(c -> "<li style=\"margin:6px 0;color:#e8e8e8;\">" + escapeHtmlProveedorEmail(c) + "</li>")
+                .collect(Collectors.joining());
+        if (itemsHtml.isEmpty()) {
+            itemsHtml = "<li style=\"color:#888;\">(Sin categorías especificadas)</li>";
+        }
+
+        String subject = "Registro como proveedor de insumos - UNISOF";
+        String html = """
+                <!DOCTYPE html>
+                <html>
+                <head><meta charset="UTF-8"></head>
+                <body style="margin:0;font-family:Arial,sans-serif;background:#0d0d0d;padding:20px;">
+                  <div style="max-width:520px;margin:0 auto;background:#111;border-radius:12px;overflow:hidden;border:1px solid #333;">
+                    <div style="background:#f5a623;color:#1a1a1a;padding:24px;text-align:center;">
+                      <span style="font-size:26px;font-weight:bold;display:inline-block;width:46px;height:46px;line-height:46px;background:#1a1a1a;color:#f5a623;border-radius:8px;margin:0 8px 0 0;">U</span>
+                      <span style="font-size:22px;font-weight:bold;letter-spacing:2px;">UNISOF</span>
+                    </div>
+                    <div style="padding:28px;color:#f5f5f5;">
+                      <p style="font-size:16px;margin:0 0 14px;">Estimado/a proveedor <strong>%s</strong>,</p>
+                      <p style="font-size:14px;margin:0 0 16px;line-height:1.5;">
+                        Le informamos que <strong>UNISOF</strong> lo ha registrado en nuestro sistema como proveedor de insumos
+                        para las siguientes <strong>categorías</strong>:
+                      </p>
+                      <ul style="font-size:14px;margin:0 0 20px;padding-left:20px;">
+                      %s
+                      </ul>
+                      <p style="font-size:13px;margin:0;color:#cccccc;line-height:1.5;">
+                        Este mensaje es una notificación automática. Para cualquier consulta comercial,
+                        puede contactar al equipo UNISOF por los canales habituales.
+                      </p>
+                    </div>
+                    <div style="background:#000;padding:14px;text-align:center;font-size:11px;color:#777;">
+                      Sistema de Insumos UNISOF
+                    </div>
+                  </div>
+                </body>
+                </html>
+                """.formatted(escapeHtmlProveedorEmail(nombre), itemsHtml);
+
+        if (resendApiKey != null && !resendApiKey.isBlank()) {
+            if (enviarViaResend(correoDestino.trim(), subject, html)) {
+                log.info("Correo registro proveedor enviado a {} (Resend)", correoDestino);
+                return true;
+            }
+        }
+        if (mailSender != null) {
+            try {
+                MimeMessage mensaje = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(mensaje, true, "UTF-8");
+                helper.setFrom(remitente);
+                helper.setTo(correoDestino.trim());
+                helper.setSubject(subject);
+                helper.setText(html, true);
+                mailSender.send(mensaje);
+                log.info("Correo registro proveedor enviado a {} (SMTP)", correoDestino);
+                return true;
+            } catch (MessagingException | MailException e) {
+                log.error("Error enviando correo registro proveedor a {}: {}", correoDestino, e.getMessage());
+            }
+        }
+        if (fallbackLogOnError) {
+            log.info(">>> REGISTRO PROVEEDOR (pruebas): {} <{}> cats {}", nombreProveedor, correoDestino, cats);
+            return true;
+        }
+        return false;
+    }
+
+    private static String escapeHtmlProveedorEmail(String s) {
+        if (s == null) return "";
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
     }
 
     private String buildHtmlRecuperacionContrasenaEmail(String nombreUsuario, String link) {

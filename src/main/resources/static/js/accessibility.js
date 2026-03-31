@@ -37,9 +37,10 @@
         es: {
             'nav.dashboard': 'Dashboard',
             'nav.personal': 'Personal',
-            'nav.orders': 'Consultar órdenes',
-            'nav.purchases': 'Compras insumos',
-            'nav.inventory': 'Inventario',
+            'nav.orders': 'Consultar órdenes de compra',
+            'nav.purchases': 'Consultar compras insumos',
+            'nav.inventory': 'Consultar inventario',
+            'nav.suppliers': 'Proveedores',
             'nav.sales': 'Ventas',
             'nav.clients': 'Clientes',
             'nav.requests': 'Pedidos',
@@ -162,15 +163,17 @@
         en: {
             'nav.dashboard': 'Dashboard',
             'nav.personal': 'Staff',
-            'nav.orders': 'View orders',
-            'nav.purchases': 'Supplies purchases',
-            'nav.inventory': 'Inventory',
+            'nav.orders': 'View purchase orders',
+            'nav.purchases': 'View supply purchases',
+            'nav.inventory': 'View inventory',
+            'nav.suppliers': 'Suppliers',
             'nav.sales': 'Sales',
             'nav.clients': 'Clients',
             'nav.requests': 'Orders',
             'title.personal': 'Staff management',
             'title.sales': 'Sales',
             'title.clients': 'View clients',
+            'title.suppliers': 'Supply suppliers',
             'title.orders': 'View orders',
             'common.logout': 'Log out',
             'auth.title': 'Log in',
@@ -530,6 +533,11 @@
         const p = loadPrefs();
         const dict = translations[p.lang] || translations.es;
         return dict[key] != null ? dict[key] : key;
+    };
+
+    window.__a11yReapplyLanguage = function () {
+        const prefs = loadPrefs();
+        applyLanguage(prefs.lang || 'es');
     };
 
     if (document.readyState === 'loading') {
