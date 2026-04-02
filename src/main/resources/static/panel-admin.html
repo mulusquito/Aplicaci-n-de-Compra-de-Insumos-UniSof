@@ -110,6 +110,48 @@
                 </article>
             </section>
 
+            <section class="dashboard-section dashboard-section--finanzas" aria-labelledby="dashboard-finanzas-title">
+                <h2 class="dashboard-section-title" id="dashboard-finanzas-title">Finanzas y operación</h2>
+                <p class="dashboard-section-desc">Indicadores del periodo seleccionado y estado de inventario y proveedores. Las métricas pendientes muestran <span class="dashboard-soon-inline">Próximamente</span> hasta integrar el módulo correspondiente.</p>
+                <div class="dashboard-finanzas-grid">
+                    <article class="dashboard-finanza-card">
+                        <h3 class="dashboard-finanza-title">Ticket promedio</h3>
+                        <p class="dashboard-finanza-value" id="df-ticket">—</p>
+                        <p class="dashboard-finanza-hint">Ventas ÷ órdenes en el periodo</p>
+                    </article>
+                    <article class="dashboard-finanza-card dashboard-finanza-card--soon">
+                        <span class="dashboard-finanza-badge" aria-hidden="true">Próximamente</span>
+                        <h3 class="dashboard-finanza-title">Compras de insumos</h3>
+                        <p class="dashboard-finanza-value dashboard-finanza-value--muted">—</p>
+                        <p class="dashboard-finanza-hint">Total de compras a proveedores en el periodo</p>
+                    </article>
+                    <article class="dashboard-finanza-card dashboard-finanza-card--soon" id="df-valor-card">
+                        <span class="dashboard-finanza-badge" id="df-valor-badge" aria-hidden="true">Próximamente</span>
+                        <h3 class="dashboard-finanza-title">Valor del inventario</h3>
+                        <p class="dashboard-finanza-value" id="df-valor-inv">—</p>
+                        <p class="dashboard-finanza-sub" id="df-valor-sub" hidden></p>
+                        <p class="dashboard-finanza-hint" id="df-valor-hint">Σ (stock × precio unitario) en COP. Cargue precio en inventario.</p>
+                    </article>
+                    <article class="dashboard-finanza-card">
+                        <h3 class="dashboard-finanza-title">Inventario</h3>
+                        <p class="dashboard-finanza-value" id="df-insumos">—</p>
+                        <p class="dashboard-finanza-sub" id="df-insumos-sub">—</p>
+                        <p class="dashboard-finanza-hint">Insumos registrados en el catálogo</p>
+                    </article>
+                    <article class="dashboard-finanza-card">
+                        <h3 class="dashboard-finanza-title">Proveedores</h3>
+                        <p class="dashboard-finanza-value" id="df-proveedores">—</p>
+                        <p class="dashboard-finanza-hint">Proveedores dados de alta</p>
+                    </article>
+                    <article class="dashboard-finanza-card dashboard-finanza-card--soon">
+                        <span class="dashboard-finanza-badge" aria-hidden="true">Próximamente</span>
+                        <h3 class="dashboard-finanza-title">Resultado operativo</h3>
+                        <p class="dashboard-finanza-value dashboard-finanza-value--muted">—</p>
+                        <p class="dashboard-finanza-hint">Ventas del periodo − compras del periodo (aprox.)</p>
+                    </article>
+                </div>
+            </section>
+
             <section class="dashboard-section">
                 <h2 class="dashboard-section-title">Ventas por mes</h2>
                 <p class="dashboard-section-desc">Órdenes por mes del año actual (Ene–Dic). Meses sin ventas aparecen en cero. Use Actualizar para refrescar.</p>
@@ -127,24 +169,6 @@
                     <p class="dashboard-chart-note">Enero a diciembre del año actual. Se actualiza con el botón Actualizar.</p>
                 </div>
             </section>
-
-            <section class="dashboard-section">
-                <h2 class="dashboard-section-title">Resumen del negocio</h2>
-                <div class="dashboard-summary-list">
-                    <div class="dashboard-summary-item">
-                        <span class="dashboard-summary-label">Compras de insumos</span>
-                        <span class="dashboard-summary-value">Módulo en desarrollo</span>
-                    </div>
-                    <div class="dashboard-summary-item">
-                        <span class="dashboard-summary-label">Inventario</span>
-                        <span class="dashboard-summary-value">Próximamente</span>
-                    </div>
-                    <div class="dashboard-summary-item">
-                        <span class="dashboard-summary-label">Órdenes de compra</span>
-                        <span class="dashboard-summary-value">Próximamente</span>
-                    </div>
-                </div>
-            </section>
         </main>
     </div>
 
@@ -159,8 +183,70 @@
 
         function formatVentas(val) {
             if (val == null) return '—';
-            const n = typeof val === 'number' ? val : (val.value ? Number(val) : 0);
+            const n = typeof val === 'number' ? val : Number(val);
+            if (Number.isNaN(n)) return '—';
             return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
+        }
+
+        function renderFinanzas(f) {
+            const ticket = document.getElementById('df-ticket');
+            const insumos = document.getElementById('df-insumos');
+            const insumosSub = document.getElementById('df-insumos-sub');
+            const prov = document.getElementById('df-proveedores');
+            const valorCard = document.getElementById('df-valor-card');
+            const valorBadge = document.getElementById('df-valor-badge');
+            const valorInv = document.getElementById('df-valor-inv');
+            const valorSub = document.getElementById('df-valor-sub');
+            const valorHint = document.getElementById('df-valor-hint');
+            if (!ticket || !insumos || !insumosSub || !prov) return;
+            if (!f) {
+                ticket.textContent = '—';
+                insumos.textContent = '—';
+                insumosSub.textContent = '—';
+                prov.textContent = '—';
+                if (valorCard) valorCard.classList.add('dashboard-finanza-card--soon');
+                if (valorBadge) valorBadge.style.display = '';
+                if (valorInv) { valorInv.textContent = '—'; valorInv.classList.add('dashboard-finanza-value--muted'); }
+                if (valorSub) { valorSub.hidden = true; valorSub.textContent = ''; }
+                if (valorHint) valorHint.textContent = 'Σ (stock × precio unitario) en COP. Cargue precio en inventario.';
+                return;
+            }
+            if (f.ticketPromedioDisponible && f.ticketPromedio != null) {
+                ticket.textContent = formatVentas(f.ticketPromedio);
+            } else {
+                ticket.textContent = '—';
+            }
+            insumos.textContent = f.insumosRegistrados != null ? String(f.insumosRegistrados) : '—';
+            const bajo = f.insumosBajoMinimo != null ? Number(f.insumosBajoMinimo) : 0;
+            insumosSub.textContent = bajo === 0
+                ? 'Ninguno bajo stock mínimo'
+                : (bajo + ' con stock ≤ mínimo');
+            prov.textContent = f.proveedoresRegistrados != null ? String(f.proveedoresRegistrados) : '—';
+
+            if (valorCard && valorBadge && valorInv && valorSub && valorHint) {
+                if (f.valorInventarioDisponible && f.valorInventario != null) {
+                    valorCard.classList.remove('dashboard-finanza-card--soon');
+                    valorBadge.style.display = 'none';
+                    valorInv.classList.remove('dashboard-finanza-value--muted');
+                    valorInv.textContent = formatVentas(f.valorInventario);
+                    const sinP = f.insumosSinPrecioUnitario != null ? Number(f.insumosSinPrecioUnitario) : 0;
+                    if (sinP > 0) {
+                        valorSub.hidden = false;
+                        valorSub.textContent = sinP + ' insumo(s) sin precio (no incluidos en la suma)';
+                    } else {
+                        valorSub.hidden = true;
+                        valorSub.textContent = '';
+                    }
+                    valorHint.textContent = 'Estimación: solo insumos con precio unitario en COP.';
+                } else {
+                    valorCard.classList.add('dashboard-finanza-card--soon');
+                    valorBadge.style.display = '';
+                    valorInv.classList.add('dashboard-finanza-value--muted');
+                    valorInv.textContent = '—';
+                    valorSub.hidden = true;
+                    valorHint.textContent = 'Agregue precio unitario por insumo en Inventario para ver el total.';
+                }
+            }
         }
 
         function renderChart(ventasPorMes) {
@@ -202,6 +288,7 @@
                 if (o) o.textContent = data.ordenes != null ? data.ordenes : '—';
                 if (v) v.textContent = formatVentas(data.ventas);
                 if (data.ventasPorMes && data.ventasPorMes.length) renderChart(data.ventasPorMes);
+                renderFinanzas(data.finanzas || null);
             } catch (e) {
                 lastDashboardStats = null;
                 const u = document.getElementById('dashboard-usuarios');
@@ -214,6 +301,7 @@
                 if (chart) chart.innerHTML = '';
                 const yAxis = document.getElementById('dashboard-chart-y-axis');
                 if (yAxis) yAxis.innerHTML = '';
+                renderFinanzas(null);
             }
         }
 
@@ -237,8 +325,6 @@
             texto += 'El sistema cuenta con ' + usuarios + ' usuarios activos en el personal. ';
             if (ordenes === 0) {
                 texto += 'No hubo actividad de ventas en el periodo seleccionado.';
-            } else {
-                texto += 'Los demás módulos (compras de insumos, inventario, órdenes de compra) están en desarrollo.';
             }
             return texto;
         }
@@ -264,7 +350,18 @@
             doc.text('Ordenes en el periodo: ' + (stats.ordenes != null ? stats.ordenes : '—'), 14, y);
             y += 6;
             doc.text('Ventas en el periodo: ' + formatVentas(stats.ventas), 14, y);
-            y += 14;
+            y += 8;
+            const fin = stats.finanzas || {};
+            doc.text('Ticket promedio: ' + (fin.ticketPromedioDisponible && fin.ticketPromedio != null ? formatVentas(fin.ticketPromedio) : '—'), 14, y);
+            y += 6;
+            doc.text('Insumos en catálogo: ' + (fin.insumosRegistrados != null ? fin.insumosRegistrados : '—')
+                + ' | Bajo stock mín.: ' + (fin.insumosBajoMinimo != null ? fin.insumosBajoMinimo : '—'), 14, y);
+            y += 6;
+            doc.text('Proveedores: ' + (fin.proveedoresRegistrados != null ? fin.proveedoresRegistrados : '—'), 14, y);
+            y += 6;
+            doc.text('Valor inventario (estim.): ' + (fin.valorInventarioDisponible && fin.valorInventario != null
+                ? formatVentas(fin.valorInventario) : '—'), 14, y);
+            y += 10;
             doc.setFontSize(12);
             doc.text('Análisis de resultados', 14, y);
             y += 8;
@@ -272,16 +369,7 @@
             const resumenTexto = generarResumenAnalisis(stats);
             const lineas = doc.splitTextToSize(resumenTexto, 180);
             doc.text(lineas, 14, y);
-            y += lineas.length * 6 + 10;
-            doc.setFontSize(11);
-            doc.text('Resumen del negocio:', 14, y);
-            y += 6;
-            doc.text('• Compras de insumos: Módulo en desarrollo', 14, y);
-            y += 6;
-            doc.text('• Inventario: Próximamente', 14, y);
-            y += 6;
-            doc.text('• Órdenes de compra: Próximamente', 14, y);
-            y += 12;
+            y += lineas.length * 6 + 12;
             doc.setFontSize(9);
             doc.text('Documento generado el ' + new Date().toLocaleString('es-CO'), 14, y);
             doc.save('resumen-dashboard-unisof.pdf');

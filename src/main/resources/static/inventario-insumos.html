@@ -191,6 +191,7 @@
                                     <th>Categoría</th>
                                     <th>Stock actual</th>
                                     <th>Stock mínimo</th>
+                                    <th>Precio unit. (COP)</th>
                                     <th>Unidad</th>
                                     <th>Ref. tela</th>
                                     <th>Color</th>
@@ -198,7 +199,7 @@
                                 </tr>
                             </thead>
                             <tbody id="inventario-tbody">
-                                <tr><td colspan="9" class="usuarios-empty" id="inventario-msg-inicial">Use la búsqueda o «Listar todos» para ver insumos.</td></tr>
+                                <tr><td colspan="10" class="usuarios-empty" id="inventario-msg-inicial">Use la búsqueda o «Listar todos» para ver insumos.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -259,6 +260,11 @@
                         <input type="number" id="ins-minimo" name="stockMinimo" step="any" min="0" placeholder="Opcional">
                     </div>
                     <div class="form-group">
+                        <label for="ins-precio">Precio unitario (COP)</label>
+                        <input type="number" id="ins-precio" name="precioUnitario" step="any" min="0" placeholder="Costo por unidad de medida">
+                        <span class="input-hint-small">COP por <strong>una</strong> unidad de la medida del insumo (m, ud, cono…). En la OC a proveedores: cantidad × este precio.</span>
+                    </div>
+                    <div class="form-group">
                         <label for="ins-ref">Referencia tela</label>
                         <input type="text" id="ins-ref" name="referenciaTela" maxlength="80" placeholder="Opcional">
                     </div>
@@ -311,6 +317,12 @@
             var n = typeof v === 'number' ? v : Number(v);
             if (Number.isNaN(n)) return String(v);
             return new Intl.NumberFormat('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 3 }).format(n);
+        }
+        function fmtCop(v) {
+            if (v == null || v === '') return '—';
+            var n = typeof v === 'number' ? v : Number(v);
+            if (Number.isNaN(n)) return '—';
+            return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
         }
         function escapeHtml(s) {
             if (!s) return '';
@@ -366,6 +378,7 @@
                     '<td>' + escapeHtml(r.categoriaNombre || '—') + '</td>' +
                     '<td>' + fmtQty(r.stockDisponible) + '</td>' +
                     '<td>' + fmtQty(r.stockMinimo) + '</td>' +
+                    '<td>' + fmtCop(r.precioUnitario) + '</td>' +
                     '<td>' + escapeHtml(r.unidadMedida || '—') + '</td>' +
                     '<td>' + escapeHtml(r.referenciaTela || '—') + '</td>' +
                     '<td>' + escapeHtml(r.color || '—') + '</td>' +
@@ -410,7 +423,7 @@
                 if (!res.ok) throw new Error();
                 inventarioCache = await res.json();
                 if (!inventarioCache.length) {
-                    tbody.innerHTML = '<tr><td colspan="9" class="usuarios-empty usuarios-empty--no-existe">No se encontraron insumos.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="10" class="usuarios-empty usuarios-empty--no-existe">No se encontraron insumos.</td></tr>';
                     actualizarSeleccion(null, null);
                     return;
                 }
@@ -418,7 +431,7 @@
                 restaurarSeleccionTrasRender();
             } catch (e) {
                 inventarioCache = [];
-                tbody.innerHTML = '<tr><td colspan="9" class="usuarios-empty">Error al cargar inventario.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" class="usuarios-empty">Error al cargar inventario.</td></tr>';
                 actualizarSeleccion(null, null);
             }
         }
@@ -470,7 +483,7 @@
             inventarioCache = [];
             estadoLista = { modo: 'idle' };
             document.getElementById('inventario-tbody').innerHTML =
-                '<tr><td colspan="9" class="usuarios-empty">' + MSJ_INICIAL + '</td></tr>';
+                '<tr><td colspan="10" class="usuarios-empty">' + MSJ_INICIAL + '</td></tr>';
             actualizarSeleccion(null, null);
         }
 
@@ -486,6 +499,7 @@
             document.getElementById('ins-form-id').value = '';
             formInsumo.reset();
             document.getElementById('ins-stock').value = '0';
+            document.getElementById('ins-precio').value = '';
             var cod = document.getElementById('ins-codigo');
             cod.readOnly = false;
             cod.classList.remove('inventario-input-readonly');
@@ -603,6 +617,13 @@
                 Toast.error('Stock mínimo inválido.');
                 return;
             }
+            var precioEl = document.getElementById('ins-precio');
+            var precioStr = precioEl.value.trim();
+            var precioUnitario = precioStr === '' ? null : parseFloat(precioStr);
+            if (precioUnitario !== null && (Number.isNaN(precioUnitario) || precioUnitario < 0)) {
+                Toast.error('Precio unitario inválido.');
+                return;
+            }
             var body = {
                 codigo: document.getElementById('ins-codigo').value.trim(),
                 nombre: document.getElementById('ins-nombre').value.trim(),
@@ -610,6 +631,7 @@
                 unidadMedida: document.getElementById('ins-unidad').value.trim(),
                 stockDisponible: stock,
                 stockMinimo: minVal,
+                precioUnitario: precioUnitario,
                 referenciaTela: document.getElementById('ins-ref').value.trim() || null,
                 color: document.getElementById('ins-color').value.trim() || null,
                 observaciones: document.getElementById('ins-obs').value.trim() || null,

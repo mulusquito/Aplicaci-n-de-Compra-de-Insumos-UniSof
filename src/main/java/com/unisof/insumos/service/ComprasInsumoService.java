@@ -112,6 +112,14 @@ public class ComprasInsumoService {
         } else {
             i.setStockMinimo(null);
         }
+        if (req.getPrecioUnitario() != null) {
+            if (req.getPrecioUnitario().compareTo(BigDecimal.ZERO) < 0) {
+                throw new IllegalArgumentException("El precio unitario no puede ser negativo.");
+            }
+            i.setPrecioUnitario(req.getPrecioUnitario());
+        } else {
+            i.setPrecioUnitario(null);
+        }
         i.setReferenciaTela(blankToNull(req.getReferenciaTela()));
         i.setColor(blankToNull(req.getColor()));
         i.setObservaciones(blankToNull(req.getObservaciones()));
@@ -144,6 +152,7 @@ public class ComprasInsumoService {
                 .unidadMedida(i.getUnidadMedida())
                 .stockDisponible(i.getStockDisponible())
                 .stockMinimo(i.getStockMinimo())
+                .precioUnitario(i.getPrecioUnitario())
                 .referenciaTela(i.getReferenciaTela())
                 .color(i.getColor())
                 .observaciones(i.getObservaciones())

@@ -69,6 +69,7 @@ public class ComprasDashboardController {
             row.put("referenciaTela", i.getReferenciaTela());
             row.put("color", i.getColor());
             row.put("stockMinimo", min);
+            row.put("precioUnitario", i.getPrecioUnitario());
             row.put("productosCatalogo", i.getProductosCatalogo());
             filas.add(row);
         }

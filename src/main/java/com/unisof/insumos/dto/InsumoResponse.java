@@ -20,6 +20,8 @@ public class InsumoResponse {
     private String unidadMedida;
     private BigDecimal stockDisponible;
     private BigDecimal stockMinimo;
+    /** COP por unidad de medida; puede ser null si aún no se cargó. */
+    private BigDecimal precioUnitario;
     private String referenciaTela;
     private String color;
     private String observaciones;

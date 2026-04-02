@@ -1,6 +1,8 @@
 package com.unisof.insumos.controller;
 
 import com.unisof.insumos.model.Recibo;
+import com.unisof.insumos.repository.InsumoRepository;
+import com.unisof.insumos.repository.ProveedorRepository;
 import com.unisof.insumos.repository.ReciboRepository;
 import com.unisof.insumos.repository.UsuarioRepository;
 import org.springframework.http.ResponseEntity;
@@ -10,11 +12,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,10 +35,18 @@ public class DashboardController {
 
     private final UsuarioRepository usuarioRepository;
     private final ReciboRepository reciboRepository;
+    private final InsumoRepository insumoRepository;
+    private final ProveedorRepository proveedorRepository;
 
-    public DashboardController(UsuarioRepository usuarioRepository, ReciboRepository reciboRepository) {
+    public DashboardController(
+            UsuarioRepository usuarioRepository,
+            ReciboRepository reciboRepository,
+            InsumoRepository insumoRepository,
+            ProveedorRepository proveedorRepository) {
         this.usuarioRepository = usuarioRepository;
         this.reciboRepository = reciboRepository;
+        this.insumoRepository = insumoRepository;
+        this.proveedorRepository = proveedorRepository;
     }
 
     private static final ZoneId ZONE = ZoneId.of("America/Bogota");
@@ -81,13 +93,36 @@ public class DashboardController {
             ));
         }
 
-        return ResponseEntity.ok(Map.of(
-                "usuarios", usuarios,
-                "ordenes", ordenes,
-                "ventas", ventas,
-                "fechaDesde", dInicio.format(DateTimeFormatter.ISO_LOCAL_DATE),
-                "fechaHasta", dFin.format(DateTimeFormatter.ISO_LOCAL_DATE),
-                "ventasPorMes", ventasPorMes
-        ));
+        BigDecimal ticketPromedio = null;
+        if (ordenes > 0) {
+            ticketPromedio = ventas.divide(BigDecimal.valueOf(ordenes), 2, RoundingMode.HALF_UP);
+        }
+
+        Map<String, Object> finanzas = new LinkedHashMap<>();
+        finanzas.put("ticketPromedio", ticketPromedio);
+        finanzas.put("ticketPromedioDisponible", ordenes > 0);
+        finanzas.put("comprasTotalDisponible", false);
+        long insumosConPrecio = insumoRepository.countByPrecioUnitarioIsNotNull();
+        BigDecimal valorInventario = insumoRepository.sumValorInventarioPorPrecioUnitario();
+        if (valorInventario == null) {
+            valorInventario = BigDecimal.ZERO;
+        }
+        finanzas.put("valorInventario", valorInventario);
+        finanzas.put("valorInventarioDisponible", insumosConPrecio > 0);
+        finanzas.put("insumosSinPrecioUnitario", insumoRepository.countSinPrecioUnitario());
+        finanzas.put("resultadoOperativoDisponible", false);
+        finanzas.put("insumosRegistrados", insumoRepository.count());
+        finanzas.put("insumosBajoMinimo", insumoRepository.countBajoStockMinimo());
+        finanzas.put("proveedoresRegistrados", proveedorRepository.count());
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("usuarios", usuarios);
+        body.put("ordenes", ordenes);
+        body.put("ventas", ventas);
+        body.put("fechaDesde", dInicio.format(DateTimeFormatter.ISO_LOCAL_DATE));
+        body.put("fechaHasta", dFin.format(DateTimeFormatter.ISO_LOCAL_DATE));
+        body.put("ventasPorMes", ventasPorMes);
+        body.put("finanzas", finanzas);
+        return ResponseEntity.ok(body);
     }
 }

@@ -19,6 +19,9 @@ import java.util.List;
  * Categorías e insumos de ejemplo alineados al catálogo de ventas UNISOF (index/ventas: mujer y hombre).
  * Solo ejecuta si la tabla de insumos está vacía. Si ya hay datos de una corrida anterior,
  * use el CRUD de inventario para unificar el texto «Prendas catálogo» o vacíe la tabla en desarrollo.
+ * <p>
+ * Los precios unitarios provienen de {@link InsumoPreciosReferenciaCOP} (COP por unidad de medida del insumo).
+ * </p>
  */
 @Component
 @Order(200)
@@ -161,6 +164,7 @@ public class InsumoDataInitializer implements ApplicationRunner {
         i.setUnidadMedida(unidad);
         i.setStockDisponible(new BigDecimal(stock));
         i.setStockMinimo(new BigDecimal(minimo));
+        InsumoPreciosReferenciaCOP.precioParaCodigo(codigo).ifPresent(i::setPrecioUnitario);
         i.setReferenciaTela(refTela);
         i.setColor(color);
         i.setProductosCatalogo(catalogo);

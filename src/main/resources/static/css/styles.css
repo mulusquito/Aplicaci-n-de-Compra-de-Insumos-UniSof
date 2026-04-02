@@ -1038,12 +1038,15 @@ button.panel-btn:hover {
 }
 .admin-main-wrap {
     flex: 1;
-    margin-left: 260px;
+    /* Debe coincidir con .admin-sidebar (288px); 260px cortaba el contenido bajo el sidebar */
+    margin-left: var(--admin-sidebar-w, 288px);
     display: flex;
     flex-direction: column;
     min-height: 100vh;
     background: #1a1a1a;
     overflow: hidden;
+    box-sizing: border-box;
+    min-width: 0;
 }
 .admin-topbar {
     position: fixed;
@@ -1991,6 +1994,103 @@ body.inventario-modal-open .a11y-widget-panel {
     color: #888;
     margin: 0 0 20px 0;
 }
+.dashboard-section--finanzas .dashboard-section-desc {
+    max-width: 720px;
+    line-height: 1.5;
+}
+.dashboard-soon-inline {
+    color: #a08050;
+    font-size: 13px;
+    font-weight: 600;
+}
+.dashboard-finanzas-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px 18px;
+    max-width: 960px;
+}
+.dashboard-finanza-card {
+    position: relative;
+    background: #111;
+    border: 1px solid #252525;
+    border-radius: 12px;
+    padding: 18px 18px 16px;
+    min-height: 132px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.dashboard-finanza-card:hover {
+    border-color: #333;
+}
+.dashboard-finanza-card--soon {
+    border-style: dashed;
+    border-color: #333;
+    background: linear-gradient(145deg, #101010 0%, #141414 100%);
+}
+.dashboard-finanza-card--soon:hover {
+    border-color: #444;
+}
+.dashboard-finanza-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #a08050;
+    background: rgba(245, 166, 35, 0.1);
+    border: 1px solid rgba(245, 166, 35, 0.25);
+    padding: 4px 8px;
+    border-radius: 999px;
+}
+.dashboard-finanza-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #9a9a9a;
+    margin: 0 72px 10px 0;
+    line-height: 1.3;
+}
+.dashboard-finanza-card--soon .dashboard-finanza-title {
+    margin-right: 0;
+}
+.dashboard-finanza-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #f0f0f0;
+    margin: 0 0 6px 0;
+    line-height: 1.2;
+}
+.dashboard-finanza-value--muted {
+    font-size: 15px;
+    font-weight: 600;
+    color: #666;
+}
+.dashboard-finanza-sub {
+    font-size: 12px;
+    color: #c9a227;
+    margin: 0 0 8px 0;
+    line-height: 1.35;
+}
+.dashboard-finanza-hint {
+    font-size: 11px;
+    color: #5a5a5a;
+    margin: auto 0 0 0;
+    line-height: 1.4;
+}
+@media (max-width: 900px) {
+    .dashboard-finanzas-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (max-width: 520px) {
+    .dashboard-finanzas-grid {
+        grid-template-columns: 1fr;
+    }
+}
 .dashboard-chart-placeholder {
     background: #111;
     border: 1px solid #222;
@@ -2061,41 +2161,6 @@ body.inventario-modal-open .a11y-widget-panel {
     font-size: 12px;
     color: #666;
     margin: 0;
-}
-.dashboard-summary-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-.dashboard-summary-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px 18px;
-    background: #111;
-    border: 1px solid #222;
-    border-radius: 10px;
-}
-.dashboard-summary-label {
-    font-size: 14px;
-    color: #ccc;
-}
-.dashboard-summary-value {
-    font-size: 13px;
-    color: #888;
-}
-a.dashboard-summary-item.compras-quick-link {
-    text-decoration: none;
-    color: inherit;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
-}
-a.dashboard-summary-item.compras-quick-link:hover {
-    border-color: #f5a623;
-    background: #161616;
-}
-a.dashboard-summary-item.compras-quick-link .dashboard-summary-value {
-    color: #f5a623;
 }
 .admin-sidebar-toggle {
     display: none;
@@ -3833,6 +3898,37 @@ body[data-a11y-theme="light"] input,
 body[data-a11y-theme="light"] select {
     border-color: #ccc !important;
     background-color: #fff !important;
+}
+body[data-a11y-theme="light"] .dashboard-finanza-card {
+    background: #fff !important;
+    border-color: #e0e0e0 !important;
+}
+body[data-a11y-theme="light"] .dashboard-finanza-card--soon {
+    background: #fafafa !important;
+    border-color: #d5d5d5 !important;
+}
+body[data-a11y-theme="light"] .dashboard-finanza-title {
+    color: #555 !important;
+}
+body[data-a11y-theme="light"] .dashboard-finanza-value {
+    color: #111 !important;
+}
+body[data-a11y-theme="light"] .dashboard-finanza-hint {
+    color: #777 !important;
+}
+body[data-a11y-theme="light"] .dashboard-finanza-value--muted {
+    color: #888 !important;
+}
+body[data-a11y-theme="light"] .dashboard-finanza-sub {
+    color: #8a6d1a !important;
+}
+body[data-a11y-theme="light"] .dashboard-soon-inline {
+    color: #8a6d1a !important;
+}
+body[data-a11y-theme="light"] .dashboard-finanza-badge {
+    color: #8a6d1a !important;
+    background: rgba(245, 166, 35, 0.12) !important;
+    border-color: rgba(200, 160, 80, 0.4) !important;
 }
 
 /* Color del texto (todas las interfaces) */

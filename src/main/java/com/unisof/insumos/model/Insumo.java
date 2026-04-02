@@ -37,6 +37,14 @@ public class Insumo {
     @Column(precision = 18, scale = 4)
     private BigDecimal stockMinimo;
 
+    /**
+     * Costo o precio de referencia en COP <strong>por una unidad de {@link #unidadMedida}</strong>
+     * (ej. COP por metro si {@code unidadMedida} es {@code m}, COP por {@code ud}, por {@code cono}, etc.).
+     * En órdenes de compra: cantidad pedida (en esa unidad) × este precio = subtotal estimado de la línea.
+     */
+    @Column(precision = 18, scale = 4)
+    private BigDecimal precioUnitario;
+
     @Column(length = 120)
     private String referenciaTela;
 

@@ -1,5 +1,6 @@
 package com.unisof.insumos.dto;
 
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -25,6 +26,10 @@ public class InsumoRequest {
     private BigDecimal stockDisponible;
 
     private BigDecimal stockMinimo;
+
+    /** Costo/precio de referencia por unidad de medida (COP). Opcional. */
+    @DecimalMin(value = "0", inclusive = true, message = "El precio unitario no puede ser negativo.")
+    private BigDecimal precioUnitario;
 
     private String referenciaTela;
 
