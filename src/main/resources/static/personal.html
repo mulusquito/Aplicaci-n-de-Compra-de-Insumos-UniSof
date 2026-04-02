@@ -145,7 +145,7 @@
                 <select id="reg-rol" name="rol" required>
                     <option value="" data-i18n-key="personal.selectRole">Seleccione un rol</option>
                     <option value="VENDEDOR" data-i18n-key="personal.vendedor">Vendedor</option>
-                    <option value="JEFE DE VENTAS" data-i18n-key="personal.jefeVentas">Jefe de ventas</option>
+                    <option value="JEFE DE COMPRAS" data-i18n-key="personal.jefeCompras">Jefe de compras</option>
                     <option value="ADMINISTRADOR" data-i18n-key="personal.administrador">Administrador</option>
                 </select>
             </div>
@@ -155,7 +155,7 @@
                     <span>Acepto la <a href="/terminos-y-condiciones.html" id="link-politica">Política de privacidad</a> y los <a href="/terminos-y-condiciones.html" id="link-terminos">Términos y condiciones</a>.</span>
                 </label>
             </div>
-            <div class="modal-registro-actions">
+            <div class="modal-registro-actions personal-registro-form-actions">
                 <button type="reset" class="btn-registro-cancelar" id="btn-form-secundario" data-i18n-key="personal.clear">Limpiar</button>
                 <button type="submit" class="btn-registro-enviar" id="btn-registrar-guardar" data-i18n-key="personal.register">Registrar</button>
             </div>
@@ -532,7 +532,9 @@
                 document.getElementById('reg-identificacion').value = u.numeroIdentificacion || '';
                 document.getElementById('reg-correo').value = u.correo || '';
                 document.getElementById('reg-celular').value = u.celular || '';
-                document.getElementById('reg-rol').value = u.rol || '';
+                let rolEdit = u.rol || '';
+                if (rolEdit === 'JEFE DE VENTAS') rolEdit = 'JEFE DE COMPRAS';
+                document.getElementById('reg-rol').value = rolEdit;
                 document.getElementById('reg-clave').value = '';
                 document.getElementById('reg-confirmar-clave').value = '';
 

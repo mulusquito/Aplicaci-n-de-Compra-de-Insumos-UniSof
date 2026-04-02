@@ -51,7 +51,7 @@ public class Usuario {
     @Column(length = 20)
     private String celular;
 
-    /** Rol del usuario (ej: ADMINISTRADOR, VENDEDOR, JEFE DE VENTAS) */
+    /** Rol del usuario (ej: ADMINISTRADOR, VENDEDOR, JEFE DE COMPRAS; puede existir JEFE DE VENTAS en registros antiguos) */
     @Column(nullable = false)
     private String rol = "WORKER";
 

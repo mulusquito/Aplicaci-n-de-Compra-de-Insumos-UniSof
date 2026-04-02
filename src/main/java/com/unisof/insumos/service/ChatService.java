@@ -36,7 +36,7 @@ public class ChatService {
         reglas.add(new FaqRegla("usuario, nombre usuario, olvidé usuario",
                 "El usuario lo define el administrador al registrarte. Revisa el correo de bienvenida o pide al administrador que te lo indique."));
         reglas.add(new FaqRegla("rol, roles, administrador, vendedor, jefe",
-                "Hay tres roles: Administrador, Vendedor y Jefe de ventas. El administrador asigna el rol en Gestión de personal."));
+                "Hay tres roles: Administrador, Vendedor y Jefe de compras. El administrador asigna el rol en Gestión de personal."));
         reglas.add(new FaqRegla("registrar usuario, nuevo usuario, gestión personal, personal",
                 "Solo el administrador puede registrar usuarios. Panel admin > Gestión de personal > Registrar. Completa datos y acepta términos. Se envía correo de bienvenida."));
         reglas.add(new FaqRegla("dashboard, reportes, ventas, estadísticas",
