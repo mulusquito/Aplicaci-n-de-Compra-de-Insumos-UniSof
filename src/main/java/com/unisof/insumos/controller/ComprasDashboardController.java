@@ -1,7 +1,9 @@
 package com.unisof.insumos.controller;
 
 import com.unisof.insumos.model.Insumo;
+import com.unisof.insumos.service.AuditoriaService;
 import com.unisof.insumos.service.ComprasInsumoService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,10 +18,7 @@ import java.util.Map;
 
 /**
  * KPIs y análisis de insumos para el panel Jefe de compras.
- * <p>
- * "Requerido" en {@code analisisInsumos} corresponde al stock mínimo operativo del insumo
- * hasta exista integración con pedidos/BOM.
- * </p>
+ * SCRUM-64: Acceso al dashboard de compras registrado en auditoría.
  */
 @RestController
 @RequestMapping("/api/compras")
@@ -27,9 +26,14 @@ import java.util.Map;
 public class ComprasDashboardController {
 
     private final ComprasInsumoService comprasInsumoService;
+    private final AuditoriaService auditoriaService;  // SCRUM-64
 
+    /**
+     * Resumen de KPIs del módulo de compras.
+     * SCRUM-64: Registra CONSULTAR en módulo COMPRAS.
+     */
     @GetMapping("/dashboard")
-    public ResponseEntity<Map<String, Object>> dashboard() {
+    public ResponseEntity<Map<String, Object>> dashboard(HttpServletRequest httpRequest) {
         List<Insumo> todos = comprasInsumoService.todosOrdenados();
         BigDecimal sumaMin = BigDecimal.ZERO;
         BigDecimal sumaDisp = BigDecimal.ZERO;
@@ -96,6 +100,18 @@ public class ComprasDashboardController {
         body.put("faltantesEstimadoCOP", null);
         body.put("unidadesTotalesPedidos", null);
         body.put("analisisInsumos", filas);
+
+        // SCRUM-64: auditoría de acceso al dashboard de compras
+        String[] ui = auditoriaService.obtenerUsuarioInfo();
+        auditoriaService.registrar(
+                AuditoriaService.ACC_CONSULTAR, AuditoriaService.MOD_COMPRAS,
+                "Consulta del dashboard de compras — insumos totales: " + todos.size() +
+                ", faltantes: " + bajo,
+                ui[0], ui[1], auditoriaService.obtenerIp(httpRequest),
+                AuditoriaService.RES_EXITOSO,
+                "insumos=" + todos.size() + ", bajo_stock=" + bajo
+        );
+
         return ResponseEntity.ok(body);
     }
 }

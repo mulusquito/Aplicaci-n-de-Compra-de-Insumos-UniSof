@@ -32,6 +32,17 @@ import java.util.Map;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    /**
+     * Handler de auditoría para logout. Se inyecta aquí para registrar
+     * el cierre de sesión antes de que Spring Security invalide la sesión.
+     * SCRUM-64.
+     */
+    private final LogoutAuditoriaHandler logoutAuditoriaHandler;
+
+    public SecurityConfig(LogoutAuditoriaHandler logoutAuditoriaHandler) {
+        this.logoutAuditoriaHandler = logoutAuditoriaHandler;
+    }
+
     /** Codificador BCrypt para contrasenas */
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -57,7 +68,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health", "/actuator/prometheus").permitAll()
                         .requestMatchers("/api/auth/login", "/api/auth/verify-token", "/api/auth/solicitar-recuperacion", "/api/auth/restablecer-contrasena", "/api/webhooks/**", "/api/chat").permitAll()
-                        .requestMatchers("/api/usuarios/**", "/api/dashboard/**", "/api/proveedores/**").hasRole("ADMINISTRADOR")
+                        // SCRUM-64: logs de auditoría solo para ADMINISTRADOR
+                        .requestMatchers("/api/usuarios/**", "/api/dashboard/**", "/api/proveedores/**", "/api/auditoria/**").hasRole("ADMINISTRADOR")
                         .requestMatchers("/api/compras/**").hasAnyRole("ADMINISTRADOR", "JEFE DE COMPRAS", "JEFE DE VENTAS")
                         .requestMatchers("/api/auth/logout", "/api/auth/me", "/api/checkout/create-preference", "/api/clientes/**", "/api/recibos/**").authenticated()
                         .requestMatchers(
@@ -84,6 +96,8 @@ public class SecurityConfig {
                 )
                 .logout(logout -> logout
                         .logoutUrl("/api/auth/logout")
+                        // SCRUM-64: registrar logout en auditoría ANTES de invalidar la sesión
+                        .addLogoutHandler(logoutAuditoriaHandler)
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                         .logoutSuccessHandler((req, res, auth) -> res.setStatus(HttpServletResponse.SC_OK))
