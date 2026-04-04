@@ -301,6 +301,31 @@ public class AnalisisOrdenController {
         );
     }
 
+    // ─── Cambiar estado de un análisis (Quitar del panel) ────────────────────
+
+    @PatchMapping("/{id}/estado")
+    @Transactional
+    public ResponseEntity<?> cambiarEstado(@PathVariable Long id,
+                                           @RequestBody Map<String, String> body) {
+        String nuevoEstado = body.get("estado");
+        if (nuevoEstado == null || nuevoEstado.isBlank())
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "Estado requerido"));
+
+        AnalisisOrden analisis = analisisRepo.findById(id).orElse(null);
+        if (analisis == null) return ResponseEntity.notFound().build();
+
+        analisis.setEstado(nuevoEstado);
+        analisisRepo.save(analisis);
+
+        Recibo recibo = reciboRepo.findById(analisis.getOrdenId()).orElse(null);
+        if (recibo != null) {
+            recibo.setEstado(nuevoEstado);
+            reciboRepo.save(recibo);
+        }
+
+        return ResponseEntity.ok(Map.of("mensaje", "Estado actualizado a " + nuevoEstado, "estado", nuevoEstado));
+    }
+
     // ─── Listar análisis ─────────────────────────────────────────────────────
 
     @GetMapping
@@ -360,6 +385,7 @@ public class AnalisisOrdenController {
         m.put("fechaAnalisis",         a.getFechaAnalisis().toString());
         m.put("faltantesCalculados",   a.isFaltantesCalculados());
         m.put("fechaCalculo",          a.getFechaCalculo() != null ? a.getFechaCalculo().toString() : null);
+        m.put("consolidado",           a.isConsolidado());
         return m;
     }
 

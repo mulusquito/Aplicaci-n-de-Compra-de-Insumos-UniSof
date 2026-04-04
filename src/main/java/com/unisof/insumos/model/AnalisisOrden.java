@@ -74,6 +74,10 @@ public class AnalisisOrden {
     @Column(name = "faltantes_json", columnDefinition = "TEXT")
     private String faltantesJson;
 
+    /** Si esta orden ya fue incluida en un reporte consolidado de faltantes. */
+    @Column(name = "consolidado", columnDefinition = "boolean not null default false")
+    private boolean consolidado = false;
+
     public AnalisisOrden(Long ordenId, Integer ordenNumero, String clienteNombre,
                          Instant fechaOrden, String estado, String resultadoJson) {
         this.ordenId       = ordenId;

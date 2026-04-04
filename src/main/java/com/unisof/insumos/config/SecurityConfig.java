@@ -73,6 +73,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/compras/**").hasAnyRole("ADMINISTRADOR", "JEFE DE COMPRAS", "JEFE DE VENTAS")
                         .requestMatchers("/api/fichas-tecnicas/**").hasAnyRole("ADMINISTRADOR", "JEFE DE COMPRAS", "JEFE DE VENTAS")
                         .requestMatchers("/api/analisis-ordenes/**").hasAnyRole("ADMINISTRADOR", "JEFE DE COMPRAS", "JEFE DE VENTAS")
+                        .requestMatchers("/api/reportes-consolidados/**").hasAnyRole("ADMINISTRADOR", "JEFE DE COMPRAS", "JEFE DE VENTAS")
                         .requestMatchers("/api/auth/logout", "/api/auth/me", "/api/checkout/create-preference", "/api/clientes/**", "/api/recibos/**").authenticated()
                         .requestMatchers(
                                 "/",
@@ -94,6 +95,7 @@ public class SecurityConfig {
                                 "/fichas-tecnicas.html",
                                 "/reporte-faltantes.html",
                                 "/analisis-insumos.html",
+                                "/ordenes-compra.html",
                                 "/css/**",
                                 "/js/**",
                                 "/images/**"
