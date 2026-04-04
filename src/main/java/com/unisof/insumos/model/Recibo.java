@@ -39,8 +39,8 @@ public class Recibo {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String itemsJson;
 
-    /** Estado: PENDIENTE o PAGADO */
-    @Column(nullable = false, length = 20)
+    /** Estado: PENDIENTE, PAGADO, POR REVISAR, EN ESPERA POR PRODUCCION, EN CONFECCION */
+    @Column(nullable = false, length = 50)
     private String estado = "PENDIENTE";
 
     /** Vendedor que realizó la venta */

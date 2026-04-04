@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Análisis de Insumos — Jefe de Compras | UNISOF">
+    <title>Análisis de Insumos — Jefe de Compras | UNISOF</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .oc-section { padding: 24px; }
+
+        /* Toolbar simétrico */
+        .oc-toolbar { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; max-width: 560px; }
+        .oc-search-row { display: flex; align-items: center; gap: 10px; }
+        .oc-search-row label { width: 100px; flex-shrink: 0; color: #aaa; font-size: 13px; font-weight: 600; text-align: right; }
+        .oc-search-row input { flex: 1; padding: 9px 13px; border-radius: 8px; border: 1px solid #444; background: #222; color: #fff; font-size: 14px; }
+        .oc-search-row input:focus { outline: none; border-color: #f5a623; box-shadow: 0 0 0 2px rgba(245,166,35,0.2); }
+        .oc-search-row .oc-btn { width: 120px; flex-shrink: 0; }
+        .oc-actions-row { display: flex; gap: 10px; padding-left: 110px; margin-top: 4px; flex-wrap: wrap; }
+
+        /* Botones */
+        .oc-btn { padding: 9px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: background 0.15s, opacity 0.15s; white-space: nowrap; }
+        .oc-btn-yellow  { background: #f5a623; color: #1a1a1a; }
+        .oc-btn-yellow:hover  { background: #e09520; }
+        .oc-btn-secondary { background: #2a2a2a; color: #ddd; border: 1px solid #444; }
+        .oc-btn-secondary:hover { background: #333; }
+        .oc-btn-outline { background: transparent; color: #888; border: 1px solid #444; }
+        .oc-btn-outline:hover { background: #2a2a2a; color: #ccc; }
+        .oc-btn-calc { background: transparent; color: #888; border: 1px solid #555; font-size: 12px; }
+        .oc-btn-calc:disabled { opacity: 0.4; cursor: not-allowed; }
+        .oc-btn-calc:not(:disabled) { color: #5b8dd9; border-color: #5b8dd9; }
+        .oc-btn-calc:not(:disabled):hover { background: #5b8dd922; }
+
+        .oc-page-title { font-size: 20px; font-weight: 700; color: #f5a623; margin: 0 0 24px; display: flex; align-items: center; gap: 10px; }
+
+        /* ── Badges de estado ── */
+        .rf-estado-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; white-space: nowrap; }
+        .rf-estado-revisar     { background: #f5a62333; color: #f5a623; }
+        .rf-estado-espera      { background: #5b8dd933; color: #5b8dd9; }
+        .rf-estado-confeccion  { background: #28a74533; color: #28a745; }
+        .rf-estado-pagado      { background: #66666633; color: #999; }
+        .rf-estado-pendiente   { background: #f5a62333; color: #f5a623; }
+
+        /* ── Panel de resultado de cálculo ── */
+        #rf-resultado-panel {
+            display: none;
+            background: #161616;
+            border: 1px solid #f5a62355;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        #rf-resultado-panel.visible { display: block; }
+        .rfr-header {
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px 18px;
+            background: #1a1a1a;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .rfr-header-title { font-size: 14px; font-weight: 700; color: #f5a623; flex: 1; }
+        .rfr-header-sub { font-size: 12px; color: #aaa; margin-left: 8px; font-weight: 400; }
+        .rfr-close-btn {
+            background: transparent; border: 1px solid #444; color: #888;
+            border-radius: 6px; padding: 4px 12px; font-size: 12px; cursor: pointer;
+        }
+        .rfr-close-btn:hover { background: #2a2a2a; color: #ccc; }
+        .rfr-estado-change {
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 18px;
+            background: #1e1e1e;
+            border-bottom: 1px solid #242424;
+            font-size: 12px; color: #aaa;
+        }
+        .rfr-ya-calculado {
+            padding: 10px 18px;
+            background: #2a1a0022;
+            border-bottom: 1px solid #2a2a2a;
+            font-size: 12px; color: #f5a623;
+            font-style: italic;
+        }
+        .rfr-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 16px; }
+        .rfr-item { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px; overflow: hidden; }
+        .rfr-item-header {
+            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+            padding: 12px 16px;
+            background: #1e1e1e;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .rfr-item-completo-banner {
+            padding: 12px 16px;
+            display: flex; align-items: center; gap: 8px;
+            font-size: 13px; color: #28a745; font-weight: 600;
+        }
+        .rfr-item-prenda { font-size: 13px; font-weight: 700; color: #f5a623; }
+        .rfr-item-badge { padding: 2px 9px; border-radius: 12px; font-size: 11px; font-weight: 600; background: #2a2a2a; color: #aaa; border: 1px solid #444; }
+        .rfr-no-ficha { padding: 12px 16px; font-size: 12px; color: #e05a5a; font-style: italic; }
+
+        .rfr-table-wrap { overflow-x: auto; }
+        .rfr-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .rfr-table th { background: #161616; color: #aaa; font-weight: 700; padding: 8px 14px; text-align: left; border-bottom: 1px solid #2a2a2a; white-space: nowrap; }
+        .rfr-table th.col-faltante { color: #e05a5a; }
+        .rfr-table th.col-ok { color: #28a745; }
+        .rfr-table td { padding: 8px 14px; border-bottom: 1px solid #1e1e1e; color: #ddd; vertical-align: middle; }
+        .rfr-table tbody tr:last-child td { border-bottom: none; }
+        .rfr-table tbody tr:hover { background: #181818; }
+        .rfr-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+        .rfr-table td.faltante-val { text-align: right; font-weight: 700; color: #e05a5a; font-variant-numeric: tabular-nums; }
+        .rfr-table td.ok-val { text-align: right; color: #28a745; }
+
+        /* ── Lista de análisis ── */
+        .rf-lista { display: flex; flex-direction: column; gap: 14px; }
+        .rf-card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px; overflow: hidden; transition: border-color 0.2s; }
+        .rf-card.selected { border-color: #5b8dd9; }
+        .rf-card-header { display: flex; align-items: center; gap: 14px; padding: 14px 18px; cursor: pointer; user-select: none; }
+        .rf-card-header:hover { background: #202020; }
+        .rf-card-num { font-size: 15px; font-weight: 800; color: #f5a623; min-width: 52px; }
+        .rf-card-cliente { font-size: 14px; color: #ddd; font-weight: 600; flex: 1; }
+        .rf-card-meta { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .rf-card-fecha { font-size: 12px; color: #888; }
+        .rf-card-analisis-fecha { font-size: 11px; color: #555; font-style: italic; }
+        .rf-calc-chip { font-size: 10px; padding: 2px 7px; border-radius: 8px; background: #5b8dd922; color: #5b8dd9; border: 1px solid #5b8dd944; font-weight: 600; }
+        .rf-toggle-icon { font-size: 14px; color: #555; transition: transform 0.2s; }
+        .rf-card.open .rf-toggle-icon { transform: rotate(180deg); }
+
+        /* Detalle expandible */
+        .rf-card-detail { display: none; border-top: 1px solid #242424; padding: 16px 18px; }
+        .rf-card.open .rf-card-detail { display: block; }
+
+        .rf-detail-item { margin-bottom: 18px; }
+        .rf-detail-item:last-child { margin-bottom: 0; }
+        .rf-item-title { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+        .rf-item-title-prenda { font-size: 13px; font-weight: 700; color: #f5a623; }
+        .rf-item-chip { padding: 2px 9px; border-radius: 12px; font-size: 11px; font-weight: 600; background: #2a2a2a; color: #aaa; border: 1px solid #444; }
+        .rf-no-ficha-txt { font-size: 12px; color: #e05a5a; font-style: italic; padding: 6px 0; }
+
+        .rf-table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid #2a2a2a; }
+        .rf-table { width: 100%; border-collapse: collapse; font-size: 13px; background: #111; }
+        .rf-table th { background: #1e1e1e; color: #aaa; font-weight: 700; padding: 9px 13px; text-align: left; border-bottom: 1px solid #2a2a2a; white-space: nowrap; }
+        .rf-table th.col-total { color: #f5a623; }
+        .rf-table td { padding: 8px 13px; border-bottom: 1px solid #1e1e1e; color: #ddd; }
+        .rf-table tbody tr:last-child td { border-bottom: none; }
+        .rf-table tbody tr:hover { background: #181818; }
+        .rf-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+        .rf-table td.total { text-align: right; font-weight: 700; color: #f5a623; font-variant-numeric: tabular-nums; }
+
+        /* Estado vacío */
+        .rf-empty { text-align: center; padding: 56px 24px; color: #666; font-size: 14px; }
+        .rf-empty-icon { font-size: 40px; display: block; margin-bottom: 12px; }
+
+        /* Info banner (CAMBIO 2) */
+        .rf-info-banner {
+            display: flex; align-items: flex-start; gap: 12px;
+            background: #1a2a1a; border: 1px solid #28a74555; border-radius: 10px;
+            padding: 14px 18px; margin-bottom: 18px; font-size: 13px; color: #ddd;
+        }
+        .rf-info-banner.hidden { display: none; }
+        .rf-info-banner-icon { font-size: 18px; flex-shrink: 0; }
+        .rf-info-banner-text { flex: 1; }
+        .rf-info-banner-text a { color: #f5a623; text-decoration: underline; }
+        .rf-info-banner-close {
+            background: transparent; border: none; color: #666; cursor: pointer;
+            font-size: 16px; padding: 0; line-height: 1;
+        }
+        .rf-info-banner-close:hover { color: #ccc; }
+        /* "Por conseguir" column CSS (CAMBIO 4) */
+        .rfr-table th.col-conseguir { color: #f5a623; }
+        .rfr-table td.conseguir-faltante { text-align: right; font-weight: 700; color: #e05a5a; font-variant-numeric: tabular-nums; }
+        .rfr-table td.conseguir-ok { text-align: right; color: #28a745; font-weight: 600; font-size: 12px; }
+
+        @media (max-width: 768px) {
+            .oc-toolbar { max-width: 100%; }
+            .oc-search-row { flex-direction: column; align-items: stretch; }
+            .oc-search-row label { width: auto; text-align: left; }
+            .oc-search-row .oc-btn { width: 100%; }
+            .oc-actions-row { padding-left: 0; flex-direction: column; }
+            .rf-card-meta { flex-direction: column; align-items: flex-start; gap: 4px; }
+            .rfr-header { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body class="compras-jefe-body">
+
+    <aside class="admin-sidebar" id="compras-jefe-sidebar" aria-label="Módulos de compras">
+        <div class="admin-sidebar-header">
+            <a href="/" class="admin-logo admin-logo--sin-icono" aria-label="UNISOF — Inicio">
+                <span class="admin-logo-text">UNISOF</span>
+            </a>
+        </div>
+        <p class="compras-modulos-label">Módulos</p>
+        <nav class="admin-nav admin-nav--compras-modulos">
+            <a href="/compras.html" class="admin-nav-item" data-nav="dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+                <span class="admin-nav-text">Dashboard</span>
+            </a>
+            <a href="/ordenes-compras.html" class="admin-nav-item" data-nav="pedidos">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>
+                </svg>
+                <span class="admin-nav-text">Pedidos</span>
+            </a>
+            <a href="/analisis-insumos.html" class="admin-nav-item active" data-nav="analisis">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="8" width="5" height="13" rx="1"/><rect x="17" y="13" width="5" height="8" rx="1"/>
+                </svg>
+                <span class="admin-nav-text">Análisis de insumos</span>
+            </a>
+            <a href="/inventario-insumos.html" class="admin-nav-item" data-nav="inventario">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <path d="M3.27 6.96L12 12.01l8.73-5.05"/><path d="M12 22.08V12"/>
+                </svg>
+                <span class="admin-nav-text">Inventario</span>
+            </a>
+            <a href="/reporte-faltantes.html" class="admin-nav-item" data-nav="reporte">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
+                </svg>
+                <span class="admin-nav-text">Reporte faltantes</span>
+            </a>
+            <span class="admin-nav-item admin-nav-item--disabled">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                </svg>
+                <span class="admin-nav-text">Órdenes de compra</span>
+                <span class="admin-nav-hint">(Próximamente)</span>
+            </span>
+        </nav>
+        <div class="admin-sidebar-footer">
+            <div class="admin-user-info">
+                <span class="admin-user-name" id="user-name">—</span>
+                <span class="admin-user-rol" id="user-rol">Jefe de Compras</span>
+            </div>
+            <button type="button" class="admin-btn-logout" id="btn-logout">Cerrar sesión</button>
+        </div>
+    </aside>
+
+    <div class="compras-jefe-main">
+        <header class="compras-jefe-topbar" aria-label="Cabecera del panel"></header>
+
+        <div class="compras-jefe-content">
+            <div class="oc-section">
+
+                <h1 class="oc-page-title">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex-shrink:0;">
+                        <rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="8" width="5" height="13" rx="1"/><rect x="17" y="13" width="5" height="8" rx="1"/>
+                    </svg>
+                    Análisis de Insumos
+                </h1>
+
+                <!-- Toolbar de búsqueda -->
+                <div class="oc-toolbar">
+                    <div class="oc-search-row">
+                        <label for="buscar-numero">Nº orden</label>
+                        <input type="text" id="buscar-numero" placeholder="001, 002…">
+                        <button type="button" class="oc-btn oc-btn-secondary" id="btn-buscar-numero">Por número</button>
+                    </div>
+                    <div class="oc-search-row">
+                        <label for="buscar-fecha">Fecha exacta</label>
+                        <input type="date" id="buscar-fecha">
+                        <button type="button" class="oc-btn oc-btn-secondary" id="btn-buscar-fecha">Por fecha</button>
+                    </div>
+                    <div class="oc-search-row">
+                        <label for="buscar-mes">Mes</label>
+                        <input type="month" id="buscar-mes">
+                        <button type="button" class="oc-btn oc-btn-secondary" id="btn-buscar-mes">Por mes</button>
+                    </div>
+                    <div class="oc-actions-row">
+                        <button type="button" class="oc-btn oc-btn-yellow" id="btn-listar-todos">Listar todas</button>
+                        <button type="button" class="oc-btn oc-btn-outline" id="btn-limpiar">Limpiar</button>
+                        <button type="button" class="oc-btn oc-btn-calc" id="btn-calcular-faltantes" disabled
+                                title="Selecciona un análisis primero">
+                            ⚙ Calcular insumos faltantes para el pedido seleccionado
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Banner informativo pedido con faltantes (CAMBIO 2) -->
+                <div class="rf-info-banner hidden" id="rf-info-banner">
+                    <span class="rf-info-banner-icon">⚠</span>
+                    <span class="rf-info-banner-text">
+                        Este pedido tiene insumos faltantes y ha sido movido a
+                        <a href="/reporte-faltantes.html">Reporte faltantes</a>.
+                        Allí podrás ver el detalle completo de lo que necesitas conseguir.
+                    </span>
+                    <button class="rf-info-banner-close" id="rf-info-banner-close">✕</button>
+                </div>
+
+                <!-- Panel de resultado del cálculo de faltantes -->
+                <div id="rf-resultado-panel">
+                    <div class="rfr-header">
+                        <span class="rfr-header-title" id="rfr-title">Resultado del cálculo</span>
+                        <button type="button" class="rfr-close-btn" id="rfr-close">✕ Cerrar</button>
+                    </div>
+                    <div id="rfr-estado-row"></div>
+                    <div class="rfr-body" id="rfr-body"></div>
+                </div>
+
+                <!-- Lista de análisis -->
+                <div id="rf-contenedor">
+                    <div class="rf-empty">
+                        <span class="rf-empty-icon">⏳</span>
+                        Cargando análisis…
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <button type="button" class="compras-jefe-sidebar-toggle" id="compras-jefe-sidebar-toggle" aria-label="Abrir menú">☰</button>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/toast.js"></script>
+    <script src="/js/accessibility.js"></script>
+    <script src="/js/unisof-brand-info.js" defer></script>
+    <link rel="stylesheet" href="/css/chat.css">
+    <script src="/js/chat.js" defer></script>
+    <script>
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Helpers                                                            */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        function esRolPanelCompras(rol) {
+            const r = (rol || '').toUpperCase();
+            return r === 'JEFE DE COMPRAS' || r === 'JEFE DE VENTAS' || r === 'ADMINISTRADOR';
+        }
+
+        function escapeHtml(s) {
+            if (s == null) return '';
+            const d = document.createElement('div');
+            d.textContent = String(s);
+            return d.innerHTML;
+        }
+
+        function formatFecha(iso) {
+            if (!iso) return '—';
+            try {
+                return new Date(iso).toLocaleDateString('es-CO', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            } catch (_) { return iso; }
+        }
+
+        function formatNum(val) {
+            if (val == null) return '—';
+            const n = parseFloat(val);
+            if (isNaN(n)) return String(val);
+            return n.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 4 });
+        }
+
+        /* ── Badge de estado de producción ── */
+        function estadoBadge(estado) {
+            const e = (estado || '').toUpperCase();
+            if (e === 'POR REVISAR')            return { cls: 'rf-estado-revisar',    txt: 'Por revisar' };
+            if (e === 'EN ESPERA POR PRODUCCION') return { cls: 'rf-estado-espera',   txt: 'En espera por producción' };
+            if (e === 'EN CONFECCION')           return { cls: 'rf-estado-confeccion', txt: 'En confección' };
+            if (e === 'PAGADO' || e === 'APROBADO' || e === 'APPROVED')
+                                                  return { cls: 'rf-estado-pagado',   txt: 'Pagado' };
+            return { cls: 'rf-estado-pendiente', txt: estado || 'Pendiente' };
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Estado de la UI                                                    */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        let ultimoContexto        = 'todos';
+        let analisisSeleccionadoId = null;
+        let analisisSeleccionadoData = null; // resumen del análisis seleccionado
+
+        const btnCalcFaltantes = document.getElementById('btn-calcular-faltantes');
+        const panelResultado   = document.getElementById('rf-resultado-panel');
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Banner informativo faltantes                                       */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        function mostrarBannerFaltantes() {
+            const banner = document.getElementById('rf-info-banner');
+            if (banner) banner.classList.remove('hidden');
+            banner?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        document.getElementById('rf-info-banner-close')?.addEventListener('click', () => {
+            document.getElementById('rf-info-banner')?.classList.add('hidden');
+        });
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Botón Calcular insumos faltantes                                  */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        btnCalcFaltantes.addEventListener('click', async () => {
+            if (!analisisSeleccionadoId) return;
+
+            const yaCalc = analisisSeleccionadoData?.faltantesCalculados;
+
+            if (yaCalc) {
+                // Ya calculado: cargar y mostrar resultado existente sin tocar inventario
+                try {
+                    const res  = await fetch(`/api/analisis-ordenes/${analisisSeleccionadoId}`, { credentials: 'include' });
+                    const data = await res.json();
+                    if (data.faltantesResultado) {
+                        mostrarPanelFaltantes(data, data.faltantesResultado, true);
+                    } else {
+                        Toast.error('No se encontró el resultado guardado.');
+                    }
+                } catch (err) {
+                    Toast.error('Error cargando resultado: ' + err.message);
+                }
+                return;
+            }
+
+            const orig = btnCalcFaltantes.textContent;
+            btnCalcFaltantes.disabled = true;
+            btnCalcFaltantes.textContent = '⚙ Calculando…';
+
+            try {
+                const res  = await fetch(`/api/analisis-ordenes/${analisisSeleccionadoId}/calcular-faltantes`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.mensaje || 'Error al calcular');
+
+                // Mostrar panel de resultado (siempre)
+                mostrarPanelFaltantes(analisisSeleccionadoData, data.resultado, data.yaCalculado);
+
+                if (data.todoCompleto) {
+                    // CASO A: todos los insumos disponibles — el pedido se queda en la lista
+                    if (typeof Toast !== 'undefined' && Toast.success) {
+                        Toast.success(data.mensaje);
+                    }
+                    actualizarBadgeCard(analisisSeleccionadoId, data.nuevoEstado);
+                    if (analisisSeleccionadoData) {
+                        analisisSeleccionadoData.faltantesCalculados = true;
+                        analisisSeleccionadoData.estado = data.nuevoEstado;
+                    }
+                } else {
+                    // CASO B: hay faltantes — sacar el pedido de esta lista y mostrar banner
+                    mostrarBannerFaltantes();
+                    const card = document.querySelector(`.rf-card[data-analisis-id="${analisisSeleccionadoId}"]`);
+                    if (card) card.remove();
+                    analisisSeleccionadoId   = null;
+                    analisisSeleccionadoData = null;
+                    btnCalcFaltantes.disabled = true;
+                    btnCalcFaltantes.textContent = '⚙ Calcular insumos faltantes para el pedido seleccionado';
+                }
+
+            } catch (err) {
+                Toast.error(err.message || 'Error al calcular faltantes');
+                btnCalcFaltantes.disabled = false;
+                btnCalcFaltantes.textContent = orig;
+            }
+        });
+
+        /* ── Cerrar panel ── */
+        document.getElementById('rfr-close').addEventListener('click', () => {
+            panelResultado.classList.remove('visible');
+        });
+
+        /* ── Actualiza el badge de una tarjeta en la lista ── */
+        function actualizarBadgeCard(analisisId, nuevoEstado) {
+            const card = document.querySelector(`.rf-card[data-analisis-id="${analisisId}"]`);
+            if (!card) return;
+            const badge = card.querySelector('.rf-estado-badge');
+            if (!badge) return;
+            const b = estadoBadge(nuevoEstado);
+            badge.className = `rf-estado-badge ${b.cls}`;
+            badge.textContent = b.txt;
+            // Añadir chip "Calculado" si no existe
+            if (!card.querySelector('.rf-calc-chip')) {
+                const chip = document.createElement('span');
+                chip.className = 'rf-calc-chip';
+                chip.textContent = '✓ Calculado';
+                card.querySelector('.rf-card-meta')?.appendChild(chip);
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Renderizar panel de resultado                                      */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        function mostrarPanelFaltantes(analisisSummary, resultado, yaCalculado) {
+            const numFmt = analisisSummary?.ordenNumeroFormateado
+                || String(analisisSummary?.ordenNumero || '').padStart(3, '0');
+            const cliente = analisisSummary?.clienteNombre || '—';
+
+            // Título
+            document.getElementById('rfr-title').innerHTML =
+                `📊 Resultado — Orden <strong>#${escapeHtml(numFmt)}</strong> · ${escapeHtml(cliente)}`;
+
+            // Fila de estado / ya calculado
+            const estadoRow = document.getElementById('rfr-estado-row');
+            if (yaCalculado) {
+                estadoRow.innerHTML =
+                    `<div class="rfr-ya-calculado">⚠ Este análisis ya había sido calculado anteriormente. Los insumos ya estaban descontados del inventario.</div>`;
+            } else {
+                const b        = estadoBadge(analisisSummary?.estado || resultado?.nuevoEstado || '');
+                estadoRow.innerHTML =
+                    `<div class="rfr-estado-change">
+                        <span>Estado actualizado:</span>
+                        <span class="rf-estado-badge ${b.cls}">${b.txt}</span>
+                    </div>`;
+            }
+
+            // Cuerpo con los ítems
+            const body  = document.getElementById('rfr-body');
+            const items = resultado?.items || [];
+            body.innerHTML = '';
+
+            if (items.length === 0) {
+                body.innerHTML = '<p style="color:#888;font-size:13px;">No hay ítems en este análisis.</p>';
+            } else {
+                items.forEach(item => {
+                    const prenda   = escapeHtml(item.prenda  || '—');
+                    const genero   = escapeHtml(item.genero  || '—');
+                    const talla    = escapeHtml(item.talla   || '—');
+                    const cantidad = item.cantidad ?? 1;
+                    const completo = item.completo;
+                    const ftFound  = item.fichaTecnicaEncontrada !== false;
+                    const insumos  = item.insumos || [];
+
+                    const div = document.createElement('div');
+                    div.className = 'rfr-item';
+
+                    let html = `
+                        <div class="rfr-item-header">
+                            <span class="rfr-item-prenda">${prenda}</span>
+                            <span class="rfr-item-badge">Género: ${genero}</span>
+                            <span class="rfr-item-badge">Talla: ${talla}</span>
+                            <span class="rfr-item-badge">×${cantidad}</span>
+                        </div>`;
+
+                    if (!ftFound) {
+                        html += `<div class="rfr-no-ficha">⚠ No se encontró ficha técnica para esta prenda en la talla indicada.</div>`;
+                    } else if (completo) {
+                        html += `<div class="rfr-item-completo-banner">✅ Insumos completos — todos los materiales estaban disponibles en inventario.</div>`;
+                    } else {
+                        // Unified table: all insumos with "Por conseguir" column
+                        if (insumos.length > 0) {
+                            html += `
+                            <div class="rfr-table-wrap">
+                                <table class="rfr-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Insumo</th>
+                                            <th>Unidad</th>
+                                            <th class="num">Requerido</th>
+                                            <th class="num">Stock había</th>
+                                            <th class="num">Consumido</th>
+                                            <th class="col-conseguir num">Por conseguir</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>`;
+                            insumos.forEach(ins => {
+                                const falt = parseFloat(ins.faltante);
+                                const conseguirCell = falt > 0
+                                    ? `<td class="conseguir-faltante">${formatNum(ins.faltante)}</td>`
+                                    : `<td class="conseguir-ok">Con existencia</td>`;
+                                html += `<tr>
+                                    <td>${escapeHtml(ins.insumoNombre || '—')}</td>
+                                    <td>${escapeHtml(ins.unidadMedida || '—')}</td>
+                                    <td class="num">${formatNum(ins.cantidadRequerida)}</td>
+                                    <td class="num">${formatNum(ins.stockAntes)}</td>
+                                    <td class="num">${formatNum(ins.consumido)}</td>
+                                    ${conseguirCell}
+                                </tr>`;
+                            });
+                            html += `</tbody></table></div>`;
+                        }
+                    }
+
+                    div.innerHTML = html;
+                    body.appendChild(div);
+                });
+            }
+
+            panelResultado.classList.add('visible');
+            panelResultado.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Cargar lista de análisis                                           */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        async function cargarAnalisis(params = {}) {
+            const contenedor = document.getElementById('rf-contenedor');
+            contenedor.innerHTML = '<div class="rf-empty"><span class="rf-empty-icon">⏳</span>Cargando análisis…</div>';
+            analisisSeleccionadoId   = null;
+            analisisSeleccionadoData = null;
+            btnCalcFaltantes.disabled = true;
+            panelResultado.classList.remove('visible');
+
+            try {
+                const qs  = new URLSearchParams(params).toString();
+                const res = await fetch('/api/analisis-ordenes' + (qs ? '?' + qs : ''), { credentials: 'include' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.mensaje || 'Error al cargar');
+                const lista = (Array.isArray(data) ? data : []).filter(
+                    a => (a.estado || '').toUpperCase() !== 'EN ESPERA POR PRODUCCION'
+                );
+                renderLista(lista);
+            } catch (err) {
+                Toast.error(err.message || 'Error al cargar análisis');
+                contenedor.innerHTML = '<div class="rf-empty"><span class="rf-empty-icon">⚠️</span>Error al cargar los análisis.</div>';
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Renderizar lista de tarjetas                                       */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        function renderLista(lista) {
+            const contenedor = document.getElementById('rf-contenedor');
+            contenedor.innerHTML = '';
+
+            if (lista.length === 0) {
+                contenedor.innerHTML = `<div class="rf-empty">
+                    <span class="rf-empty-icon">📋</span>
+                    ${ultimoContexto === 'todos'
+                        ? 'No hay análisis generados aún. Usa el botón <strong>"Analizar con Ficha técnica"</strong> en la vista de Pedidos.'
+                        : 'No se encontraron análisis para la búsqueda realizada.'}
+                </div>`;
+                return;
+            }
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'rf-lista';
+
+            lista.forEach(analisis => {
+                const b      = estadoBadge(analisis.estado);
+                const numFmt = analisis.ordenNumeroFormateado || String(analisis.ordenNumero).padStart(3, '0');
+
+                const card = document.createElement('div');
+                card.className = 'rf-card';
+                card.dataset.analisisId = analisis.id;
+
+                card.innerHTML = `
+                    <div class="rf-card-header">
+                        <span class="rf-card-num">#${escapeHtml(numFmt)}</span>
+                        <span class="rf-card-cliente">${escapeHtml(analisis.clienteNombre || '—')}</span>
+                        <div class="rf-card-meta">
+                            <span class="rf-estado-badge ${b.cls}">${b.txt}</span>
+                            ${analisis.faltantesCalculados ? '<span class="rf-calc-chip">✓ Calculado</span>' : ''}
+                            <span class="rf-card-fecha">Orden: ${formatFecha(analisis.fechaOrden)}</span>
+                            <span class="rf-card-analisis-fecha">Analizado: ${formatFecha(analisis.fechaAnalisis)}</span>
+                        </div>
+                        <span class="rf-toggle-icon">▼</span>
+                    </div>
+                    <div class="rf-card-detail" id="detail-${analisis.id}">
+                        <div style="text-align:center;padding:20px;color:#666;font-size:13px;">Haz clic para cargar detalle…</div>
+                    </div>`;
+
+                card.querySelector('.rf-card-header').addEventListener('click', () => {
+                    const isOpen = card.classList.contains('open');
+
+                    // Seleccionar
+                    document.querySelectorAll('.rf-card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    analisisSeleccionadoId   = analisis.id;
+                    analisisSeleccionadoData = analisis;
+                    btnCalcFaltantes.disabled = false;
+                    // Cambiar label del botón según si ya está calculado
+                    btnCalcFaltantes.textContent = analisis.faltantesCalculados
+                        ? '⚙ Ver resultado ya calculado'
+                        : '⚙ Calcular insumos faltantes para el pedido seleccionado';
+
+                    if (!isOpen) {
+                        card.classList.add('open');
+                        cargarDetalle(analisis.id, card.querySelector('.rf-card-detail'));
+                    } else {
+                        card.classList.remove('open');
+                    }
+                });
+
+                wrapper.appendChild(card);
+            });
+
+            contenedor.appendChild(wrapper);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Cargar y renderizar detalle de un análisis                         */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        async function cargarDetalle(analisisId, detailEl) {
+            if (detailEl.dataset.loaded === '1') return;
+
+            try {
+                const res  = await fetch(`/api/analisis-ordenes/${analisisId}`, { credentials: 'include' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.mensaje || 'Error');
+                renderDetalle(data, detailEl);
+                detailEl.dataset.loaded = '1';
+            } catch (err) {
+                detailEl.innerHTML = `<div style="color:#e05a5a;font-size:13px;padding:12px;">Error al cargar el detalle: ${escapeHtml(err.message)}</div>`;
+            }
+        }
+
+        function renderDetalle(data, el) {
+            const items = data.items || [];
+            if (items.length === 0) {
+                el.innerHTML = '<div style="color:#888;font-size:13px;padding:12px;">Esta orden no tiene ítems registrados.</div>';
+                return;
+            }
+
+            let html = '';
+            items.forEach(item => {
+                const prenda   = escapeHtml(item.prenda   || '—');
+                const genero   = escapeHtml(item.genero   || '—');
+                const talla    = escapeHtml(item.talla    || '—');
+                const cantidad = item.cantidad ?? 1;
+
+                html += `<div class="rf-detail-item">
+                    <div class="rf-item-title">
+                        <span class="rf-item-title-prenda">${prenda}</span>
+                        <span class="rf-item-chip">Género: ${genero}</span>
+                        <span class="rf-item-chip">Talla: ${talla}</span>
+                        <span class="rf-item-chip">Cantidad: <strong>${cantidad}</strong></span>
+                    </div>`;
+
+                if (!item.fichaTecnicaEncontrada || !item.insumos?.length) {
+                    html += `<p class="rf-no-ficha-txt">⚠️ No se encontró ficha técnica para esta prenda en la talla indicada.</p>`;
+                } else {
+                    html += `<div class="rf-table-wrap"><table class="rf-table"><thead><tr>
+                        <th>Insumo</th><th>Unidad</th>
+                        <th class="num">Por prenda</th>
+                        <th class="col-total num">Total requerido (×${cantidad})</th>
+                    </tr></thead><tbody>`;
+                    item.insumos.forEach(ins => {
+                        html += `<tr>
+                            <td>${escapeHtml(ins.insumoNombre || '—')}</td>
+                            <td>${escapeHtml(ins.unidadMedida || '—')}</td>
+                            <td class="num">${formatNum(ins.cantidadUnitaria)}</td>
+                            <td class="total">${formatNum(ins.cantidadTotal)}</td>
+                        </tr>`;
+                    });
+                    html += `</tbody></table></div>`;
+                }
+                html += '</div>';
+            });
+
+            el.innerHTML = html;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Búsquedas                                                          */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        document.getElementById('btn-listar-todos').addEventListener('click', () => {
+            ultimoContexto = 'todos'; cargarAnalisis();
+        });
+        document.getElementById('btn-buscar-numero').addEventListener('click', () => {
+            const num = document.getElementById('buscar-numero').value.trim();
+            if (!num) { Toast.error('Ingresa un número de orden'); return; }
+            ultimoContexto = 'numero'; cargarAnalisis({ numero: num });
+        });
+        document.getElementById('btn-buscar-fecha').addEventListener('click', () => {
+            const fecha = document.getElementById('buscar-fecha').value;
+            if (!fecha) { Toast.error('Selecciona una fecha'); return; }
+            ultimoContexto = 'fecha'; cargarAnalisis({ fecha });
+        });
+        document.getElementById('btn-buscar-mes').addEventListener('click', () => {
+            const mes = document.getElementById('buscar-mes').value;
+            if (!mes) { Toast.error('Selecciona un mes'); return; }
+            ultimoContexto = 'mes'; cargarAnalisis({ mes });
+        });
+        document.getElementById('btn-limpiar').addEventListener('click', () => {
+            document.getElementById('buscar-numero').value = '';
+            document.getElementById('buscar-fecha').value  = '';
+            document.getElementById('buscar-mes').value    = '';
+            ultimoContexto = 'todos'; cargarAnalisis();
+        });
+        document.getElementById('buscar-numero').addEventListener('keydown', e => {
+            if (e.key === 'Enter') document.getElementById('btn-buscar-numero').click();
+        });
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Logout + sidebar móvil + auth + carga inicial                      */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        document.getElementById('btn-logout').addEventListener('click', async () => {
+            if (!window.confirm('¿Desea cerrar sesión?')) return;
+            await authApi.logout();
+            window.location.href = '/';
+        });
+
+        const sb = document.getElementById('compras-jefe-sidebar');
+        const tg = document.getElementById('compras-jefe-sidebar-toggle');
+        if (tg && sb) {
+            tg.addEventListener('click', () => {
+                sb.classList.toggle('open');
+                tg.setAttribute('aria-label', sb.classList.contains('open') ? 'Cerrar menú' : 'Abrir menú');
+            });
+        }
+
+        (async () => {
+            const result = await authApi.getMe();
+            if (!result.ok) { window.location.href = '/login.html'; return; }
+            const rol = (result.usuario?.rol || '').toUpperCase();
+            if (!esRolPanelCompras(rol)) { window.location.href = '/'; return; }
+            document.getElementById('user-name').textContent = result.usuario?.nombre || result.usuario?.usuario;
+            document.getElementById('user-rol').textContent  = result.usuario?.rol || 'Jefe de Compras';
+            await cargarAnalisis();
+        })();
+    </script>
+</body>
+</html>

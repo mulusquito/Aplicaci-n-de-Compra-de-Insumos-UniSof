@@ -71,6 +71,8 @@ public class SecurityConfig {
                         // SCRUM-64: logs de auditoría solo para ADMINISTRADOR
                         .requestMatchers("/api/usuarios/**", "/api/dashboard/**", "/api/proveedores/**", "/api/auditoria/**").hasRole("ADMINISTRADOR")
                         .requestMatchers("/api/compras/**").hasAnyRole("ADMINISTRADOR", "JEFE DE COMPRAS", "JEFE DE VENTAS")
+                        .requestMatchers("/api/fichas-tecnicas/**").hasAnyRole("ADMINISTRADOR", "JEFE DE COMPRAS", "JEFE DE VENTAS")
+                        .requestMatchers("/api/analisis-ordenes/**").hasAnyRole("ADMINISTRADOR", "JEFE DE COMPRAS", "JEFE DE VENTAS")
                         .requestMatchers("/api/auth/logout", "/api/auth/me", "/api/checkout/create-preference", "/api/clientes/**", "/api/recibos/**").authenticated()
                         .requestMatchers(
                                 "/",
@@ -88,6 +90,10 @@ public class SecurityConfig {
                                 "/clientes.html",
                                 "/ordenes.html",
                                 "/proveedores.html",
+                                "/ordenes-compras.html",
+                                "/fichas-tecnicas.html",
+                                "/reporte-faltantes.html",
+                                "/analisis-insumos.html",
                                 "/css/**",
                                 "/js/**",
                                 "/images/**"

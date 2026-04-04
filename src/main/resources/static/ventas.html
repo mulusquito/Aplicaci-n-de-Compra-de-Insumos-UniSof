@@ -724,7 +724,8 @@
             const unitPrice = Cart.parsePrice(priceEl.textContent);
             const idBase = name.replace(/\s+/g, '-').toLowerCase() + '-' + unitPrice;
             const imageUrl = imgEl?.src ? (imgEl.src.startsWith('http') ? imgEl.src : window.location.origin + imgEl.src) : '';
-            Cart.addItem({ idBase, name, unitPrice, imageUrl, size: 'M' });
+            const genero = card.closest('#caballeros') ? 'Caballero' : 'Dama';
+            Cart.addItem({ idBase, name, unitPrice, imageUrl, size: 'M', genero });
             Toast.success('Producto añadido al carrito');
         });
 
@@ -978,7 +979,7 @@
                     const cartItems = Cart.getItems();
                     const itemsPayload = cartItems.map(i => {
                         const subtotal = i.quantity * i.unitPrice;
-                        return { nombre: i.name, talla: i.size || 'M', cantidad: i.quantity, precioUnit: i.unitPrice, subtotal };
+                        return { nombre: i.name, talla: i.size || 'M', cantidad: i.quantity, precioUnit: i.unitPrice, subtotal, genero: i.genero || '' };
                     });
                     sessionStorage.setItem('unisof_pending_checkout', JSON.stringify({
                         items: itemsPayload,

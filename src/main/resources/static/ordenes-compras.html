@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Órdenes de compra — Jefe de Compras | UNISOF">
+    <title>Órdenes de compra — Jefe de Compras | UNISOF</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .oc-section { padding: 24px; }
+
+        /* Toolbar: cada fila = label + input + botón, alineados en cuadrícula */
+        .oc-toolbar { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; max-width: 560px; }
+        .oc-search-row { display: flex; align-items: center; gap: 10px; }
+        .oc-search-row label { width: 100px; flex-shrink: 0; color: #aaa; font-size: 13px; font-weight: 600; text-align: right; }
+        .oc-search-row input { flex: 1; padding: 9px 13px; border-radius: 8px; border: 1px solid #444; background: #222; color: #fff; font-size: 14px; }
+        .oc-search-row input:focus { outline: none; border-color: #f5a623; box-shadow: 0 0 0 2px rgba(245,166,35,0.2); }
+        .oc-search-row .oc-btn { width: 120px; flex-shrink: 0; }
+        .oc-actions-row { display: flex; gap: 10px; padding-left: 110px; margin-top: 4px; }
+
+        /* Botones */
+        .oc-btn { padding: 9px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: background 0.15s; white-space: nowrap; }
+        .oc-btn-yellow { background: #f5a623; color: #1a1a1a; }
+        .oc-btn-yellow:hover { background: #e09520; }
+        .oc-btn-secondary { background: #2a2a2a; color: #ddd; border: 1px solid #444; }
+        .oc-btn-secondary:hover { background: #333; }
+        .oc-btn-outline { background: transparent; color: #888; border: 1px solid #444; }
+        .oc-btn-outline:hover { background: #2a2a2a; color: #ccc; }
+
+        /* Tabla */
+        .oc-table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid #2a2a2a; }
+        .oc-table { width: 100%; border-collapse: collapse; background: #1a1a1a; font-size: 14px; }
+        .oc-table th { background: #222; color: #f5a623; font-weight: 700; padding: 11px 14px; text-align: left; border-bottom: 2px solid #2a2a2a; white-space: nowrap; }
+        .oc-table td { padding: 10px 14px; border-bottom: 1px solid #242424; color: #ddd; vertical-align: middle; }
+        .oc-table tbody tr:hover { background: #202020; }
+        .oc-table tr.oc-row-first td { border-top: 2px solid #2a2a2a; }
+        .oc-table tr.oc-row-first:first-child td { border-top: none; }
+        .oc-table td.oc-td-empty { color: #444; font-size: 12px; }
+        .oc-estado-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; white-space: nowrap; }
+        .oc-estado-pendiente   { background: #f5a62333; color: #f5a623; }
+        .oc-estado-pagado      { background: #66666633; color: #999; }
+        .oc-estado-revisar     { background: #f5a62333; color: #f5a623; }
+        .oc-estado-espera      { background: #5b8dd933; color: #5b8dd9; }
+        .oc-estado-confeccion  { background: #28a74533; color: #28a745; }
+        .oc-empty-msg { text-align: center; padding: 48px 24px; color: #666; font-size: 14px; }
+        .oc-empty-icon { font-size: 36px; display: block; margin-bottom: 10px; }
+        .btn-ficha { padding: 5px 12px; font-size: 11px; border-radius: 6px; cursor: pointer; border: 1px solid #f5a623; background: transparent; color: #f5a623; font-weight: 600; white-space: nowrap; transition: background 0.15s, color 0.15s; }
+        .btn-ficha:hover { background: #f5a623; color: #1a1a1a; }
+        .btn-ficha:disabled { cursor: not-allowed; border-color: #444; background: #2a2a2a; color: #888; }
+
+        /* Modal de confirmación de análisis */
+        .oc-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 1000; align-items: center; justify-content: center; }
+        .oc-modal-overlay.visible { display: flex; }
+        .oc-modal-box { background: #1e1e1e; border: 1px solid #333; border-radius: 14px; padding: 32px 28px 24px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 8px 40px rgba(0,0,0,0.5); }
+        .oc-modal-icon { font-size: 42px; display: block; margin-bottom: 14px; }
+        .oc-modal-title { font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+        .oc-modal-desc { font-size: 13px; color: #aaa; line-height: 1.6; margin-bottom: 24px; }
+        .oc-modal-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .oc-modal-btn { padding: 10px 22px; border-radius: 8px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+        .oc-modal-btn-primary { background: #f5a623; color: #1a1a1a; }
+        .oc-modal-btn-primary:hover { background: #e09520; }
+        .oc-modal-btn-secondary { background: #2a2a2a; color: #ddd; border: 1px solid #444; }
+        .oc-modal-btn-secondary:hover { background: #333; }
+        .oc-page-title { font-size: 20px; font-weight: 700; color: #f5a623; margin: 0 0 24px; display: flex; align-items: center; gap: 10px; }
+
+        @media (max-width: 768px) {
+            .oc-toolbar { max-width: 100%; }
+            .oc-search-row { flex-direction: column; align-items: stretch; }
+            .oc-search-row label { width: auto; text-align: left; }
+            .oc-search-row .oc-btn { width: 100%; }
+            .oc-actions-row { padding-left: 0; flex-direction: column; }
+        }
+    </style>
+</head>
+<body class="compras-jefe-body">
+
+    <aside class="admin-sidebar" id="compras-jefe-sidebar" aria-label="Módulos de compras">
+        <div class="admin-sidebar-header">
+            <a href="/" class="admin-logo admin-logo--sin-icono" aria-label="UNISOF — Inicio">
+                <span class="admin-logo-text">UNISOF</span>
+            </a>
+        </div>
+        <p class="compras-modulos-label">Módulos</p>
+        <nav class="admin-nav admin-nav--compras-modulos">
+            <a href="/compras.html" class="admin-nav-item" data-nav="dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+                <span class="admin-nav-text">Dashboard</span>
+            </a>
+            <a href="/ordenes-compras.html" class="admin-nav-item active" data-nav="pedidos">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>
+                </svg>
+                <span class="admin-nav-text">Pedidos</span>
+            </a>
+            <a href="/analisis-insumos.html" class="admin-nav-item" data-nav="analisis">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="8" width="5" height="13" rx="1"/><rect x="17" y="13" width="5" height="8" rx="1"/>
+                </svg>
+                <span class="admin-nav-text">Análisis de insumos</span>
+            </a>
+            <a href="/inventario-insumos.html" class="admin-nav-item" data-nav="inventario">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <path d="M3.27 6.96L12 12.01l8.73-5.05"/><path d="M12 22.08V12"/>
+                </svg>
+                <span class="admin-nav-text">Inventario</span>
+            </a>
+            <a href="/reporte-faltantes.html" class="admin-nav-item" data-nav="reporte">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
+                </svg>
+                <span class="admin-nav-text">Reporte faltantes</span>
+            </a>
+            <span class="admin-nav-item admin-nav-item--disabled">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                </svg>
+                <span class="admin-nav-text">Órdenes de compra</span>
+                <span class="admin-nav-hint">(Próximamente)</span>
+            </span>
+        </nav>
+        <div class="admin-sidebar-footer">
+            <div class="admin-user-info">
+                <span class="admin-user-name" id="user-name">—</span>
+                <span class="admin-user-rol" id="user-rol">Jefe de Compras</span>
+            </div>
+            <button type="button" class="admin-btn-logout" id="btn-logout">Cerrar sesión</button>
+        </div>
+    </aside>
+
+    <div class="compras-jefe-main">
+        <header class="compras-jefe-topbar" aria-label="Cabecera del panel"></header>
+
+        <div class="compras-jefe-content">
+            <div class="oc-section">
+
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+                    <h1 class="oc-page-title" style="margin-bottom:0;">Pedidos de clientes</h1>
+                    <a href="/fichas-tecnicas.html"
+                       style="display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border-radius:8px;background:#2a2a2a;border:1px solid #f5a623;color:#f5a623;font-size:13px;font-weight:700;text-decoration:none;transition:background 0.15s;"
+                       onmouseover="this.style.background='#333'"
+                       onmouseout="this.style.background='#2a2a2a'">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10 9 9 9 8 9"/>
+                        </svg>
+                        Fichas Técnicas
+                    </a>
+                </div>
+
+                <div class="oc-toolbar">
+                    <div class="oc-search-row">
+                        <label for="buscar-numero">Nº orden</label>
+                        <input type="text" id="buscar-numero" placeholder="001, 002…">
+                        <button type="button" class="oc-btn oc-btn-secondary" id="btn-buscar-numero">Por número</button>
+                    </div>
+                    <div class="oc-search-row">
+                        <label for="buscar-fecha">Fecha exacta</label>
+                        <input type="date" id="buscar-fecha">
+                        <button type="button" class="oc-btn oc-btn-secondary" id="btn-buscar-fecha">Por fecha</button>
+                    </div>
+                    <div class="oc-search-row">
+                        <label for="buscar-mes">Mes</label>
+                        <input type="month" id="buscar-mes">
+                        <button type="button" class="oc-btn oc-btn-secondary" id="btn-buscar-mes">Por mes</button>
+                    </div>
+                    <div class="oc-actions-row">
+                        <button type="button" class="oc-btn oc-btn-yellow" id="btn-listar-todos">Listar todas</button>
+                        <button type="button" class="oc-btn oc-btn-outline" id="btn-limpiar">Limpiar</button>
+                    </div>
+                </div>
+
+                <div class="oc-table-wrap" id="tabla-container">
+                    <table class="oc-table" id="tabla-ordenes">
+                        <thead>
+                            <tr>
+                                <th>Nº orden</th>
+                                <th>Cliente</th>
+                                <th>Fecha y hora</th>
+                                <th>Estado</th>
+                                <th>Prenda</th>
+                                <th>Género</th>
+                                <th>Talla</th>
+                                <th>Cantidad</th>
+                                <th>Análisis</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-body">
+                        </tbody>
+                    </table>
+                    <p class="oc-empty-msg" id="empty-msg" style="display:none;">
+                        <span class="oc-empty-icon">📋</span>
+                        No hay órdenes registradas.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: análisis guardado en Análisis de insumos -->
+    <div class="oc-modal-overlay" id="modal-analisis" role="dialog" aria-modal="true" aria-labelledby="modal-analisis-title">
+        <div class="oc-modal-box">
+            <span class="oc-modal-icon">✅</span>
+            <p class="oc-modal-title" id="modal-analisis-title">¡Análisis generado!</p>
+            <p class="oc-modal-desc" id="modal-analisis-desc">
+                Los resultados del análisis de la orden <strong id="modal-orden-num"></strong>
+                han sido guardados en <strong>Análisis de insumos</strong>.
+            </p>
+            <div class="oc-modal-actions">
+                <a href="/analisis-insumos.html" class="oc-modal-btn oc-modal-btn-primary">Ver Análisis de insumos</a>
+                <button type="button" class="oc-modal-btn oc-modal-btn-secondary" id="modal-cerrar">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <button type="button" class="compras-jefe-sidebar-toggle" id="compras-jefe-sidebar-toggle" aria-label="Abrir menú">☰</button>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/toast.js"></script>
+    <script src="/js/accessibility.js"></script>
+    <script src="/js/unisof-brand-info.js" defer></script>
+    <link rel="stylesheet" href="/css/chat.css">
+    <script src="/js/chat.js" defer></script>
+    <script>
+        function esRolPanelCompras(rol) {
+            var r = (rol || '').toUpperCase();
+            return r === 'JEFE DE COMPRAS' || r === 'JEFE DE VENTAS' || r === 'ADMINISTRADOR';
+        }
+
+        function estadoBadge(estado) {
+            const e = (estado || '').toUpperCase();
+            if (e === 'POR REVISAR')               return { cls: 'oc-estado-revisar',    txt: 'Por revisar' };
+            if (e === 'EN ESPERA POR PRODUCCION')  return { cls: 'oc-estado-espera',     txt: 'En espera por producción' };
+            if (e === 'EN CONFECCION')             return { cls: 'oc-estado-confeccion', txt: 'En confección' };
+            if (['PAGADO','APROBADO','APPROVED'].includes(e)) return { cls: 'oc-estado-pagado', txt: 'Pagado' };
+            return { cls: 'oc-estado-pendiente', txt: estado || 'Pendiente' };
+        }
+
+        function escapeHtml(s) {
+            if (s == null) return '';
+            const div = document.createElement('div');
+            div.textContent = String(s);
+            return div.innerHTML;
+        }
+
+        function formatFecha(isoStr) {
+            if (!isoStr) return '—';
+            try {
+                return new Date(isoStr).toLocaleDateString('es-CO', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            } catch (_) { return isoStr; }
+        }
+
+        let ultimoContexto = 'todos';
+
+        async function cargarOrdenes(params = {}, silencioso = false) {
+            if (!silencioso) {
+                const tbody = document.getElementById('tabla-body');
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:#666;">Cargando…</td></tr>';
+                document.getElementById('tabla-ordenes').style.display = 'table';
+                document.getElementById('empty-msg').style.display = 'none';
+            }
+            try {
+                const qs = new URLSearchParams(params).toString();
+                const url = '/api/recibos' + (qs ? '?' + qs : '');
+                const res = await fetch(url, { credentials: 'include' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.mensaje || 'Error al cargar');
+                renderTabla(Array.isArray(data) ? data : [data]);
+            } catch (err) {
+                if (!silencioso) Toast.error(err.message || 'Error al cargar órdenes');
+                if (!silencioso) renderTabla([]);
+            }
+        }
+
+        function renderTabla(ordenes) {
+            const tbody = document.getElementById('tabla-body');
+            const emptyMsg = document.getElementById('empty-msg');
+            const tabla = document.getElementById('tabla-ordenes');
+            tbody.innerHTML = '';
+
+            const filas = [];
+            ordenes.forEach(orden => {
+                let items = [];
+                try {
+                    items = typeof orden.itemsJson === 'string'
+                        ? JSON.parse(orden.itemsJson)
+                        : (orden.itemsJson || []);
+                } catch (_) {}
+                if (items.length === 0) {
+                    filas.push({ orden, item: null, esPrimera: true });
+                } else {
+                    items.forEach((item, idx) => {
+                        filas.push({ orden, item, esPrimera: idx === 0 });
+                    });
+                }
+            });
+
+            if (filas.length === 0) {
+                tabla.style.display = 'none';
+                emptyMsg.innerHTML = '<span class="oc-empty-icon">📋</span>' +
+                    (ultimoContexto === 'todos'
+                        ? 'No hay órdenes registradas.'
+                        : 'No se encontraron órdenes para la búsqueda realizada.');
+                emptyMsg.style.display = 'block';
+                return;
+            }
+
+            tabla.style.display = 'table';
+            emptyMsg.style.display = 'none';
+
+            filas.forEach(({ orden, item, esPrimera }) => {
+                const tr = document.createElement('tr');
+                if (esPrimera) tr.classList.add('oc-row-first');
+
+                const { cls: estadoClase, txt: estadoTexto } = estadoBadge(orden.estado);
+                const numFormateado = orden.numeroFormateado || ('00' + orden.numero).slice(-3);
+
+                const tdNumero  = esPrimera ? `<td><strong>${escapeHtml(numFormateado)}</strong></td>` : `<td class="oc-td-empty">—</td>`;
+                const tdCliente = esPrimera ? `<td>${escapeHtml(orden.clienteNombre || '—')}</td>` : `<td class="oc-td-empty">—</td>`;
+                const tdFecha   = esPrimera ? `<td>${formatFecha(orden.fecha)}</td>` : `<td class="oc-td-empty">—</td>`;
+                const tdEstado  = esPrimera ? `<td><span class="oc-estado-badge ${estadoClase}">${escapeHtml(estadoTexto)}</span></td>` : `<td class="oc-td-empty">—</td>`;
+                const tdAnalizar = esPrimera
+                    ? `<td><button type="button" class="btn-ficha" data-recibo-id="${orden.id}" data-orden-num="${escapeHtml(numFormateado)}" onclick="analizarOrden(this)">Analizar con Ficha técnica</button></td>`
+                    : `<td></td>`;
+
+                const nombre   = item ? escapeHtml(item.nombre  || '—') : '—';
+                const genero   = item ? escapeHtml(item.genero  || '—') : '—';
+                const talla    = item ? escapeHtml(item.talla   || '—') : '—';
+                const cantidad = item && item.cantidad != null ? item.cantidad : '—';
+
+                tr.innerHTML = tdNumero + tdCliente + tdFecha + tdEstado +
+                    `<td>${nombre}</td><td>${genero}</td><td>${talla}</td><td>${cantidad}</td>` + tdAnalizar;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Búsquedas — solo se disparan al presionar el botón correspondiente
+        document.getElementById('btn-listar-todos').addEventListener('click', () => {
+            ultimoContexto = 'todos';
+            cargarOrdenes();
+        });
+
+        document.getElementById('btn-buscar-numero').addEventListener('click', () => {
+            const num = document.getElementById('buscar-numero').value.trim();
+            if (!num) { Toast.error('Ingresa un número de orden'); return; }
+            ultimoContexto = 'numero';
+            cargarOrdenes({ numero: num });
+        });
+
+        document.getElementById('btn-buscar-fecha').addEventListener('click', () => {
+            const fecha = document.getElementById('buscar-fecha').value;
+            if (!fecha) { Toast.error('Selecciona una fecha'); return; }
+            ultimoContexto = 'fecha';
+            cargarOrdenes({ fecha });
+        });
+
+        document.getElementById('btn-buscar-mes').addEventListener('click', () => {
+            const mes = document.getElementById('buscar-mes').value;
+            if (!mes) { Toast.error('Selecciona un mes'); return; }
+            ultimoContexto = 'mes';
+            cargarOrdenes({ mes });
+        });
+
+        document.getElementById('btn-limpiar').addEventListener('click', () => {
+            document.getElementById('buscar-numero').value = '';
+            document.getElementById('buscar-fecha').value  = '';
+            document.getElementById('buscar-mes').value    = '';
+            ultimoContexto = 'todos';
+            cargarOrdenes();
+        });
+
+        // Enter en el campo número dispara búsqueda por número
+        document.getElementById('buscar-numero').addEventListener('keydown', e => {
+            if (e.key === 'Enter') document.getElementById('btn-buscar-numero').click();
+        });
+
+        // Logout
+        document.getElementById('btn-logout').addEventListener('click', async () => {
+            if (!window.confirm('¿Desea cerrar sesión?')) return;
+            await authApi.logout();
+            window.location.href = '/';
+        });
+
+        // Sidebar móvil
+        const sb = document.getElementById('compras-jefe-sidebar');
+        const tg = document.getElementById('compras-jefe-sidebar-toggle');
+        if (tg && sb) {
+            tg.addEventListener('click', () => {
+                sb.classList.toggle('open');
+                tg.setAttribute('aria-label', sb.classList.contains('open') ? 'Cerrar menú' : 'Abrir menú');
+            });
+        }
+
+        // Auth y carga inicial
+        (async () => {
+            const result = await authApi.getMe();
+            if (!result.ok) { window.location.href = '/login.html'; return; }
+            const rol = (result.usuario?.rol || '').toUpperCase();
+            if (!esRolPanelCompras(rol)) { window.location.href = '/'; return; }
+            document.getElementById('user-name').textContent = result.usuario?.nombre || result.usuario?.usuario;
+            document.getElementById('user-rol').textContent = result.usuario?.rol || 'Jefe de Compras';
+            await cargarOrdenes();
+        })();
+
+        // ── Analizar una orden con ficha técnica ─────────────────────────────
+        async function analizarOrden(btn) {
+            const reciboId  = btn.dataset.reciboId;
+            const ordenNum  = btn.dataset.ordenNum;
+            if (!reciboId) return;
+
+            btn.disabled    = true;
+            btn.textContent = 'Analizando…';
+
+            try {
+                const res = await fetch(`/api/analisis-ordenes/${reciboId}`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.mensaje || 'Error al analizar');
+
+                // Mostrar modal de éxito
+                document.getElementById('modal-orden-num').textContent = ordenNum;
+                document.getElementById('modal-analisis').classList.add('visible');
+            } catch (err) {
+                Toast.error(err.message || 'Error al analizar la orden');
+            } finally {
+                btn.disabled    = false;
+                btn.textContent = 'Analizar con Ficha técnica';
+            }
+        }
+
+        // Cerrar modal
+        document.getElementById('modal-cerrar').addEventListener('click', () => {
+            document.getElementById('modal-analisis').classList.remove('visible');
+        });
+        document.getElementById('modal-analisis').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) e.currentTarget.classList.remove('visible');
+        });
+
+        // Auto-refresco cada 25 s — silencioso para evitar parpadeo
+        function refrescarOrdenes() {
+            if (document.visibilityState !== 'visible') return;
+            if (ultimoContexto === 'todos')       cargarOrdenes({}, true);
+            else if (ultimoContexto === 'numero') cargarOrdenes({ numero: document.getElementById('buscar-numero').value.trim() }, true);
+            else if (ultimoContexto === 'fecha')  cargarOrdenes({ fecha:  document.getElementById('buscar-fecha').value }, true);
+            else if (ultimoContexto === 'mes')    cargarOrdenes({ mes:    document.getElementById('buscar-mes').value }, true);
+        }
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') refrescarOrdenes();
+        });
+        setInterval(refrescarOrdenes, 25000);
+    </script>
+</body>
+</html>
