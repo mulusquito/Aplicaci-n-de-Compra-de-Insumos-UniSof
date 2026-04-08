@@ -21,6 +21,10 @@ public interface FichaTecnicaRepository extends JpaRepository<FichaTecnica, Long
     @Query("SELECT DISTINCT f.nombrePrenda FROM FichaTecnica f ORDER BY f.nombrePrenda ASC")
     List<String> findDistinctNombrePrenda();
 
+    /** Lista de (insumoId, nombrePrenda, genero) sin duplicados para construir un mapa. */
+    @Query("SELECT f.insumo.id, f.nombrePrenda, f.genero FROM FichaTecnica f GROUP BY f.insumo.id, f.nombrePrenda, f.genero ORDER BY f.insumo.id ASC, f.nombrePrenda ASC")
+    List<Object[]> findPrendasPorInsumo();
+
     boolean existsByNombrePrendaIgnoreCaseAndGenero(String nombrePrenda, String genero);
 
     boolean existsByGeneroIsNotNull();

@@ -100,7 +100,7 @@ const authApi = {
 
     if (!sessionStorage.getItem('hadSession')) return;
 
-    const INACTIVITY_MS = 120 * 1000;
+    const INACTIVITY_MS = 3 * 60 * 60 * 1000;
     const WARNING_DURATION_MS = 120 * 1000;
     const PING_MIN_INTERVAL_MS = 45 * 1000;
 

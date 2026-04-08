@@ -49,13 +49,12 @@
                 </svg>
                 <span class="admin-nav-text">Dashboard</span>
             </a>
-            <span class="admin-nav-item admin-nav-item--disabled" data-context="compras">
+            <a href="/ordenes-compras.html" class="admin-nav-item" data-context="compras">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>
                 </svg>
                 <span class="admin-nav-text">Pedidos</span>
-                <span class="admin-nav-hint">(Próximamente)</span>
-            </span>
+            </a>
             <a href="/analisis-insumos.html" class="admin-nav-item" data-context="compras">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
                     <rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="8" width="5" height="13" rx="1"/><rect x="17" y="13" width="5" height="8" rx="1"/>
@@ -102,11 +101,10 @@
                     <span class="admin-nav-text" data-i18n-key="nav.orders">Consultar órdenes de compra</span>
                 </span>
             </a>
-            <a href="#compras-insumos" class="admin-nav-item admin-nav-item--disabled" data-section="compras">
+            <a href="/facturas-proveedores.html" class="admin-nav-item" data-section="compras">
                 <span class="admin-nav-icon">📦</span>
                 <span class="admin-nav-item-label">
                     <span class="admin-nav-text" data-i18n-key="nav.purchases">Consultar compras insumos</span>
-                    <span class="admin-nav-hint">(Próximamente)</span>
                 </span>
             </a>
             <a href="/inventario-insumos.html?ctx=admin" class="admin-nav-item active" data-section="inventario">
@@ -328,6 +326,7 @@
         }
 
         var inventarioCache = [];
+        var prendasMap = {};
         var categoriasLista = [];
         var estadoLista = { modo: 'idle' };
         var selectedInsumoId = null;
@@ -367,6 +366,21 @@
             }
         }
 
+        function getPrendasText(insumoId) {
+            var prendas = prendasMap[insumoId];
+            if (!prendas || prendas.length === 0) return 'Sin prendas asignadas';
+            return escapeHtml(prendas.map(function (p) {
+                return p.nombrePrenda + ' (' + p.genero + ')';
+            }).join(', '));
+        }
+
+        async function cargarPrendasMap() {
+            try {
+                var res = await fetch('/api/fichas-tecnicas/prendas-por-insumo', { credentials: 'include' });
+                if (res.ok) prendasMap = await res.json();
+            } catch (e) { /* noop */ }
+        }
+
         function renderTablaInventario(rows) {
             var tbody = document.getElementById('inventario-tbody');
             tbody.innerHTML = rows.map(function (r) {
@@ -380,7 +394,7 @@
                     '<td>' + escapeHtml(r.unidadMedida || '—') + '</td>' +
                     '<td>' + escapeHtml(r.referenciaTela || '—') + '</td>' +
                     '<td>' + escapeHtml(r.color || '—') + '</td>' +
-                    '<td class="compras-cell-catalogo">' + escapeHtml(r.productosCatalogo || '—') + '</td>' +
+                    '<td class="compras-cell-catalogo">' + getPrendasText(r.id) + '</td>' +
                     '</tr>';
             }).join('');
         }
@@ -687,6 +701,7 @@
                 }
             }
             await cargarCategoriasFiltro();
+            await cargarPrendasMap();
             actualizarPlaceholderBusqueda();
         })();
 

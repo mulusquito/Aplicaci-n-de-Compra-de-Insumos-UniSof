@@ -35,6 +35,21 @@ public class FichaTecnicaController {
         return ResponseEntity.ok(fichaRepo.findDistinctNombrePrenda());
     }
 
+    /** Mapa insumoId → lista de {nombrePrenda, genero} para mostrar en inventario. */
+    @GetMapping("/prendas-por-insumo")
+    public ResponseEntity<Map<Long, List<Map<String, String>>>> prendasPorInsumo() {
+        List<Object[]> rows = fichaRepo.findPrendasPorInsumo();
+        Map<Long, List<Map<String, String>>> result = new LinkedHashMap<>();
+        for (Object[] row : rows) {
+            Long insumoId = ((Number) row[0]).longValue();
+            String nombrePrenda = (String) row[1];
+            String genero = (String) row[2];
+            result.computeIfAbsent(insumoId, k -> new java.util.ArrayList<>())
+                  .add(Map.of("nombrePrenda", nombrePrenda, "genero", genero));
+        }
+        return ResponseEntity.ok(result);
+    }
+
     /**
      * Consulta fichas:
      *  - sin parámetros → todas

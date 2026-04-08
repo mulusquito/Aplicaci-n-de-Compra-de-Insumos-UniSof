@@ -101,23 +101,41 @@
                 <span class="admin-logo-text">UNISOF</span>
             </a>
         </div>
-        <nav class="admin-nav" id="admin-nav">
-            <a href="/ventas.html" class="admin-nav-item" data-section="ventas">
-                <span class="admin-nav-icon">💼</span>
+        <nav class="admin-nav" id="admin-nav" style="visibility:hidden">
+            <a href="/panel-admin.html" class="admin-nav-item" data-section="dashboard">
+                <span class="admin-nav-icon">📊</span>
                 <span class="admin-nav-item-label">
-                    <span class="admin-nav-text" data-i18n-key="nav.sales">Ventas</span>
+                    <span class="admin-nav-text" data-i18n-key="nav.dashboard">Dashboard</span>
                 </span>
             </a>
-            <a href="/clientes.html" class="admin-nav-item" data-section="clientes">
-                <span class="admin-nav-icon">👥</span>
+            <a href="/personal.html" class="admin-nav-item" data-section="personal">
+                <span class="admin-nav-icon">👤</span>
                 <span class="admin-nav-item-label">
-                    <span class="admin-nav-text" data-i18n-key="nav.clients">Clientes</span>
+                    <span class="admin-nav-text" data-i18n-key="nav.personal">Personal</span>
                 </span>
             </a>
             <a href="/ordenes.html" class="admin-nav-item active" data-section="ordenes">
                 <span class="admin-nav-icon">📋</span>
                 <span class="admin-nav-item-label">
-                    <span class="admin-nav-text" data-i18n-key="nav.requests">Pedidos</span>
+                    <span class="admin-nav-text" data-i18n-key="nav.orders">Consultar órdenes de compra</span>
+                </span>
+            </a>
+            <a href="/facturas-proveedores.html" class="admin-nav-item" data-section="compras">
+                <span class="admin-nav-icon">📦</span>
+                <span class="admin-nav-item-label">
+                    <span class="admin-nav-text" data-i18n-key="nav.purchases">Consultar compras insumos</span>
+                </span>
+            </a>
+            <a href="/inventario-insumos.html?ctx=admin" class="admin-nav-item" data-section="inventario">
+                <span class="admin-nav-icon">📁</span>
+                <span class="admin-nav-item-label">
+                    <span class="admin-nav-text" data-i18n-key="nav.inventory">Consultar inventario</span>
+                </span>
+            </a>
+            <a href="/proveedores.html" class="admin-nav-item" data-section="proveedores">
+                <span class="admin-nav-icon">🏭</span>
+                <span class="admin-nav-item-label">
+                    <span class="admin-nav-text" data-i18n-key="nav.suppliers">Proveedores</span>
                 </span>
             </a>
         </nav>
@@ -161,6 +179,7 @@
                     <button type="button" class="btn btn-secondary" id="btn-buscar-mes" data-i18n-key="orders.byMonth">Por mes</button>
                 </div>
                 <button type="button" class="btn btn-primary-crud" id="btn-listar-todos" data-i18n-key="orders.listAll">Listar todas</button>
+                <button type="button" class="btn btn-secondary" id="btn-limpiar">Limpiar</button>
             </div>
             <div id="tabla-container">
                 <table class="crud-table" id="tabla-ordenes">
@@ -239,28 +258,20 @@
             if (rol !== 'VENDEDOR' && rol !== 'ADMINISTRADOR') { window.location.href = '/'; return; }
             document.getElementById('user-name').textContent = result.usuario?.nombre || result.usuario?.usuario;
             document.getElementById('user-rol').textContent = result.usuario?.rol || rol;
-            if (rol === 'ADMINISTRADOR') {
-                document.querySelector('.admin-topbar-title').textContent = 'Consultar órdenes de compra';
-                const nav = document.getElementById('admin-nav');
-                nav.innerHTML = `
-                    <a href="/panel-admin.html" class="admin-nav-item" data-section="dashboard">
-                        <span class="admin-nav-icon">📊</span>
-                        <span class="admin-nav-item-label"><span class="admin-nav-text" data-i18n-key="nav.dashboard">Dashboard</span></span>
-                    </a>
-                    <a href="/personal.html" class="admin-nav-item" data-section="personal">
-                        <span class="admin-nav-icon">👤</span>
-                        <span class="admin-nav-item-label"><span class="admin-nav-text" data-i18n-key="nav.personal">Personal</span></span>
-                    </a>
-                    <a href="/ordenes.html" class="admin-nav-item active" data-section="ordenes">
-                        <span class="admin-nav-icon">📋</span>
-                        <span class="admin-nav-item-label"><span class="admin-nav-text" data-i18n-key="nav.orders">Consultar órdenes de compra</span></span>
-                    </a>
-                    <a href="#compras-insumos" class="admin-nav-item admin-nav-item--disabled" data-section="compras"><span class="admin-nav-icon">📦</span><span class="admin-nav-item-label"><span class="admin-nav-text" data-i18n-key="nav.purchases">Consultar compras insumos</span><span class="admin-nav-hint">(Próximamente)</span></span></a>
-                    <a href="/inventario-insumos.html?ctx=admin" class="admin-nav-item" data-section="inventario"><span class="admin-nav-icon">📁</span><span class="admin-nav-item-label"><span class="admin-nav-text" data-i18n-key="nav.inventory">Consultar inventario</span></span></a>
-                    <a href="/proveedores.html" class="admin-nav-item" data-section="proveedores"><span class="admin-nav-icon">🏭</span><span class="admin-nav-item-label"><span class="admin-nav-text" data-i18n-key="nav.suppliers">Proveedores</span></span></a>
-                `;
-                if (typeof window.__a11yReapplyLanguage === 'function') window.__a11yReapplyLanguage();
+
+            if (rol === 'VENDEDOR') {
+                document.getElementById('admin-nav').innerHTML =
+                    '<a href="/ventas.html" class="admin-nav-item" data-section="ventas">' +
+                    '<span class="admin-nav-icon">🛒</span>' +
+                    '<span class="admin-nav-item-label"><span class="admin-nav-text">Ventas</span></span></a>' +
+                    '<a href="/clientes.html" class="admin-nav-item" data-section="clientes">' +
+                    '<span class="admin-nav-icon">👥</span>' +
+                    '<span class="admin-nav-item-label"><span class="admin-nav-text">Clientes</span></span></a>' +
+                    '<a href="/ordenes.html" class="admin-nav-item active" data-section="ordenes">' +
+                    '<span class="admin-nav-icon">📋</span>' +
+                    '<span class="admin-nav-item-label"><span class="admin-nav-text">Pedidos</span></span></a>';
             }
+            document.getElementById('admin-nav').style.visibility = 'visible';
         })();
 
         document.getElementById('btn-logout').addEventListener('click', async () => {
@@ -312,6 +323,17 @@
         document.getElementById('btn-listar-todos').addEventListener('click', () => {
             ultimoContexto = 'todos';
             cargarOrdenes();
+        });
+
+        document.getElementById('btn-limpiar').addEventListener('click', () => {
+            document.getElementById('buscar-numero').value = '';
+            document.getElementById('buscar-cedula').value = '';
+            document.getElementById('buscar-fecha').value = '';
+            document.getElementById('buscar-mes').value = '';
+            document.getElementById('tabla-body').innerHTML = '';
+            document.getElementById('tabla-ordenes').style.display = 'none';
+            document.getElementById('empty-msg').style.display = 'none';
+            ultimoContexto = 'todos';
         });
 
         document.getElementById('btn-buscar-numero').addEventListener('click', () => {
