@@ -138,6 +138,9 @@
                         if (document.documentElement.classList.contains('inventario-admin-entry')) {
                             var el = document.getElementById('inventario-topbar-title');
                             if (el) el.textContent = 'Consultar inventario';
+                            /* Quitar clase compras del topbar antes del primer pintado */
+                            var tb = document.getElementById('inventario-topbar');
+                            if (tb) tb.classList.remove('admin-topbar--compras-head');
                         }
                     })();
                 </script>

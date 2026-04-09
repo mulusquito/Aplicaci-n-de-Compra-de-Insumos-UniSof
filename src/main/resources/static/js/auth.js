@@ -72,7 +72,9 @@ const authApi = {
         try {
             const res = await fetch('/api/auth/me', { credentials: 'include' });
             if (res.ok) {
-                return { ok: true, usuario: await res.json() };
+                const usuario = await res.json();
+                try { sessionStorage.setItem('_unisoft_rol', (usuario.rol || '').toUpperCase()); } catch (_) {}
+                return { ok: true, usuario };
             }
             const data = res.status === 401 ? (await res.json().catch(() => ({}))) : {};
             const mensaje = data.mensaje || 'Sesión expirada';
@@ -90,6 +92,7 @@ const authApi = {
             await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
         } catch (_) {}
         authApi.clearHadSession();
+        try { sessionStorage.removeItem('_unisoft_rol'); } catch (_) {}
     }
 };
 

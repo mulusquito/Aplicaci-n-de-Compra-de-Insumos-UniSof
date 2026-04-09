@@ -91,31 +91,16 @@
                 </section>
 
                 <section class="dashboard-section">
-                <h2 class="dashboard-section-title">Accesos rápidos</h2>
+                    <h2 class="dashboard-section-title">Catálogo</h2>
                     <div class="panel-buttons">
-                        <a href="#resumen-ventas" class="panel-btn">
-                            <span class="panel-btn-icon">📊</span>
-                            <span class="panel-btn-text">Ventas</span>
+                        <a href="#caballeros" class="panel-btn">
+                            <span class="panel-btn-icon">👔</span>
+                            <span class="panel-btn-text">Hombre</span>
                         </a>
-                        <a href="/clientes.html" class="panel-btn">
-                            <span class="panel-btn-icon">👥</span>
-                            <span class="panel-btn-text">Clientes</span>
+                        <a href="#damas" class="panel-btn">
+                            <span class="panel-btn-icon">👗</span>
+                            <span class="panel-btn-text">Mujer</span>
                         </a>
-                        <a href="/ordenes.html" class="panel-btn">
-                            <span class="panel-btn-icon">📋</span>
-                            <span class="panel-btn-text">Pedidos</span>
-                        </a>
-                        <div class="panel-btn panel-btn-catalogo dropdown-catalogo">
-                            <button type="button" class="panel-btn-inner btn-catalogo">
-                                <span class="panel-btn-icon">👕</span>
-                                <span class="panel-btn-text">Ver catálogo</span>
-                                <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
-                            </button>
-                            <div class="dropdown-catalogo-menu panel-dropdown-menu">
-                                <a href="#damas">Mujer</a>
-                                <a href="#caballeros">Hombre</a>
-                            </div>
-                        </div>
                     </div>
                 </section>
             </div>
@@ -263,7 +248,7 @@
     </section>
 
     <!-- CATÁLOGO DAMAS (solo visible al seleccionar Mujer) -->
-    <section id="damas" class="catalog-section catalog-section-alt catalog-mujer catalog-hidden">
+    <section id="damas" class="catalog-section catalog-section-alt catalog-mujer">
         <h2 class="catalog-title">Damas</h2>
         <p class="catalog-subtitle">Explora nuestra colección para damas.</p>
 
@@ -681,34 +666,6 @@
             }
         });
 
-        document.querySelector('.panel-btn-catalogo')?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (e.target.closest('.btn-catalogo')) {
-                document.querySelector('.panel-btn-catalogo')?.classList.toggle('open');
-            }
-            const link = e.target.closest('.dropdown-catalogo-menu a');
-            if (link) {
-                e.preventDefault();
-                const targetId = link.getAttribute('href');
-                const target = document.querySelector(targetId);
-                const caballeros = document.getElementById('caballeros');
-                const damas = document.getElementById('damas');
-                if (targetId === '#caballeros' && caballeros && damas) {
-                    damas.classList.add('catalog-hidden');
-                    caballeros.classList.remove('catalog-hidden');
-                } else if (targetId === '#damas' && caballeros && damas) {
-                    caballeros.classList.add('catalog-hidden');
-                    damas.classList.remove('catalog-hidden');
-                }
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-                document.querySelector('.panel-btn-catalogo')?.classList.remove('open');
-            }
-        });
-        document.addEventListener('click', () => {
-            document.querySelector('.panel-btn-catalogo')?.classList.remove('open');
-        });
 
         // CARRITO: al hacer clic en +, agregar directo al carrito (sin modal de talla)
         document.addEventListener('click', (e) => {
