@@ -176,10 +176,20 @@
         <div class="admin-sidebar-footer">
             <div class="admin-user-info">
                 <span class="admin-user-name" id="user-name">—</span>
-                <span class="admin-user-rol" id="user-rol">Jefe de Compras</span>
+                <span class="admin-user-rol" id="user-rol">JEFE DE COMPRAS</span>
             </div>
             <button type="button" class="admin-btn-logout" id="btn-logout">Cerrar sesión</button>
         </div>
+        <script>
+            (function () {
+                try {
+                    var rolTxt = sessionStorage.getItem('_unisoft_rol_txt');
+                    var nombre = sessionStorage.getItem('_unisoft_nombre');
+                    if (rolTxt) { var elR = document.getElementById('user-rol'); if (elR) elR.textContent = rolTxt; }
+                    if (nombre) { var elN = document.getElementById('user-name'); if (elN) elN.textContent = nombre; }
+                } catch (_) {}
+            })();
+        </script>
     </aside>
 
     <div class="compras-jefe-main">
@@ -561,7 +571,9 @@
         document.getElementById('btn-limpiar').addEventListener('click', () => {
             document.getElementById('buscar-fecha').value = '';
             document.getElementById('buscar-mes').value   = '';
-            ultimoContexto = 'todos'; cargarReportes();
+            ultimoContexto = null;
+            const cont = document.getElementById('oc-contenedor');
+            if (cont) cont.innerHTML = '<div class="oc-empty-msg"><span class="oc-empty-icon">🔍</span>Usa los filtros para consultar órdenes de compra.</div>';
         });
 
         /* ═══════════════════════════════════════════════════════════════════ */
@@ -588,7 +600,7 @@
             const rol = (result.usuario?.rol || '').toUpperCase();
             if (!esRolPanelCompras(rol)) { window.location.href = '/'; return; }
             document.getElementById('user-name').textContent = result.usuario?.nombre || result.usuario?.usuario;
-            document.getElementById('user-rol').textContent  = result.usuario?.rol || 'Jefe de Compras';
+            document.getElementById('user-rol').textContent  = (result.usuario?.rol || '').toUpperCase();
             await cargarReportes();
         })();
     </script>

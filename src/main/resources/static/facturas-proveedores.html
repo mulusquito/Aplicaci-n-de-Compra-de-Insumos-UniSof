@@ -179,6 +179,10 @@
             (function () {
                 try {
                     var rol = (sessionStorage.getItem('_unisoft_rol') || '').toUpperCase();
+                    var rolTxt = sessionStorage.getItem('_unisoft_rol_txt');
+                    var nombre = sessionStorage.getItem('_unisoft_nombre');
+                    if (rolTxt) { var elR = document.getElementById('user-rol'); if (elR) elR.textContent = rolTxt; }
+                    if (nombre) { var elN = document.getElementById('user-name'); if (elN) elN.textContent = nombre; }
                     if (rol === 'ADMINISTRADOR') {
                         var nav = document.querySelector('#compras-jefe-sidebar .admin-nav');
                         if (nav) {
@@ -205,10 +209,20 @@
         <div class="admin-sidebar-footer">
             <div class="admin-user-info">
                 <span class="admin-user-name" id="user-name">—</span>
-                <span class="admin-user-rol" id="user-rol">Jefe de Compras</span>
+                <span class="admin-user-rol" id="user-rol">JEFE DE COMPRAS</span>
             </div>
             <button type="button" class="admin-btn-logout" id="btn-logout">Cerrar sesión</button>
         </div>
+        <script>
+            (function () {
+                try {
+                    var rolTxt = sessionStorage.getItem('_unisoft_rol_txt');
+                    var nombre = sessionStorage.getItem('_unisoft_nombre');
+                    if (rolTxt) { var elR = document.getElementById('user-rol'); if (elR) elR.textContent = rolTxt; }
+                    if (nombre) { var elN = document.getElementById('user-name'); if (elN) elN.textContent = nombre; }
+                } catch (_) {}
+            })();
+        </script>
     </aside>
 
     <div class="compras-jefe-main">
@@ -228,12 +242,7 @@
                 </h1>
 
                 <!-- Grid de tarjetas de proveedores -->
-                <div id="fp-proveedores-grid" class="fp-proveedores-grid">
-                    <div class="fp-empty">
-                        <span class="fp-empty-icon">⏳</span>
-                        Cargando proveedores…
-                    </div>
-                </div>
+                <div id="fp-proveedores-grid" class="fp-proveedores-grid"></div>
 
                 <!-- Panel de facturas del proveedor seleccionado -->
                 <div class="fp-facturas-panel" id="fp-facturas-panel">

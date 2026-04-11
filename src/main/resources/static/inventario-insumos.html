@@ -127,6 +127,16 @@
             </div>
             <button type="button" class="admin-btn-logout" id="btn-logout">Cerrar sesión</button>
         </div>
+        <script>
+            (function () {
+                try {
+                    var rolTxt = sessionStorage.getItem('_unisoft_rol_txt');
+                    var nombre = sessionStorage.getItem('_unisoft_nombre');
+                    if (rolTxt) { var elR = document.getElementById('user-rol'); if (elR) elR.textContent = rolTxt; }
+                    if (nombre) { var elN = document.getElementById('user-name'); if (elN) elN.textContent = nombre; }
+                } catch (_) {}
+            })();
+        </script>
     </aside>
 
     <div class="admin-main-wrap">

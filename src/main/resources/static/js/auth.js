@@ -74,6 +74,9 @@ const authApi = {
             if (res.ok) {
                 const usuario = await res.json();
                 try { sessionStorage.setItem('_unisoft_rol', (usuario.rol || '').toUpperCase()); } catch (_) {}
+                try { sessionStorage.setItem('_unisoft_rol_txt', (usuario.rol || '').toUpperCase()); } catch (_) {}
+                authApi.setHadSession();
+                try { sessionStorage.setItem('_unisoft_nombre', usuario.nombre || usuario.usuario || ''); } catch (_) {}
                 return { ok: true, usuario };
             }
             const data = res.status === 401 ? (await res.json().catch(() => ({}))) : {};
@@ -93,6 +96,8 @@ const authApi = {
         } catch (_) {}
         authApi.clearHadSession();
         try { sessionStorage.removeItem('_unisoft_rol'); } catch (_) {}
+        try { sessionStorage.removeItem('_unisoft_rol_txt'); } catch (_) {}
+        try { sessionStorage.removeItem('_unisoft_nombre'); } catch (_) {}
     }
 };
 
@@ -243,6 +248,5 @@ const authApi = {
     );
 
     lastSessionPing = 0;
-    pingSessionRenew();
     scheduleInactiveChain();
 })();

@@ -152,6 +152,10 @@
         (function () {
             try {
                 var rol = (sessionStorage.getItem('_unisoft_rol') || '').toUpperCase();
+                var rolTxt = sessionStorage.getItem('_unisoft_rol_txt');
+                var nombre = sessionStorage.getItem('_unisoft_nombre');
+                if (rolTxt) { var elR = document.getElementById('user-rol'); if (elR) elR.textContent = rolTxt; }
+                if (nombre) { var elN = document.getElementById('user-name'); if (elN) elN.textContent = nombre; }
                 if (rol === 'VENDEDOR') {
                     document.getElementById('admin-nav').innerHTML =
                         '<a href="/ventas.html" class="admin-nav-item" data-section="ventas">' +
