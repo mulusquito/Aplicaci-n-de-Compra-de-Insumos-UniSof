@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fichas Técnicas — Jefe de Compras | UNISOF</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .ft-wrap { padding: 24px; }
+        .ft-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+        .ft-title { font-size: 20px; font-weight: 700; color: #f5a623; margin: 0; }
+        .ft-back { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; background: #2a2a2a; border: 1px solid #444; color: #ccc; font-size: 13px; font-weight: 600; text-decoration: none; transition: background 0.15s; }
+        .ft-back:hover { background: #333; color: #fff; }
+
+        /* Grid de tarjetas de prendas */
+        .ft-prendas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin-bottom: 32px; }
+        .ft-prenda-card { background: #1e1e1e; border: 1px solid #2a2a2a; border-radius: 10px; padding: 16px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+        .ft-prenda-card:hover { border-color: #f5a623; background: #222; }
+        .ft-prenda-card.active { border-color: #f5a623; background: #222; box-shadow: 0 0 0 2px rgba(245,166,35,0.2); }
+        .ft-prenda-nombre { font-size: 13px; font-weight: 700; color: #f0f0f0; margin-bottom: 4px; }
+        .ft-prenda-lineas { font-size: 11px; color: #888; }
+        .ft-prenda-no-ficha { font-size: 11px; color: #c0392b; font-weight: 600; }
+
+        /* Panel de detalle */
+        .ft-detalle { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px; overflow: hidden; }
+        .ft-detalle-header { background: #222; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+        .ft-detalle-title { font-size: 16px; font-weight: 700; color: #f5a623; margin: 0; }
+        .ft-detalle-body { overflow-x: auto; }
+
+        /* Tabla de ficha (tallas × insumos) */
+        .ft-tabla { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 600px; }
+        .ft-tabla th { background: #252525; color: #f5a623; padding: 10px 12px; text-align: center; border: 1px solid #2a2a2a; white-space: nowrap; font-size: 12px; }
+        .ft-tabla th.ft-th-talla { text-align: left; min-width: 60px; }
+        .ft-tabla td { padding: 8px 12px; border: 1px solid #242424; color: #ddd; text-align: center; vertical-align: middle; }
+        .ft-tabla td.ft-td-talla { font-weight: 700; color: #f5a623; text-align: left; background: #1e1e1e; }
+        .ft-tabla tr:hover td { background: #202020; }
+        .ft-tabla tr:hover td.ft-td-talla { background: #222; }
+
+        /* Celda editable */
+        .ft-celda { display: inline-flex; align-items: center; gap: 4px; }
+        .ft-celda input { width: 64px; padding: 4px 6px; border-radius: 5px; border: 1px solid #444; background: #2a2a2a; color: #fff; font-size: 12px; text-align: center; }
+        .ft-celda input:focus { outline: none; border-color: #f5a623; }
+        .ft-celda .ft-unit { font-size: 10px; color: #888; }
+        .ft-celda .ft-save-btn { padding: 3px 8px; border-radius: 4px; border: none; background: #f5a623; color: #1a1a1a; font-size: 11px; font-weight: 700; cursor: pointer; display: none; }
+        .ft-celda .ft-save-btn:hover { background: #e09520; }
+        .ft-celda input:focus ~ .ft-save-btn,
+        .ft-celda input.dirty ~ .ft-save-btn { display: inline-block; }
+
+        /* Botones acción */
+        .ft-btn { padding: 7px 16px; border-radius: 7px; border: none; cursor: pointer; font-size: 12px; font-weight: 700; transition: background 0.15s; }
+        .ft-btn-yellow { background: #f5a623; color: #1a1a1a; }
+        .ft-btn-yellow:hover { background: #e09520; }
+        .ft-btn-danger { background: transparent; border: 1px solid #c0392b; color: #c0392b; }
+        .ft-btn-danger:hover { background: #c0392b22; }
+        .ft-btn-outline { background: transparent; border: 1px solid #444; color: #aaa; }
+        .ft-btn-outline:hover { background: #2a2a2a; }
+
+        /* Modal agregar insumo */
+        .ft-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .ft-modal-overlay.hidden { display: none; }
+        .ft-modal { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 24px; width: 100%; max-width: 420px; }
+        .ft-modal h3 { color: #f5a623; margin: 0 0 18px; font-size: 16px; }
+        .ft-field { margin-bottom: 14px; }
+        .ft-field label { display: block; color: #aaa; font-size: 12px; margin-bottom: 5px; font-weight: 600; }
+        .ft-field select, .ft-field input { width: 100%; padding: 9px 12px; border-radius: 7px; border: 1px solid #444; background: #222; color: #fff; font-size: 13px; }
+        .ft-field select:focus, .ft-field input:focus { outline: none; border-color: #f5a623; }
+        .ft-modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+
+        .ft-empty { text-align: center; padding: 40px; color: #666; font-size: 14px; }
+        .ft-loading { text-align: center; padding: 32px; color: #666; }
+
+        @media (max-width: 768px) {
+            .ft-prendas-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body class="compras-jefe-body">
+
+    <aside class="admin-sidebar" id="compras-jefe-sidebar" aria-label="Módulos de compras">
+        <div class="admin-sidebar-header">
+            <a href="/" class="admin-logo admin-logo--sin-icono" aria-label="UNISOF — Inicio">
+                <span class="admin-logo-text">UNISOF</span>
+            </a>
+        </div>
+        <p class="compras-modulos-label">Módulos</p>
+        <nav class="admin-nav admin-nav--compras-modulos">
+            <a href="/compras.html" class="admin-nav-item" data-nav="dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+                <span class="admin-nav-text">Dashboard</span>
+            </a>
+            <a href="/ordenes-compras.html" class="admin-nav-item" data-nav="pedidos">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>
+                </svg>
+                <span class="admin-nav-text">Pedidos</span>
+            </a>
+            <a href="/analisis-insumos.html" class="admin-nav-item" data-nav="analisis">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="8" width="5" height="13" rx="1"/><rect x="17" y="13" width="5" height="8" rx="1"/>
+                </svg>
+                <span class="admin-nav-text">Análisis de insumos</span>
+            </a>
+            <a href="/inventario-insumos.html" class="admin-nav-item" data-nav="inventario">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <path d="M3.27 6.96L12 12.01l8.73-5.05"/><path d="M12 22.08V12"/>
+                </svg>
+                <span class="admin-nav-text">Inventario</span>
+            </a>
+            <a href="/reporte-faltantes.html" class="admin-nav-item" data-nav="reporte">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
+                </svg>
+                <span class="admin-nav-text">Reporte faltantes</span>
+            </a>
+            <a href="/ordenes-compra.html" class="admin-nav-item" data-nav="ordenes-compra">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                </svg>
+                <span class="admin-nav-text">Órdenes de compra</span>
+            </a>
+            <a href="/fichas-tecnicas.html" class="admin-nav-item active" data-nav="fichas">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+                <span class="admin-nav-text">Fichas Técnicas</span>
+            </a>
+        </nav>
+        <div class="admin-sidebar-footer">
+            <div class="admin-user-info">
+                <span class="admin-user-name" id="user-name">—</span>
+                <span class="admin-user-rol" id="user-rol">Jefe de Compras</span>
+            </div>
+            <button type="button" class="admin-btn-logout" id="btn-logout">Cerrar sesión</button>
+        </div>
+    </aside>
+
+    <div class="compras-jefe-main">
+        <header class="compras-jefe-topbar"></header>
+        <div class="compras-jefe-content">
+            <div class="ft-wrap">
+
+                <div class="ft-header">
+                    <h1 class="ft-title">Fichas Técnicas de Fabricación</h1>
+                    <a href="/ordenes-compras.html" class="ft-back">
+                        ← Volver a Pedidos
+                    </a>
+                </div>
+
+                <!-- Selector de género -->
+                <div style="display:flex;gap:8px;margin-bottom:20px;">
+                    <button type="button" class="ft-btn ft-btn-yellow" id="btn-genero-cab" data-genero="Caballero">👔 Caballero</button>
+                    <button type="button" class="ft-btn ft-btn-outline" id="btn-genero-dam" data-genero="Dama">👗 Dama</button>
+                </div>
+
+                <!-- Grid de prendas -->
+                <div class="ft-prendas-grid" id="ft-prendas-grid">
+                    <div class="ft-loading">Cargando prendas…</div>
+                </div>
+
+                <!-- Detalle de ficha seleccionada -->
+                <div class="ft-detalle" id="ft-detalle" style="display:none;">
+                    <div class="ft-detalle-header">
+                        <h2 class="ft-detalle-title" id="ft-detalle-nombre">—</h2>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button type="button" class="ft-btn ft-btn-yellow" id="btn-agregar-insumo">+ Agregar insumo</button>
+                        </div>
+                    </div>
+                    <div class="ft-detalle-body" id="ft-detalle-body">
+                        <div class="ft-loading">Cargando ficha…</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <button type="button" class="compras-jefe-sidebar-toggle" id="compras-jefe-sidebar-toggle" aria-label="Abrir menú">☰</button>
+
+    <!-- Modal: agregar insumo a una talla -->
+    <div class="ft-modal-overlay hidden" id="ft-modal-overlay">
+        <div class="ft-modal">
+            <h3>Agregar insumo a ficha</h3>
+            <div class="ft-field">
+                <label>Prenda</label>
+                <input type="text" id="modal-prenda" readonly style="opacity:0.6;">
+            </div>
+            <div class="ft-field">
+                <label>Talla</label>
+                <select id="modal-talla"></select>
+            </div>
+            <div class="ft-field">
+                <label>Insumo</label>
+                <select id="modal-insumo"></select>
+            </div>
+            <div class="ft-field">
+                <label>Cantidad requerida (en unidad del insumo)</label>
+                <input type="number" id="modal-cantidad" min="0.0001" step="0.0001" placeholder="ej. 1.80">
+            </div>
+            <div class="ft-modal-actions">
+                <button type="button" class="ft-btn ft-btn-outline" id="modal-cancelar">Cancelar</button>
+                <button type="button" class="ft-btn ft-btn-yellow" id="modal-guardar">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/toast.js"></script>
+    <script src="/js/accessibility.js"></script>
+    <script src="/js/unisof-brand-info.js" defer></script>
+    <link rel="stylesheet" href="/css/chat.css">
+    <script src="/js/chat.js" defer></script>
+    <script>
+    (function () {
+
+        // ── Catálogo fijo de prendas (mismo que ventas) ──────────────────────
+        const CATALOGO = {
+            Caballero: [
+                "Blaizer clásico",
+                "Blaizer slim fit",
+                "Camisa Estructura Easy Care",
+                "Camisa Estructura Oxford",
+                "Camisa Estructura Textura",
+                "Camisa Regular Fit Lino - Algodón",
+                "Cazadora estructura espiga",
+                "Cazadora efecto piel",
+                "Cazadora técnica capucha",
+                "Cazadora acolchada capucha",
+                "Pantalón Chino Estructura Confort",
+                "Pantalón Pana Baggy Fit Costuras Giradas",
+                "Pantalón Traje Raya Diplomática"
+            ],
+            Dama: [
+                "Blaizer clásico",
+                "Blaizer slim fit",
+                "Camisa Estructura Easy Care",
+                "Camisa Estructura Oxford",
+                "Camisa Estructura Textura",
+                "Cazadora estructura espiga",
+                "Cazadora efecto piel",
+                "Cazadora técnica capucha",
+                "Pantalón Chino Estructura Confort",
+                "Pantalón Pana Baggy Fit Costuras Giradas",
+                "Pantalón Traje Raya Diplomática"
+            ]
+        };
+
+        const TALLAS_SUP  = ["XS","S","M","L","XL","2XL","3XL"];
+        const TALLAS_PANT_M = ["6","8","10","12","14","16"];
+        const TALLAS_PANT_H = ["32","34","36","38","40","42","44"];
+
+        function tallasDeprenda(prenda) {
+            const p = prenda.toLowerCase();
+            if (p.includes("pantalón") || p.includes("pantalon")) {
+                return [...TALLAS_PANT_M, ...TALLAS_PANT_H];
+            }
+            return TALLAS_SUP;
+        }
+
+        function escapeHtml(s) {
+            if (s == null) return '';
+            const d = document.createElement('div');
+            d.textContent = String(s);
+            return d.innerHTML;
+        }
+
+        function fmtNum(v) {
+            const n = Number(v);
+            return isNaN(n) ? '—' : (Number.isInteger(n) ? n : parseFloat(n.toFixed(4)));
+        }
+
+        // ── Estado ────────────────────────────────────────────────────────────
+        let prendasConFicha = new Set();
+        let todosLosInsumos = [];
+        let prendaActiva    = null;
+        let generoActivo    = 'Caballero';
+        let fichaActiva     = [];
+
+        // ── Inicialización ────────────────────────────────────────────────────
+        async function init() {
+            const result = await authApi.getMe();
+            if (!result.ok) { window.location.href = '/login.html'; return; }
+            const rol = (result.usuario?.rol || '').toUpperCase();
+            if (!['ADMINISTRADOR','JEFE DE COMPRAS','JEFE DE VENTAS'].includes(rol)) {
+                window.location.href = '/';
+                return;
+            }
+            document.getElementById('user-name').textContent = result.usuario?.nombre || result.usuario?.usuario;
+            document.getElementById('user-rol').textContent  = result.usuario?.rol || 'Jefe de Compras';
+
+            await cargarInsumos();
+            await cargarGridPrendas();
+        }
+
+        async function cargarInsumos() {
+            try {
+                const res  = await fetch('/api/compras/insumos', { credentials: 'include' });
+                const data = await res.json();
+                todosLosInsumos = Array.isArray(data) ? data : (data.content || []);
+            } catch (_) { todosLosInsumos = []; }
+        }
+
+        async function cargarGridPrendas() {
+            try {
+                const res   = await fetch('/api/fichas-tecnicas', { credentials: 'include' });
+                const lista = await res.json();
+                // Construir set con clave "prenda|genero"
+                prendasConFicha = new Set((lista || []).map(f => (f.nombrePrenda || '').toLowerCase() + '|' + (f.genero || '').toLowerCase()));
+            } catch (_) { prendasConFicha = new Set(); }
+            renderGrid();
+        }
+
+        function renderGrid() {
+            const grid  = document.getElementById('ft-prendas-grid');
+            const lista = CATALOGO[generoActivo] || [];
+            grid.innerHTML = lista.map(nombre => {
+                const key = nombre.toLowerCase() + '|' + generoActivo.toLowerCase();
+                const tieneFicha = prendasConFicha.has(key);
+                return `<div class="ft-prenda-card${prendaActiva === nombre ? ' active' : ''}"
+                             data-prenda="${escapeHtml(nombre)}"
+                             role="button" tabindex="0"
+                             aria-label="Ver ficha de ${escapeHtml(nombre)}">
+                    <div class="ft-prenda-nombre">${escapeHtml(nombre)}</div>
+                    ${tieneFicha
+                        ? '<div class="ft-prenda-lineas">Ficha registrada ✓</div>'
+                        : '<div class="ft-prenda-no-ficha">Sin ficha técnica</div>'}
+                </div>`;
+            }).join('');
+
+            grid.querySelectorAll('.ft-prenda-card').forEach(card => {
+                const handler = () => seleccionarPrenda(card.dataset.prenda);
+                card.addEventListener('click', handler);
+                card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') handler(); });
+            });
+        }
+
+        // ── Selección y carga de ficha ────────────────────────────────────────
+        async function seleccionarPrenda(nombre) {
+            prendaActiva = nombre;
+            renderGrid();
+            document.getElementById('ft-detalle').style.display = 'block';
+            document.getElementById('ft-detalle-nombre').textContent = nombre + ' — ' + generoActivo;
+            document.getElementById('ft-detalle-body').innerHTML = '<div class="ft-loading">Cargando ficha…</div>';
+
+            try {
+                const url  = '/api/fichas-tecnicas?prenda=' + encodeURIComponent(nombre) + '&genero=' + encodeURIComponent(generoActivo);
+                const res  = await fetch(url, { credentials: 'include' });
+                const data = await res.json();
+                fichaActiva = Array.isArray(data) ? data : [];
+                renderFicha(nombre, fichaActiva);
+            } catch (err) {
+                document.getElementById('ft-detalle-body').innerHTML = '<div class="ft-empty">Error al cargar la ficha.</div>';
+            }
+        }
+
+        // ── Renderizado tabla (tallas × insumos) ──────────────────────────────
+        function renderFicha(prenda, lineas) {
+            const body = document.getElementById('ft-detalle-body');
+            if (lineas.length === 0) {
+                body.innerHTML = '<div class="ft-empty">Esta prenda aún no tiene ficha técnica. Usa "+ Agregar insumo" para comenzar.</div>';
+                return;
+            }
+
+            const tallas   = [...new Set(lineas.map(l => l.talla))];
+            const insumosCols = [...new Map(lineas.map(l => [l.insumoCodigo, { codigo: l.insumoCodigo, nombre: l.insumoNombre, unidad: l.unidadMedida }])).values()];
+
+            let html = '<table class="ft-tabla"><thead><tr><th class="ft-th-talla">Talla</th>';
+            insumosCols.forEach(ins => {
+                html += `<th title="${escapeHtml(ins.codigo)}">${escapeHtml(ins.nombre)}<br><span style="font-size:10px;color:#888;">(${escapeHtml(ins.unidad)})</span></th>`;
+            });
+            html += '</tr></thead><tbody>';
+
+            tallas.forEach(talla => {
+                html += `<tr><td class="ft-td-talla">${escapeHtml(talla)}</td>`;
+                insumosCols.forEach(ins => {
+                    const linea = lineas.find(l => l.talla === talla && l.insumoCodigo === ins.codigo);
+                    if (linea) {
+                        html += `<td>
+                            <div class="ft-celda">
+                                <input type="number" min="0.0001" step="0.0001"
+                                       value="${fmtNum(linea.cantidadRequerida)}"
+                                       data-id="${linea.id}"
+                                       data-orig="${fmtNum(linea.cantidadRequerida)}"
+                                       class="ft-cantidad-input">
+                                <span class="ft-unit">${escapeHtml(ins.unidad)}</span>
+                                <button type="button" class="ft-save-btn" data-id="${linea.id}">Guardar</button>
+                            </div>
+                        </td>`;
+                    } else {
+                        html += '<td class="ft-td-empty">—</td>';
+                    }
+                });
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            body.innerHTML = html;
+
+            // Marcar dirty al cambiar
+            body.querySelectorAll('.ft-cantidad-input').forEach(input => {
+                input.addEventListener('input', () => {
+                    if (input.value !== input.dataset.orig) {
+                        input.classList.add('dirty');
+                    } else {
+                        input.classList.remove('dirty');
+                    }
+                });
+            });
+
+            // Guardar al hacer clic en botón Guardar
+            body.querySelectorAll('.ft-save-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const id    = btn.dataset.id;
+                    const input = body.querySelector(`.ft-cantidad-input[data-id="${id}"]`);
+                    const val   = parseFloat(input.value);
+                    if (!val || val <= 0) { Toast.error('La cantidad debe ser mayor a cero'); return; }
+                    btn.textContent = '…';
+                    btn.disabled = true;
+                    try {
+                        const res = await fetch('/api/fichas-tecnicas/' + id, {
+                            method: 'PUT', credentials: 'include',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ cantidadRequerida: val })
+                        });
+                        if (!res.ok) throw new Error('Error al guardar');
+                        input.dataset.orig = val;
+                        input.classList.remove('dirty');
+                        btn.textContent = '✓';
+                        setTimeout(() => { btn.textContent = 'Guardar'; btn.disabled = false; }, 1500);
+                        Toast.success('Cantidad actualizada');
+                    } catch (err) {
+                        Toast.error('No se pudo guardar');
+                        btn.textContent = 'Guardar';
+                        btn.disabled = false;
+                    }
+                });
+            });
+        }
+
+        // ── Modal agregar insumo ──────────────────────────────────────────────
+        document.getElementById('btn-agregar-insumo').addEventListener('click', () => {
+            if (!prendaActiva) return;
+            document.getElementById('modal-prenda').value = prendaActiva;
+
+            // Tallas según tipo de prenda
+            const tallas = tallasDeprenda(prendaActiva);
+            const selTalla = document.getElementById('modal-talla');
+            selTalla.innerHTML = tallas.map(t => `<option value="${t}">${t}</option>`).join('');
+
+            // Insumos disponibles
+            const selInsumo = document.getElementById('modal-insumo');
+            selInsumo.innerHTML = todosLosInsumos
+                .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''))
+                .map(i => `<option value="${i.id}">${escapeHtml(i.nombre)} (${escapeHtml(i.unidadMedida)})</option>`)
+                .join('');
+
+            document.getElementById('modal-cantidad').value = '';
+            document.getElementById('ft-modal-overlay').classList.remove('hidden');
+        });
+
+        document.getElementById('modal-cancelar').addEventListener('click', () => {
+            document.getElementById('ft-modal-overlay').classList.add('hidden');
+        });
+        document.getElementById('ft-modal-overlay').addEventListener('click', e => {
+            if (e.target.id === 'ft-modal-overlay') document.getElementById('ft-modal-overlay').classList.add('hidden');
+        });
+
+        document.getElementById('modal-guardar').addEventListener('click', async () => {
+            const prenda   = document.getElementById('modal-prenda').value;
+            const talla    = document.getElementById('modal-talla').value;
+            const insumoId = parseInt(document.getElementById('modal-insumo').value, 10);
+            const cantidad = parseFloat(document.getElementById('modal-cantidad').value);
+
+            if (!cantidad || cantidad <= 0) { Toast.error('Ingresa una cantidad válida'); return; }
+
+            try {
+                const res = await fetch('/api/fichas-tecnicas', {
+                    method: 'POST', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombrePrenda: prenda, genero: generoActivo, talla, insumoId, cantidadRequerida: cantidad })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.mensaje || 'Error al guardar');
+                Toast.success('Insumo agregado a la ficha');
+                document.getElementById('ft-modal-overlay').classList.add('hidden');
+                prendasConFicha.add(prenda.toLowerCase());
+                await seleccionarPrenda(prenda);
+                renderGrid();
+            } catch (err) {
+                Toast.error(err.message || 'No se pudo guardar');
+            }
+        });
+
+        // ── Botones Caballero / Dama ──────────────────────────────────────────
+        document.getElementById('btn-genero-cab').addEventListener('click', () => cambiarGenero('Caballero'));
+        document.getElementById('btn-genero-dam').addEventListener('click', () => cambiarGenero('Dama'));
+
+        function cambiarGenero(g) {
+            generoActivo = g;
+            prendaActiva = null;
+            document.getElementById('ft-detalle').style.display = 'none';
+            // Estilos botones
+            document.getElementById('btn-genero-cab').className = 'ft-btn ' + (g === 'Caballero' ? 'ft-btn-yellow' : 'ft-btn-outline');
+            document.getElementById('btn-genero-dam').className = 'ft-btn ' + (g === 'Dama'      ? 'ft-btn-yellow' : 'ft-btn-outline');
+            renderGrid();
+        }
+
+        // ── Sidebar y logout ──────────────────────────────────────────────────
+        document.getElementById('btn-logout').addEventListener('click', async () => {
+            if (!window.confirm('¿Desea cerrar sesión?')) return;
+            await authApi.logout();
+            window.location.href = '/';
+        });
+
+        const sb = document.getElementById('compras-jefe-sidebar');
+        const tg = document.getElementById('compras-jefe-sidebar-toggle');
+        if (tg && sb) {
+            tg.addEventListener('click', () => {
+                sb.classList.toggle('open');
+                tg.setAttribute('aria-label', sb.classList.contains('open') ? 'Cerrar menú' : 'Abrir menú');
+            });
+        }
+
+        init();
+    })();
+    </script>
+</body>
+</html>

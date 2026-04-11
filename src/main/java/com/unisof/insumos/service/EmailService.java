@@ -496,6 +496,90 @@ public class EmailService {
                     nombreVendedor != null && !nombreVendedor.isBlank() ? nombreVendedor : "—");
     }
 
+    /**
+     * Envía una orden de compra (factura) al proveedor con la lista de insumos a pedir.
+     */
+    public boolean enviarOrdenCompraProveedor(String correoDestino, String nombreProveedor,
+                                              String nit, String numeroFactura,
+                                              String fecha, String insumosHtml) {
+        if (!emailHabilitado) {
+            log.info("Orden compra {} para proveedor {} ({})", numeroFactura, nombreProveedor, correoDestino);
+            return true;
+        }
+        if (correoDestino == null || correoDestino.isBlank()) return false;
+
+        String subject = "Orden de compra " + numeroFactura + " - UNISOF";
+        String html = """
+                <!DOCTYPE html>
+                <html>
+                <head><meta charset="UTF-8"></head>
+                <body style="margin:0;font-family:Arial,sans-serif;background:#0d0d0d;padding:20px;">
+                  <div style="max-width:600px;margin:0 auto;background:#111;border-radius:12px;overflow:hidden;border:1px solid #333;">
+                    <div style="background:#f5a623;color:#1a1a1a;padding:24px;text-align:center;">
+                      <span style="font-size:26px;font-weight:bold;display:inline-block;width:46px;height:46px;line-height:46px;background:#1a1a1a;color:#f5a623;border-radius:8px;margin:0 8px 0 0;">U</span>
+                      <span style="font-size:22px;font-weight:bold;letter-spacing:2px;">UNISOF</span>
+                    </div>
+                    <div style="padding:28px;color:#f5f5f5;">
+                      <p style="font-size:16px;margin:0 0 6px;">Estimado proveedor <strong>%s</strong>,</p>
+                      <p style="font-size:13px;color:#aaa;margin:0 0 20px;">NIT: %s</p>
+                      <p style="font-size:14px;margin:0 0 8px;line-height:1.5;">
+                        Le informamos que <strong>UNISOF</strong> ha generado la siguiente orden de compra:
+                      </p>
+                      <p style="font-size:14px;margin:0 0 20px;">
+                        <strong>Nº Factura:</strong> %s &nbsp;|&nbsp; <strong>Fecha:</strong> %s
+                      </p>
+                      <div style="background:#1a1a1a;border-radius:8px;padding:16px;margin-bottom:20px;">
+                      %s
+                      </div>
+                      <p style="font-size:13px;color:#cccccc;margin:0 0 10px;">
+                        Por favor confirmar recepción de este pedido y fecha estimada de entrega.
+                      </p>
+                      <p style="font-size:12px;color:#888;margin:0;">
+                        Este mensaje es generado automáticamente por el sistema UNISOF.
+                      </p>
+                    </div>
+                    <div style="background:#000;padding:14px;text-align:center;font-size:11px;color:#777;">
+                      Sistema de Insumos UNISOF
+                    </div>
+                  </div>
+                </body>
+                </html>
+                """.formatted(
+                escapeHtmlProveedorEmail(nombreProveedor),
+                escapeHtmlProveedorEmail(nit),
+                escapeHtmlProveedorEmail(numeroFactura),
+                escapeHtmlProveedorEmail(fecha),
+                insumosHtml
+        );
+
+        if (resendApiKey != null && !resendApiKey.isBlank()) {
+            if (enviarViaResend(correoDestino.trim(), subject, html)) {
+                log.info("Orden compra {} enviada a {} (Resend)", numeroFactura, correoDestino);
+                return true;
+            }
+        }
+        if (mailSender != null) {
+            try {
+                MimeMessage mensaje = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(mensaje, true, "UTF-8");
+                helper.setFrom(remitente);
+                helper.setTo(correoDestino.trim());
+                helper.setSubject(subject);
+                helper.setText(html, true);
+                mailSender.send(mensaje);
+                log.info("Orden compra {} enviada a {} (SMTP)", numeroFactura, correoDestino);
+                return true;
+            } catch (MessagingException | MailException e) {
+                log.error("Error enviando orden compra {} a {}: {}", numeroFactura, correoDestino, e.getMessage());
+            }
+        }
+        if (fallbackLogOnError) {
+            log.info(">>> ORDEN COMPRA {} PARA PRUEBAS: proveedor {} <{}>", numeroFactura, nombreProveedor, correoDestino);
+            return true;
+        }
+        return false;
+    }
+
     private String buildHtmlTokenEmail(String nombreUsuario, String token) {
         return """
             <!DOCTYPE html>

@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Reporte faltantes — Jefe de Compras | UNISOF">
+    <title>Reporte faltantes — Jefe de Compras | UNISOF</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .oc-section { padding: 24px; }
+
+        /* Toolbar simétrico */
+        .oc-toolbar { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; max-width: 560px; }
+        .oc-search-row { display: flex; align-items: center; gap: 10px; }
+        .oc-search-row label { width: 100px; flex-shrink: 0; color: #aaa; font-size: 13px; font-weight: 600; text-align: right; }
+        .oc-search-row input { flex: 1; padding: 9px 13px; border-radius: 8px; border: 1px solid #444; background: #222; color: #fff; font-size: 14px; }
+        .oc-search-row input:focus { outline: none; border-color: #f5a623; box-shadow: 0 0 0 2px rgba(245,166,35,0.2); }
+        .oc-search-row .oc-btn { width: 120px; flex-shrink: 0; }
+        .oc-actions-row { display: flex; gap: 10px; padding-left: 110px; margin-top: 4px; flex-wrap: wrap; }
+
+        /* Botones */
+        .oc-btn { padding: 9px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: background 0.15s, opacity 0.15s; white-space: nowrap; }
+        .oc-btn-yellow  { background: #f5a623; color: #1a1a1a; }
+        .oc-btn-yellow:hover  { background: #e09520; }
+        .oc-btn-secondary { background: #2a2a2a; color: #ddd; border: 1px solid #444; }
+        .oc-btn-secondary:hover { background: #333; }
+        .oc-btn-outline { background: transparent; color: #888; border: 1px solid #444; }
+        .oc-btn-outline:hover { background: #2a2a2a; color: #ccc; }
+
+        .oc-page-title { font-size: 20px; font-weight: 700; color: #f5a623; margin: 0 0 24px; display: flex; align-items: center; gap: 10px; }
+
+        /* ── Badges de estado ── */
+        .rf-estado-badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; white-space: nowrap; }
+        .rf-estado-revisar     { background: #f5a62333; color: #f5a623; }
+        .rf-estado-espera      { background: #e05a5a33; color: #e05a5a; }
+        .rf-estado-confeccion  { background: #28a74533; color: #28a745; }
+        .rf-estado-pagado      { background: #66666633; color: #999; }
+        .rf-estado-pendiente   { background: #f5a62333; color: #f5a623; }
+
+        /* ── Lista de análisis ── */
+        .rf-lista { display: flex; flex-direction: column; gap: 14px; }
+        .rf-card { background: #1a1a1a; border: 1px solid #e05a5a44; border-radius: 10px; overflow: hidden; transition: border-color 0.2s; }
+        .rf-card-header { display: flex; align-items: center; gap: 14px; padding: 14px 18px; cursor: pointer; user-select: none; }
+        .rf-card-header:hover { background: #202020; }
+        .rf-card-num { font-size: 15px; font-weight: 800; color: #f5a623; min-width: 52px; }
+        .rf-card-cliente { font-size: 14px; color: #ddd; font-weight: 600; flex: 1; }
+        .rf-card-meta { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .rf-card-fecha { font-size: 12px; color: #888; }
+        .rf-card-analisis-fecha { font-size: 11px; color: #555; font-style: italic; }
+        .rf-toggle-icon { font-size: 14px; color: #555; transition: transform 0.2s; }
+        .rf-card.open .rf-toggle-icon { transform: rotate(180deg); }
+
+        /* Detalle expandible */
+        .rf-card-detail { display: none; border-top: 1px solid #e05a5a22; padding: 16px 18px; }
+        .rf-card.open .rf-card-detail { display: block; }
+
+        .rf-detail-item { margin-bottom: 18px; }
+        .rf-detail-item:last-child { margin-bottom: 0; }
+        .rf-item-header {
+            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+            padding: 10px 14px; background: #1e1e1e; border-radius: 8px 8px 0 0;
+            border: 1px solid #2a2a2a; border-bottom: none; margin-bottom: 0;
+        }
+        .rf-item-prenda { font-size: 13px; font-weight: 700; color: #f5a623; }
+        .rf-item-badge { padding: 2px 9px; border-radius: 12px; font-size: 11px; font-weight: 600; background: #2a2a2a; color: #aaa; border: 1px solid #444; }
+        .rf-item-completo { padding: 12px 14px; font-size: 13px; color: #28a745; font-weight: 600; border: 1px solid #2a2a2a; border-radius: 0 0 8px 8px; background: #111; }
+
+        /* Tabla de faltantes */
+        .rf-table-wrap { overflow-x: auto; border-radius: 0 0 8px 8px; border: 1px solid #2a2a2a; }
+        .rf-table { width: 100%; border-collapse: collapse; font-size: 13px; background: #111; }
+        .rf-table th { background: #1e1e1e; color: #aaa; font-weight: 700; padding: 9px 13px; text-align: left; border-bottom: 1px solid #2a2a2a; white-space: nowrap; }
+        .rf-table th.col-conseguir { color: #f5a623; }
+        .rf-table td { padding: 8px 13px; border-bottom: 1px solid #1e1e1e; color: #ddd; }
+        .rf-table tbody tr:last-child td { border-bottom: none; }
+        .rf-table tbody tr:hover { background: #181818; }
+        .rf-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+        .rf-table td.conseguir-faltante { text-align: right; font-weight: 700; color: #e05a5a; font-variant-numeric: tabular-nums; }
+        .rf-table td.conseguir-ok { text-align: right; color: #28a745; font-weight: 600; font-size: 12px; }
+
+        /* Estado vacío */
+        .rf-empty { text-align: center; padding: 56px 24px; color: #666; font-size: 14px; }
+        .rf-empty-icon { font-size: 40px; display: block; margin-bottom: 12px; }
+
+        /* Checkbox selección */
+        .rf-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: #f5a623; flex-shrink: 0; }
+        .rf-select-all-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 13px; color: #aaa; }
+        /* Quitar del panel */
+        .btn-quitar { padding: 4px 10px; font-size: 11px; border-radius: 6px; border: 1px solid #e05a5a; background: transparent; color: #e05a5a; cursor: pointer; font-weight: 600; white-space: nowrap; transition: background 0.15s, color 0.15s; margin-left: 8px; }
+        .btn-quitar:hover { background: #e05a5a; color: #fff; }
+        /* Chip consolidado */
+        .rf-consolidado-chip { padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; background: #28a74533; color: #28a745; border: 1px solid #28a74544; }
+        /* Banner modal éxito */
+        .rf-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 1000; align-items: center; justify-content: center; }
+        .rf-modal-overlay.visible { display: flex; }
+        .rf-modal-box { background: #1e1e1e; border: 1px solid #333; border-radius: 14px; padding: 32px 28px 24px; max-width: 440px; width: 90%; text-align: center; box-shadow: 0 8px 40px rgba(0,0,0,0.5); }
+        .rf-modal-icon { font-size: 42px; display: block; margin-bottom: 14px; }
+        .rf-modal-title { font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+        .rf-modal-desc { font-size: 13px; color: #aaa; line-height: 1.6; margin-bottom: 24px; }
+        .rf-modal-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .rf-modal-btn { padding: 10px 22px; border-radius: 8px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+        .rf-modal-btn-primary { background: #f5a623; color: #1a1a1a; }
+        .rf-modal-btn-primary:hover { background: #e09520; }
+        .rf-modal-btn-secondary { background: #2a2a2a; color: #ddd; border: 1px solid #444; }
+        .rf-modal-btn-secondary:hover { background: #333; }
+
+        @media (max-width: 768px) {
+            .oc-toolbar { max-width: 100%; }
+            .oc-search-row { flex-direction: column; align-items: stretch; }
+            .oc-search-row label { width: auto; text-align: left; }
+            .oc-search-row .oc-btn { width: 100%; }
+            .oc-actions-row { padding-left: 0; flex-direction: column; }
+            .rf-card-meta { flex-direction: column; align-items: flex-start; gap: 4px; }
+        }
+    </style>
+</head>
+<body class="compras-jefe-body">
+
+    <aside class="admin-sidebar" id="compras-jefe-sidebar" aria-label="Módulos de compras">
+        <div class="admin-sidebar-header">
+            <a href="/" class="admin-logo admin-logo--sin-icono" aria-label="UNISOF — Inicio">
+                <span class="admin-logo-text">UNISOF</span>
+            </a>
+        </div>
+        <p class="compras-modulos-label">Módulos</p>
+        <nav class="admin-nav admin-nav--compras-modulos">
+            <a href="/compras.html" class="admin-nav-item" data-nav="dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+                <span class="admin-nav-text">Dashboard</span>
+            </a>
+            <a href="/ordenes-compras.html" class="admin-nav-item" data-nav="pedidos">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>
+                </svg>
+                <span class="admin-nav-text">Pedidos</span>
+            </a>
+            <a href="/analisis-insumos.html" class="admin-nav-item" data-nav="analisis">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="8" width="5" height="13" rx="1"/><rect x="17" y="13" width="5" height="8" rx="1"/>
+                </svg>
+                <span class="admin-nav-text">Análisis de insumos</span>
+            </a>
+            <a href="/inventario-insumos.html" class="admin-nav-item" data-nav="inventario">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <path d="M3.27 6.96L12 12.01l8.73-5.05"/><path d="M12 22.08V12"/>
+                </svg>
+                <span class="admin-nav-text">Inventario</span>
+            </a>
+            <a href="/reporte-faltantes.html" class="admin-nav-item active" data-nav="reporte">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
+                </svg>
+                <span class="admin-nav-text">Reporte faltantes</span>
+            </a>
+            <a href="/ordenes-compra.html" class="admin-nav-item" data-nav="ordenes-compra">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                </svg>
+                <span class="admin-nav-text">Órdenes de compra</span>
+            </a>
+        </nav>
+        <div class="admin-sidebar-footer">
+            <div class="admin-user-info">
+                <span class="admin-user-name" id="user-name">—</span>
+                <span class="admin-user-rol" id="user-rol">JEFE DE COMPRAS</span>
+            </div>
+            <button type="button" class="admin-btn-logout" id="btn-logout">Cerrar sesión</button>
+        </div>
+        <script>
+            (function () {
+                try {
+                    var rolTxt = sessionStorage.getItem('_unisoft_rol_txt');
+                    var nombre = sessionStorage.getItem('_unisoft_nombre');
+                    if (rolTxt) { var elR = document.getElementById('user-rol'); if (elR) elR.textContent = rolTxt; }
+                    if (nombre) { var elN = document.getElementById('user-name'); if (elN) elN.textContent = nombre; }
+                } catch (_) {}
+            })();
+        </script>
+    </aside>
+
+    <div class="compras-jefe-main">
+        <header class="compras-jefe-topbar" aria-label="Cabecera del panel"></header>
+
+        <div class="compras-jefe-content">
+            <div class="oc-section">
+
+                <h1 class="oc-page-title">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="flex-shrink:0;">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
+                    </svg>
+                    Reporte faltantes
+                </h1>
+
+                <!-- Toolbar de búsqueda -->
+                <div class="oc-toolbar">
+                    <div class="oc-search-row">
+                        <label for="buscar-numero">Nº orden</label>
+                        <input type="text" id="buscar-numero" placeholder="001, 002…">
+                        <button type="button" class="oc-btn oc-btn-secondary" id="btn-buscar-numero">Por número</button>
+                    </div>
+                    <div class="oc-search-row">
+                        <label for="buscar-fecha">Fecha exacta</label>
+                        <input type="date" id="buscar-fecha">
+                        <button type="button" class="oc-btn oc-btn-secondary" id="btn-buscar-fecha">Por fecha</button>
+                    </div>
+                    <div class="oc-search-row">
+                        <label for="buscar-mes">Mes</label>
+                        <input type="month" id="buscar-mes">
+                        <button type="button" class="oc-btn oc-btn-secondary" id="btn-buscar-mes">Por mes</button>
+                    </div>
+                    <div class="oc-actions-row">
+                        <button type="button" class="oc-btn oc-btn-yellow" id="btn-listar-todos">Listar todas</button>
+                        <button type="button" class="oc-btn oc-btn-outline" id="btn-limpiar">Limpiar</button>
+                        <button type="button" class="oc-btn oc-btn-secondary" id="btn-generar-reporte" disabled
+                                title="Selecciona al menos una orden para generar el reporte">
+                            📋 Generar reporte de faltantes
+                        </button>
+                    </div>
+                    <div class="rf-select-all-row" id="select-all-row" style="display:none;">
+                        <input type="checkbox" id="chk-select-all" class="rf-checkbox">
+                        <label for="chk-select-all" style="cursor:pointer;">Seleccionar todas las órdenes</label>
+                        <span id="selected-count" style="margin-left:auto;font-size:12px;color:#666;">0 seleccionadas</span>
+                    </div>
+                </div>
+
+                <!-- Lista de pedidos con faltantes -->
+                <div id="rf-contenedor">
+                    <div class="rf-empty">
+                        <span class="rf-empty-icon">⏳</span>
+                        Cargando pedidos con faltantes…
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <button type="button" class="compras-jefe-sidebar-toggle" id="compras-jefe-sidebar-toggle" aria-label="Abrir menú">☰</button>
+
+    <!-- Modal éxito reporte consolidado -->
+    <div class="rf-modal-overlay" id="modal-reporte" role="dialog" aria-modal="true">
+        <div class="rf-modal-box">
+            <span class="rf-modal-icon">✅</span>
+            <p class="rf-modal-title">¡Reporte consolidado generado!</p>
+            <p class="rf-modal-desc" id="modal-reporte-desc">
+                Reporte generado correctamente. Puedes consultarlo en el apartado <strong>Órdenes de Compra</strong>.
+            </p>
+            <div class="rf-modal-actions">
+                <a href="/ordenes-compra.html" class="rf-modal-btn rf-modal-btn-primary">Ver Órdenes de Compra</a>
+                <button type="button" class="rf-modal-btn rf-modal-btn-secondary" id="modal-reporte-cerrar">Cerrar</button>
+            </div>
+        </div>
+    </div>
+    <script src="/js/auth.js"></script>
+    <script src="/js/toast.js"></script>
+    <script src="/js/accessibility.js"></script>
+    <script src="/js/unisof-brand-info.js" defer></script>
+    <link rel="stylesheet" href="/css/chat.css">
+    <script src="/js/chat.js" defer></script>
+    <script>
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Helpers                                                            */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        function esRolPanelCompras(rol) {
+            const r = (rol || '').toUpperCase();
+            return r === 'JEFE DE COMPRAS' || r === 'JEFE DE VENTAS' || r === 'ADMINISTRADOR';
+        }
+
+        function escapeHtml(s) {
+            if (s == null) return '';
+            const d = document.createElement('div');
+            d.textContent = String(s);
+            return d.innerHTML;
+        }
+
+        function formatFecha(iso) {
+            if (!iso) return '—';
+            try {
+                return new Date(iso).toLocaleDateString('es-CO', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            } catch (_) { return iso; }
+        }
+
+        function formatNum(val) {
+            if (val == null) return '—';
+            const n = parseFloat(val);
+            if (isNaN(n)) return String(val);
+            return n.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 4 });
+        }
+
+        let ultimoContexto = 'todos';
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Cargar lista — solo pedidos EN ESPERA POR PRODUCCION               */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        async function cargarAnalisis(params = {}) {
+            const contenedor = document.getElementById('rf-contenedor');
+            contenedor.innerHTML = '<div class="rf-empty"><span class="rf-empty-icon">⏳</span>Cargando pedidos con faltantes…</div>';
+
+            try {
+                const qs  = new URLSearchParams(params).toString();
+                const res = await fetch('/api/analisis-ordenes' + (qs ? '?' + qs : ''), { credentials: 'include' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.mensaje || 'Error al cargar');
+
+                const lista = (Array.isArray(data) ? data : []).filter(
+                    a => (a.estado || '').toUpperCase() === 'EN ESPERA POR PRODUCCION'
+                );
+                renderLista(lista);
+            } catch (err) {
+                Toast.error(err.message || 'Error al cargar pedidos');
+                contenedor.innerHTML = '<div class="rf-empty"><span class="rf-empty-icon">⚠️</span>Error al cargar los pedidos con faltantes.</div>';
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Renderizar lista                                                   */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        let selectedIds = new Set();
+
+        function actualizarBtnReporte() {
+            const btn = document.getElementById('btn-generar-reporte');
+            const countEl = document.getElementById('selected-count');
+            if (btn) btn.disabled = selectedIds.size === 0;
+            if (countEl) countEl.textContent = selectedIds.size + ' seleccionada' + (selectedIds.size !== 1 ? 's' : '');
+        }
+
+        function renderLista(lista) {
+            const contenedor = document.getElementById('rf-contenedor');
+            contenedor.innerHTML = '';
+            selectedIds.clear();
+            actualizarBtnReporte();
+
+            const selectAllRow = document.getElementById('select-all-row');
+
+            if (lista.length === 0) {
+                if (selectAllRow) selectAllRow.style.display = 'none';
+                contenedor.innerHTML = `<div class="rf-empty">
+                    <span class="rf-empty-icon">✅</span>
+                    ${ultimoContexto === 'todos'
+                        ? 'No hay pedidos con insumos faltantes. ¡Todo está listo para producción!'
+                        : 'No se encontraron pedidos con faltantes para la búsqueda realizada.'}
+                </div>`;
+                return;
+            }
+
+            if (selectAllRow) selectAllRow.style.display = 'flex';
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'rf-lista';
+
+            lista.forEach(analisis => {
+                const numFmt = analisis.ordenNumeroFormateado || String(analisis.ordenNumero).padStart(3, '0');
+
+                const card = document.createElement('div');
+                card.className = 'rf-card';
+                card.dataset.analisisId = analisis.id;
+
+                const consolidadoChip = analisis.consolidado ? '<span class="rf-consolidado-chip">✓ En reporte</span>' : '';
+
+                card.innerHTML = `
+                    <div class="rf-card-header" style="cursor:default;">
+                        <input type="checkbox" class="rf-checkbox rf-card-chk" data-id="${analisis.id}" style="cursor:pointer;">
+                        <span class="rf-card-num" style="cursor:pointer;">#${escapeHtml(numFmt)}</span>
+                        <span class="rf-card-cliente">${escapeHtml(analisis.clienteNombre || '—')}</span>
+                        <div class="rf-card-meta">
+                            <span class="rf-estado-badge rf-estado-espera">En espera por producción</span>
+                            ${consolidadoChip}
+                            <span class="rf-card-fecha">Orden: ${formatFecha(analisis.fechaOrden)}</span>
+                            <span class="rf-card-analisis-fecha">Analizado: ${formatFecha(analisis.fechaAnalisis)}</span>
+                        </div>
+                        <button type="button" class="btn-quitar" data-quitar-id="${analisis.id}" data-quitar-num="${escapeHtml(numFmt)}">✕ Quitar</button>
+                        <span class="rf-toggle-icon" style="cursor:pointer;">▼</span>
+                    </div>
+                    <div class="rf-card-detail" id="detail-${analisis.id}">
+                        <div style="text-align:center;padding:20px;color:#666;font-size:13px;">Haz clic en el número para ver los insumos faltantes…</div>
+                    </div>`;
+
+                // Toggle detalle al hacer clic en número o flecha
+                const toggleDetalle = () => {
+                    const isOpen = card.classList.contains('open');
+                    if (!isOpen) {
+                        card.classList.add('open');
+                        cargarDetalleFaltantes(analisis.id, card.querySelector('.rf-card-detail'));
+                    } else {
+                        card.classList.remove('open');
+                    }
+                };
+                card.querySelector('.rf-card-num').addEventListener('click', toggleDetalle);
+                card.querySelector('.rf-toggle-icon').addEventListener('click', toggleDetalle);
+
+                // Checkbox
+                const chk = card.querySelector('.rf-card-chk');
+                chk.addEventListener('change', () => {
+                    if (chk.checked) selectedIds.add(String(analisis.id));
+                    else selectedIds.delete(String(analisis.id));
+                    actualizarBtnReporte();
+                    // Sync select-all
+                    const allChks = document.querySelectorAll('.rf-card-chk');
+                    const allChecked = [...allChks].every(c => c.checked);
+                    const chkAll = document.getElementById('chk-select-all');
+                    if (chkAll) chkAll.checked = allChecked && allChks.length > 0;
+                });
+
+                // Quitar del panel → estado EN CONFECCION
+                card.querySelector('.btn-quitar').addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const aid = e.currentTarget.dataset.quitarId;
+                    const num = e.currentTarget.dataset.quitarNum;
+                    if (!confirm(`¿Seguro que deseas quitar el pedido #${num} del panel?\nSu estado cambiará a "En confección".`)) return;
+                    try {
+                        const res = await fetch(`/api/analisis-ordenes/${aid}/estado`, {
+                            method: 'PATCH', credentials: 'include',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ estado: 'EN CONFECCION' })
+                        });
+                        if (!res.ok) throw new Error('Error al actualizar estado');
+                        const cardEl = document.querySelector(`.rf-card[data-analisis-id="${aid}"]`);
+                        if (cardEl) cardEl.remove();
+                        selectedIds.delete(String(aid));
+                        actualizarBtnReporte();
+                        Toast.success(`Pedido #${num} movido a En confección.`);
+                    } catch (err) { Toast.error('Error: ' + err.message); }
+                });
+
+                wrapper.appendChild(card);
+            });
+
+            contenedor.appendChild(wrapper);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Cargar detalle de faltantes para una orden                         */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        async function cargarDetalleFaltantes(analisisId, detailEl) {
+            if (detailEl.dataset.loaded === '1') return;
+
+            try {
+                const res  = await fetch(`/api/analisis-ordenes/${analisisId}`, { credentials: 'include' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.mensaje || 'Error');
+                renderDetalleFaltantes(data, detailEl);
+                detailEl.dataset.loaded = '1';
+            } catch (err) {
+                detailEl.innerHTML = `<div style="color:#e05a5a;font-size:13px;padding:12px;">Error al cargar el detalle: ${escapeHtml(err.message)}</div>`;
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Renderizar detalle con tabla "Por conseguir"                       */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        function renderDetalleFaltantes(data, el) {
+            const resultado = data.faltantesResultado;
+
+            if (!resultado || !resultado.items || resultado.items.length === 0) {
+                // Fallback: mostrar ficha técnica normal si no hay resultado de faltantes
+                const items = data.items || [];
+                if (items.length === 0) {
+                    el.innerHTML = '<div style="color:#888;font-size:13px;padding:12px;">No hay datos de insumos faltantes para este pedido.</div>';
+                    return;
+                }
+                // Mostrar ficha técnica como referencia
+                let html = '';
+                items.forEach(item => {
+                    const prenda   = escapeHtml(item.prenda   || '—');
+                    const genero   = escapeHtml(item.genero   || '—');
+                    const talla    = escapeHtml(item.talla    || '—');
+                    const cantidad = item.cantidad ?? 1;
+                    html += `<div class="rf-detail-item">
+                        <div class="rf-item-header">
+                            <span class="rf-item-prenda">${prenda}</span>
+                            <span class="rf-item-badge">Género: ${genero}</span>
+                            <span class="rf-item-badge">Talla: ${talla}</span>
+                            <span class="rf-item-badge">×${cantidad}</span>
+                        </div>
+                        <div style="padding:10px 14px;font-size:12px;color:#888;">Calcule los faltantes desde Análisis de insumos para ver el detalle.</div>
+                    </div>`;
+                });
+                el.innerHTML = html;
+                return;
+            }
+
+            const items = resultado.items || [];
+            let html = '';
+
+            items.forEach(item => {
+                const prenda   = escapeHtml(item.prenda  || '—');
+                const genero   = escapeHtml(item.genero  || '—');
+                const talla    = escapeHtml(item.talla   || '—');
+                const cantidad = item.cantidad ?? 1;
+                const insumos  = item.insumos  || [];
+
+                html += `<div class="rf-detail-item">
+                    <div class="rf-item-header">
+                        <span class="rf-item-prenda">${prenda}</span>
+                        <span class="rf-item-badge">Género: ${genero}</span>
+                        <span class="rf-item-badge">Talla: ${talla}</span>
+                        <span class="rf-item-badge">×${cantidad}</span>
+                    </div>`;
+
+                if (!item.fichaTecnicaEncontrada) {
+                    html += `<div style="padding:10px 14px;font-size:12px;color:#e05a5a;font-style:italic;">⚠ No se encontró ficha técnica para esta prenda.</div>`;
+                } else if (item.completo) {
+                    html += `<div class="rf-item-completo">✅ Insumos completos — todos los materiales disponibles.</div>`;
+                } else if (insumos.length > 0) {
+                    html += `<div class="rf-table-wrap"><table class="rf-table">
+                        <thead><tr>
+                            <th>Insumo</th>
+                            <th>Unidad</th>
+                            <th class="num">Requerido</th>
+                            <th class="num">Stock había</th>
+                            <th class="num">Consumido</th>
+                            <th class="col-conseguir num">Por conseguir</th>
+                        </tr></thead>
+                        <tbody>`;
+                    insumos.forEach(ins => {
+                        const falt = parseFloat(ins.faltante);
+                        const conseguirCell = falt > 0
+                            ? `<td class="conseguir-faltante">${formatNum(ins.faltante)}</td>`
+                            : `<td class="conseguir-ok">Con existencia</td>`;
+                        html += `<tr>
+                            <td>${escapeHtml(ins.insumoNombre || '—')}</td>
+                            <td>${escapeHtml(ins.unidadMedida || '—')}</td>
+                            <td class="num">${formatNum(ins.cantidadRequerida)}</td>
+                            <td class="num">${formatNum(ins.stockAntes)}</td>
+                            <td class="num">${formatNum(ins.consumido)}</td>
+                            ${conseguirCell}
+                        </tr>`;
+                    });
+                    html += `</tbody></table></div>`;
+                }
+
+                html += '</div>';
+            });
+
+            el.innerHTML = html || '<div style="color:#888;font-size:13px;padding:12px;">Sin datos.</div>';
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Búsquedas                                                          */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        document.getElementById('btn-listar-todos').addEventListener('click', () => {
+            ultimoContexto = 'todos'; cargarAnalisis();
+        });
+        document.getElementById('btn-buscar-numero').addEventListener('click', () => {
+            const num = document.getElementById('buscar-numero').value.trim();
+            if (!num) { Toast.error('Ingresa un número de orden'); return; }
+            ultimoContexto = 'numero'; cargarAnalisis({ numero: num });
+        });
+        document.getElementById('btn-buscar-fecha').addEventListener('click', () => {
+            const fecha = document.getElementById('buscar-fecha').value;
+            if (!fecha) { Toast.error('Selecciona una fecha'); return; }
+            ultimoContexto = 'fecha'; cargarAnalisis({ fecha });
+        });
+        document.getElementById('btn-buscar-mes').addEventListener('click', () => {
+            const mes = document.getElementById('buscar-mes').value;
+            if (!mes) { Toast.error('Selecciona un mes'); return; }
+            ultimoContexto = 'mes'; cargarAnalisis({ mes });
+        });
+        document.getElementById('btn-limpiar').addEventListener('click', () => {
+            document.getElementById('buscar-numero').value = '';
+            document.getElementById('buscar-fecha').value  = '';
+            document.getElementById('buscar-mes').value    = '';
+            ultimoContexto = null;
+            const cont = document.getElementById('rf-contenedor');
+            if (cont) cont.innerHTML = '<div class="rf-empty"><span class="rf-empty-icon">🔍</span>Usa los filtros para consultar pedidos con faltantes.</div>';
+        });
+        document.getElementById('buscar-numero').addEventListener('keydown', e => {
+            if (e.key === 'Enter') document.getElementById('btn-buscar-numero').click();
+        });
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Logout + sidebar móvil + auth + carga inicial                      */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        document.getElementById('btn-logout').addEventListener('click', async () => {
+            if (!window.confirm('¿Desea cerrar sesión?')) return;
+            await authApi.logout();
+            window.location.href = '/';
+        });
+
+        const sb = document.getElementById('compras-jefe-sidebar');
+        const tg = document.getElementById('compras-jefe-sidebar-toggle');
+        if (tg && sb) {
+            tg.addEventListener('click', () => {
+                sb.classList.toggle('open');
+                tg.setAttribute('aria-label', sb.classList.contains('open') ? 'Cerrar menú' : 'Abrir menú');
+            });
+        }
+
+        // Select-all checkbox
+        document.getElementById('chk-select-all')?.addEventListener('change', (e) => {
+            const allChks = document.querySelectorAll('.rf-card-chk');
+            allChks.forEach(chk => {
+                chk.checked = e.target.checked;
+                const id = chk.dataset.id;
+                if (e.target.checked) selectedIds.add(id);
+                else selectedIds.delete(id);
+            });
+            actualizarBtnReporte();
+        });
+
+        // Generar reporte consolidado
+        document.getElementById('btn-generar-reporte')?.addEventListener('click', async () => {
+            if (selectedIds.size === 0) { Toast.error('Selecciona al menos una orden'); return; }
+            const btn = document.getElementById('btn-generar-reporte');
+            const orig = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = '⏳ Generando…';
+            try {
+                const res  = await fetch('/api/reportes-consolidados', {
+                    method: 'POST', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ analisisIds: [...selectedIds].map(Number) })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.mensaje || 'Error al generar reporte');
+                document.getElementById('modal-reporte-desc').innerHTML =
+                    `Reporte generado con <strong>${data.totalInsumosDistintos}</strong> insumo(s) consolidado(s). ` +
+                    `Puedes consultarlo en el apartado <strong>Órdenes de Compra</strong>.`;
+                document.getElementById('modal-reporte').classList.add('visible');
+                selectedIds.clear();
+                actualizarBtnReporte();
+                await cargarAnalisis(); // recargar lista
+            } catch (err) {
+                Toast.error(err.message || 'Error al generar reporte');
+                btn.disabled = selectedIds.size === 0;
+            }
+            btn.textContent = orig;
+        });
+
+        document.getElementById('modal-reporte-cerrar')?.addEventListener('click', () => {
+            document.getElementById('modal-reporte').classList.remove('visible');
+        });
+
+        (async () => {
+            const result = await authApi.getMe();
+            if (!result.ok) { window.location.href = '/login.html'; return; }
+            const rol = (result.usuario?.rol || '').toUpperCase();
+            if (!esRolPanelCompras(rol)) { window.location.href = '/'; return; }
+            document.getElementById('user-name').textContent = result.usuario?.nombre || result.usuario?.usuario;
+            document.getElementById('user-rol').textContent  = (result.usuario?.rol || '').toUpperCase();
+            await cargarAnalisis();
+        })();
+    </script>
+</body>
+</html>

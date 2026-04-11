@@ -77,7 +77,8 @@ const Cart = {
                 unitPrice: existing.unitPrice,
                 imageUrl: existing.imageUrl || '',
                 size: freeSize,
-                quantity: 1
+                quantity: 1,
+                genero: existing.genero || ''
             });
         }
         this.saveItems(items);
@@ -91,13 +92,13 @@ const Cart = {
         const idBase = item.idBase || (item.size != null ? item.id.replace(/-[^-]*$/, '') : item.id);
         const newId = idBase + '-' + newSize;
         if (newId === oldId) return;
-        const { quantity, name, unitPrice, imageUrl } = item;
+        const { quantity, name, unitPrice, imageUrl, genero } = item;
         const rest = items.filter(i => i.id !== oldId);
         const existing = rest.find(i => i.id === newId);
         if (existing) {
             existing.quantity += quantity;
         } else {
-            rest.push({ idBase, id: newId, name, unitPrice, imageUrl: imageUrl || '', size: newSize, quantity });
+            rest.push({ idBase, id: newId, name, unitPrice, imageUrl: imageUrl || '', size: newSize, quantity, genero: genero || '' });
         }
         this.saveItems(rest);
     },

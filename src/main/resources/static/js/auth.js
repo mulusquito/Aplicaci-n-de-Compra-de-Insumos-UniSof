@@ -72,7 +72,12 @@ const authApi = {
         try {
             const res = await fetch('/api/auth/me', { credentials: 'include' });
             if (res.ok) {
-                return { ok: true, usuario: await res.json() };
+                const usuario = await res.json();
+                try { sessionStorage.setItem('_unisoft_rol', (usuario.rol || '').toUpperCase()); } catch (_) {}
+                try { sessionStorage.setItem('_unisoft_rol_txt', (usuario.rol || '').toUpperCase()); } catch (_) {}
+                authApi.setHadSession();
+                try { sessionStorage.setItem('_unisoft_nombre', usuario.nombre || usuario.usuario || ''); } catch (_) {}
+                return { ok: true, usuario };
             }
             const data = res.status === 401 ? (await res.json().catch(() => ({}))) : {};
             const mensaje = data.mensaje || 'Sesión expirada';
@@ -90,6 +95,9 @@ const authApi = {
             await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
         } catch (_) {}
         authApi.clearHadSession();
+        try { sessionStorage.removeItem('_unisoft_rol'); } catch (_) {}
+        try { sessionStorage.removeItem('_unisoft_rol_txt'); } catch (_) {}
+        try { sessionStorage.removeItem('_unisoft_nombre'); } catch (_) {}
     }
 };
 
@@ -100,7 +108,7 @@ const authApi = {
 
     if (!sessionStorage.getItem('hadSession')) return;
 
-    const INACTIVITY_MS = 120 * 1000;
+    const INACTIVITY_MS = 3 * 60 * 60 * 1000;
     const WARNING_DURATION_MS = 120 * 1000;
     const PING_MIN_INTERVAL_MS = 45 * 1000;
 
@@ -240,6 +248,5 @@ const authApi = {
     );
 
     lastSessionPing = 0;
-    pingSessionRenew();
     scheduleInactiveChain();
 })();

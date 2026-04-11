@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Órdenes de Compra — Jefe de Compras | UNISOF">
+    <title>Órdenes de Compra — Jefe de Compras | UNISOF</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .oc-section { padding: 24px; }
+
+        /* Toolbar */
+        /* Layout top area: toolbar izquierda + card derecha */
+        .oc-top-area { display: flex; gap: 24px; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; }
+        .oc-toolbar { display: flex; flex-direction: column; gap: 10px; max-width: 560px; flex: 0 0 auto; }
+
+        /* Card de acceso rápido a Facturas a Proveedores */
+        .oc-facturas-card {
+            flex: 0 0 210px;
+            background: #1e1e1e;
+            border: 1px solid #2a2a2a;
+            border-radius: 10px;
+            padding: 18px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            text-decoration: none;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .oc-facturas-card:hover { border-color: #f5a623; background: #222; }
+        .oc-facturas-card-icon  { font-size: 26px; }
+        .oc-facturas-card-title { font-size: 13px; font-weight: 700; color: #f5a623; }
+        .oc-facturas-card-desc  { font-size: 12px; color: #888; line-height: 1.5; flex: 1; }
+        .oc-facturas-card-link  {
+            display: inline-block;
+            padding: 7px 14px;
+            background: #f5a623;
+            color: #1a1a1a;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+        }
+        .oc-search-row { display: flex; align-items: center; gap: 10px; }
+        .oc-search-row label { width: 100px; flex-shrink: 0; color: #aaa; font-size: 13px; font-weight: 600; text-align: right; }
+        .oc-search-row input { flex: 1; padding: 9px 13px; border-radius: 8px; border: 1px solid #444; background: #222; color: #fff; font-size: 14px; }
+        .oc-search-row input:focus { outline: none; border-color: #f5a623; box-shadow: 0 0 0 2px rgba(245,166,35,0.2); }
+        .oc-search-row .oc-btn { width: 120px; flex-shrink: 0; }
+        .oc-actions-row { display: flex; gap: 10px; padding-left: 110px; margin-top: 4px; flex-wrap: wrap; }
+
+        /* Botones */
+        .oc-btn { padding: 9px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: background 0.15s, opacity 0.15s; white-space: nowrap; }
+        .oc-btn-yellow  { background: #f5a623; color: #1a1a1a; }
+        .oc-btn-yellow:hover  { background: #e09520; }
+        .oc-btn-secondary { background: #2a2a2a; color: #ddd; border: 1px solid #444; }
+        .oc-btn-secondary:hover { background: #333; }
+        .oc-btn-outline { background: transparent; color: #888; border: 1px solid #444; }
+        .oc-btn-outline:hover { background: #2a2a2a; color: #ccc; }
+        .oc-btn-green { background: #27ae60; color: #fff; }
+        .oc-btn-green:hover { background: #219a52; }
+        .oc-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .oc-page-title { font-size: 20px; font-weight: 700; color: #f5a623; margin: 0 0 24px; display: flex; align-items: center; gap: 10px; }
+
+        /* Tabla */
+        .oc-table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid #2a2a2a; margin-bottom: 16px; }
+        .oc-table { width: 100%; border-collapse: collapse; background: #1a1a1a; font-size: 14px; }
+        .oc-table th { background: #222; color: #f5a623; font-weight: 700; padding: 11px 14px; text-align: left; border-bottom: 2px solid #2a2a2a; white-space: nowrap; }
+        .oc-table th.th-check { width: 36px; text-align: center; padding-left: 10px; }
+        .oc-table td { padding: 10px 14px; border-bottom: 1px solid #242424; color: #ddd; vertical-align: middle; }
+        .oc-table td.td-check { text-align: center; padding-left: 10px; }
+        .oc-table tbody tr.fila-datos:hover { background: #202020; }
+        .oc-table tbody tr:last-child td { border-bottom: none; }
+        .oc-empty-msg { text-align: center; padding: 56px 24px; color: #666; font-size: 14px; }
+        .oc-empty-icon { font-size: 40px; display: block; margin-bottom: 12px; }
+
+        /* Checkbox personalizado */
+        .oc-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: #f5a623; }
+
+        /* Botón de flecha toggle */
+        .btn-toggle { background: none; border: none; cursor: pointer; color: #f5a623; font-size: 18px; padding: 4px 10px; transition: transform 0.3s ease; line-height: 1; }
+        .btn-toggle.abierto { transform: rotate(180deg); }
+        .btn-toggle:hover { color: #ffc107; }
+
+        /* Fila de detalle inline */
+        .fila-detalle { display: none; }
+        .fila-detalle.visible { display: table-row; }
+        .fila-detalle td { padding: 0 !important; background: #111 !important; border-bottom: 2px solid #f5a623 !important; }
+        .detalle-inner {
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.35s ease, padding 0.35s ease;
+            padding: 0 20px;
+        }
+        .fila-detalle.visible .detalle-inner {
+            max-height: 600px;
+            padding: 16px 20px;
+        }
+
+        /* Tabla de insumos en detalle */
+        .rc-detalle-ordenes { font-size: 12px; color: #888; margin-bottom: 12px; }
+        .rc-detalle-ordenes strong { color: #ddd; }
+        .rc-ins-table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid #2a2a2a; }
+        .rc-ins-table { width: 100%; border-collapse: collapse; font-size: 15px; background: #111; }
+        .rc-ins-table th { background: #1e1e1e; color: #aaa; font-weight: 700; padding: 9px 13px; text-align: left; border-bottom: 1px solid #2a2a2a; white-space: nowrap; }
+        .rc-ins-table th.col-cant { color: #f5a623; }
+        .rc-ins-table td { padding: 8px 13px; border-bottom: 1px solid #1e1e1e; color: #ddd; }
+        .rc-ins-table tbody tr:last-child td { border-bottom: none; }
+        .rc-ins-table tbody tr:hover { background: #181818; }
+        .rc-ins-table td.cant { text-align: right; font-weight: 700; color: #e05a5a; font-variant-numeric: tabular-nums; }
+
+        /* Barra de acciones sobre la tabla */
+        .oc-table-actions { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+        .oc-sel-count { font-size: 13px; color: #aaa; }
+        .oc-sel-count strong { color: #f5a623; }
+
+        @media (max-width: 768px) {
+            .oc-toolbar { max-width: 100%; }
+            .oc-search-row { flex-direction: column; align-items: stretch; }
+            .oc-search-row label { width: auto; text-align: left; }
+            .oc-search-row .oc-btn { width: 100%; }
+            .oc-actions-row { padding-left: 0; flex-direction: column; }
+        }
+    </style>
+</head>
+<body class="compras-jefe-body">
+
+    <aside class="admin-sidebar" id="compras-jefe-sidebar" aria-label="Módulos de compras">
+        <div class="admin-sidebar-header">
+            <a href="/" class="admin-logo admin-logo--sin-icono" aria-label="UNISOF — Inicio">
+                <span class="admin-logo-text">UNISOF</span>
+            </a>
+        </div>
+        <p class="compras-modulos-label">Módulos</p>
+        <nav class="admin-nav admin-nav--compras-modulos">
+            <a href="/compras.html" class="admin-nav-item" data-nav="dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+                <span class="admin-nav-text">Dashboard</span>
+            </a>
+            <a href="/ordenes-compras.html" class="admin-nav-item" data-nav="pedidos">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>
+                </svg>
+                <span class="admin-nav-text">Pedidos</span>
+            </a>
+            <a href="/analisis-insumos.html" class="admin-nav-item" data-nav="analisis">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                    <rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="8" width="5" height="13" rx="1"/><rect x="17" y="13" width="5" height="8" rx="1"/>
+                </svg>
+                <span class="admin-nav-text">Análisis de insumos</span>
+            </a>
+            <a href="/inventario-insumos.html" class="admin-nav-item" data-nav="inventario">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <path d="M3.27 6.96L12 12.01l8.73-5.05"/><path d="M12 22.08V12"/>
+                </svg>
+                <span class="admin-nav-text">Inventario</span>
+            </a>
+            <a href="/reporte-faltantes.html" class="admin-nav-item" data-nav="reporte">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
+                </svg>
+                <span class="admin-nav-text">Reporte faltantes</span>
+            </a>
+            <a href="/ordenes-compra.html" class="admin-nav-item active" data-nav="ordenes-compra">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                </svg>
+                <span class="admin-nav-text">Órdenes de compra</span>
+            </a>
+        </nav>
+        <div class="admin-sidebar-footer">
+            <div class="admin-user-info">
+                <span class="admin-user-name" id="user-name">—</span>
+                <span class="admin-user-rol" id="user-rol">JEFE DE COMPRAS</span>
+            </div>
+            <button type="button" class="admin-btn-logout" id="btn-logout">Cerrar sesión</button>
+        </div>
+        <script>
+            (function () {
+                try {
+                    var rolTxt = sessionStorage.getItem('_unisoft_rol_txt');
+                    var nombre = sessionStorage.getItem('_unisoft_nombre');
+                    if (rolTxt) { var elR = document.getElementById('user-rol'); if (elR) elR.textContent = rolTxt; }
+                    if (nombre) { var elN = document.getElementById('user-name'); if (elN) elN.textContent = nombre; }
+                } catch (_) {}
+            })();
+        </script>
+    </aside>
+
+    <div class="compras-jefe-main">
+        <header class="compras-jefe-topbar" aria-label="Cabecera del panel"></header>
+
+        <div class="compras-jefe-content">
+            <div class="oc-section">
+
+                <h1 class="oc-page-title">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="flex-shrink:0;">
+                        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                    </svg>
+                    Órdenes de Compra
+                </h1>
+
+                <div class="oc-top-area">
+                <!-- Toolbar de búsqueda -->
+                <div class="oc-toolbar">
+                    <div class="oc-search-row">
+                        <label for="buscar-fecha">Fecha exacta</label>
+                        <input type="date" id="buscar-fecha">
+                        <button type="button" class="oc-btn oc-btn-secondary" id="btn-buscar-fecha">Por fecha</button>
+                    </div>
+                    <div class="oc-search-row">
+                        <label for="buscar-mes">Mes</label>
+                        <input type="month" id="buscar-mes">
+                        <button type="button" class="oc-btn oc-btn-secondary" id="btn-buscar-mes">Por mes</button>
+                    </div>
+                    <div class="oc-actions-row">
+                        <button type="button" class="oc-btn oc-btn-yellow" id="btn-listar-todos">Listar todos</button>
+                        <button type="button" class="oc-btn oc-btn-outline" id="btn-limpiar">Limpiar</button>
+                    </div>
+                </div>
+
+                    <!-- Card: acceso a Facturas a Proveedores -->
+                    <a href="/facturas-proveedores.html" class="oc-facturas-card">
+                        <span class="oc-facturas-card-icon">📄</span>
+                        <span class="oc-facturas-card-title">Facturas a Proveedores</span>
+                        <span class="oc-facturas-card-desc">Gestiona las órdenes de compra enviadas a tus proveedores desde los reportes consolidados.</span>
+                        <span class="oc-facturas-card-link">Ver facturas →</span>
+                    </a>
+                </div>
+
+                <!-- Acciones sobre la selección -->
+                <div class="oc-table-actions" id="oc-table-actions" style="display:none;">
+                    <span class="oc-sel-count" id="sel-count-label"><strong>0</strong> seleccionados</span>
+                    <button type="button" class="oc-btn oc-btn-green" id="btn-generar-facturas" disabled>
+                        📄 Generar facturas por insumos
+                    </button>
+                </div>
+
+                <!-- Tabla de reportes consolidados -->
+                <div id="oc-contenedor">
+                    <div class="oc-empty-msg">
+                        <span class="oc-empty-icon">⏳</span>
+                        Cargando reportes…
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <button type="button" class="compras-jefe-sidebar-toggle" id="compras-jefe-sidebar-toggle" aria-label="Abrir menú">☰</button>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/toast.js"></script>
+    <script src="/js/accessibility.js"></script>
+    <script src="/js/unisof-brand-info.js" defer></script>
+    <link rel="stylesheet" href="/css/chat.css">
+    <script src="/js/chat.js" defer></script>
+    <script>
+        function esRolPanelCompras(rol) {
+            const r = (rol || '').toUpperCase();
+            return r === 'JEFE DE COMPRAS' || r === 'JEFE DE VENTAS' || r === 'ADMINISTRADOR';
+        }
+
+        function escapeHtml(s) {
+            if (s == null) return '';
+            const d = document.createElement('div');
+            d.textContent = String(s);
+            return d.innerHTML;
+        }
+
+        function formatFecha(iso) {
+            if (!iso) return '—';
+            try {
+                return new Date(iso).toLocaleDateString('es-CO', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            } catch (_) { return iso; }
+        }
+
+        function formatNum(val) {
+            if (val == null) return '—';
+            const n = parseFloat(val);
+            if (isNaN(n)) return String(val);
+            return n.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 4 });
+        }
+
+        let ultimoContexto = 'todos';
+        let filaAbiertoId = null;   // ID del reporte cuya fila está expandida
+        const seleccionados = new Set();
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Cargar lista de reportes consolidados                              */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        async function cargarReportes(params = {}) {
+            const contenedor = document.getElementById('oc-contenedor');
+            contenedor.innerHTML = '<div class="oc-empty-msg"><span class="oc-empty-icon">⏳</span>Cargando reportes…</div>';
+            filaAbiertoId = null;
+            seleccionados.clear();
+            actualizarAcciones();
+
+            try {
+                const qs  = new URLSearchParams(params).toString();
+                const res = await fetch('/api/reportes-consolidados' + (qs ? '?' + qs : ''), { credentials: 'include' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.mensaje || 'Error al cargar');
+                renderTabla(Array.isArray(data) ? data : []);
+            } catch (err) {
+                Toast.error(err.message || 'Error al cargar reportes');
+                contenedor.innerHTML = '<div class="oc-empty-msg"><span class="oc-empty-icon">⚠️</span>Error al cargar los reportes.</div>';
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Actualizar barra de acciones (Generar facturas)                    */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        function actualizarAcciones() {
+            const actionsBar = document.getElementById('oc-table-actions');
+            const btnGenerar = document.getElementById('btn-generar-facturas');
+            const label      = document.getElementById('sel-count-label');
+            const n          = seleccionados.size;
+
+            actionsBar.style.display = 'flex';
+            label.innerHTML = `<strong>${n}</strong> seleccionado${n !== 1 ? 's' : ''}`;
+            btnGenerar.disabled = n === 0;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Renderizar tabla                                                    */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        function renderTabla(lista) {
+            const contenedor = document.getElementById('oc-contenedor');
+
+            if (lista.length === 0) {
+                contenedor.innerHTML = `<div class="oc-empty-msg">
+                    <span class="oc-empty-icon">📋</span>
+                    ${ultimoContexto === 'todos'
+                        ? 'No hay reportes consolidados generados aún. Genera uno desde <strong>Reporte faltantes</strong>.'
+                        : 'No se encontraron reportes para la búsqueda realizada.'}
+                </div>`;
+                actualizarAcciones();
+                return;
+            }
+
+            let html = `<div class="oc-table-wrap">
+                <table class="oc-table">
+                    <thead>
+                        <tr>
+                            <th class="th-check">
+                                <input type="checkbox" class="oc-checkbox" id="chk-todos" title="Seleccionar todos">
+                            </th>
+                            <th>Nº reporte</th>
+                            <th>Fecha y hora</th>
+                            <th>Órdenes incluidas</th>
+                            <th>Total insumos distintos</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+            lista.forEach(r => {
+                const numPad = String(r.id).padStart(4, '0');
+                html += `
+                <tr class="fila-datos" data-reporte-id="${r.id}">
+                    <td class="td-check">
+                        <input type="checkbox" class="oc-checkbox chk-fila" data-reporte-id="${r.id}" aria-label="Seleccionar reporte REP-${escapeHtml(numPad)}">
+                    </td>
+                    <td><strong style="color:#f5a623;">REP-${escapeHtml(numPad)}</strong></td>
+                    <td>${formatFecha(r.fecha)}</td>
+                    <td style="font-size:12px;color:#aaa;">${escapeHtml(r.ordenesNums || '—')}</td>
+                    <td style="text-align:center;"><span style="color:#f5a623;font-weight:700;">${r.totalInsumosDistintos ?? '—'}</span></td>
+                    <td style="text-align:center;">
+                        <button type="button" class="btn-toggle" data-reporte-id="${r.id}" data-reporte-num="${escapeHtml(numPad)}" title="Ver detalle" aria-expanded="false">▼</button>
+                    </td>
+                </tr>
+                <tr class="fila-detalle" id="detalle-fila-${r.id}">
+                    <td colspan="6">
+                        <div class="detalle-inner" id="detalle-inner-${r.id}">
+                            <div class="rc-detalle-ordenes" id="detalle-ordenes-${r.id}">
+                                <em style="color:#666;">Cargando detalle…</em>
+                            </div>
+                            <div class="rc-ins-table-wrap">
+                                <table class="rc-ins-table">
+                                    <thead><tr>
+                                        <th>Insumo</th>
+                                        <th>Unidad de medida</th>
+                                        <th class="col-cant">Cantidad a conseguir</th>
+                                    </tr></thead>
+                                    <tbody id="detalle-tbody-${r.id}"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+
+            html += `</tbody></table></div>`;
+            contenedor.innerHTML = html;
+            actualizarAcciones();
+
+            // ── Evento: checkbox "seleccionar todos" ──
+            document.getElementById('chk-todos').addEventListener('change', e => {
+                const checked = e.target.checked;
+                contenedor.querySelectorAll('.chk-fila').forEach(chk => {
+                    chk.checked = checked;
+                    const rid = parseInt(chk.dataset.reporteId);
+                    if (checked) seleccionados.add(rid);
+                    else seleccionados.delete(rid);
+                });
+                actualizarAcciones();
+            });
+
+            // ── Evento: checkboxes individuales ──
+            contenedor.querySelectorAll('.chk-fila').forEach(chk => {
+                chk.addEventListener('change', e => {
+                    const rid = parseInt(e.target.dataset.reporteId);
+                    if (e.target.checked) seleccionados.add(rid);
+                    else seleccionados.delete(rid);
+                    // Sincronizar "seleccionar todos"
+                    const total   = contenedor.querySelectorAll('.chk-fila').length;
+                    const checked = contenedor.querySelectorAll('.chk-fila:checked').length;
+                    const chkAll  = document.getElementById('chk-todos');
+                    chkAll.checked       = checked === total;
+                    chkAll.indeterminate = checked > 0 && checked < total;
+                    actualizarAcciones();
+                });
+            });
+
+            // ── Evento: flechas toggle de detalle ──
+            contenedor.querySelectorAll('.btn-toggle').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id  = parseInt(btn.dataset.reporteId);
+                    const num = btn.dataset.reporteNum;
+                    toggleDetalle(id, num, btn);
+                });
+            });
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Toggle inline del detalle de un reporte                           */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        function toggleDetalle(id, num, btnClicado) {
+            // Si hay otra fila abierta, cerrarla
+            if (filaAbiertoId !== null && filaAbiertoId !== id) {
+                cerrarDetalle(filaAbiertoId);
+            }
+
+            const filaDetalle = document.getElementById(`detalle-fila-${id}`);
+            const estaAbierto = filaDetalle.classList.contains('visible');
+
+            if (estaAbierto) {
+                cerrarDetalle(id);
+                filaAbiertoId = null;
+            } else {
+                filaDetalle.classList.add('visible');
+                btnClicado.classList.add('abierto');
+                btnClicado.setAttribute('aria-expanded', 'true');
+                filaAbiertoId = id;
+                cargarDetalle(id, num);
+            }
+        }
+
+        function cerrarDetalle(id) {
+            const fila = document.getElementById(`detalle-fila-${id}`);
+            if (!fila) return;
+            fila.classList.remove('visible');
+            // Resetear flecha
+            const btn = document.querySelector(`.btn-toggle[data-reporte-id="${id}"]`);
+            if (btn) { btn.classList.remove('abierto'); btn.setAttribute('aria-expanded', 'false'); }
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Cargar detalle de un reporte                                       */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        const detalleCache = {};
+
+        async function cargarDetalle(id, num) {
+            if (detalleCache[id]) {
+                poblarDetalle(id, detalleCache[id]);
+                return;
+            }
+            try {
+                const res  = await fetch(`/api/reportes-consolidados/${id}`, { credentials: 'include' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.mensaje || 'Error');
+                detalleCache[id] = data;
+                poblarDetalle(id, data);
+            } catch (err) {
+                document.getElementById(`detalle-ordenes-${id}`).innerHTML =
+                    `<span style="color:#e05a5a;">Error al cargar detalle: ${escapeHtml(err.message)}</span>`;
+            }
+        }
+
+        function poblarDetalle(id, data) {
+            const ordenes   = data.ordenes || [];
+            const ordenesStr = ordenes.map(o =>
+                `#${String(o.ordenNumero).padStart(3,'0')} — ${escapeHtml(o.clienteNombre || '—')}`
+            ).join(', ');
+            document.getElementById(`detalle-ordenes-${id}`).innerHTML =
+                `<strong>Órdenes incluidas:</strong> ${escapeHtml(ordenesStr) || '—'}&nbsp;&nbsp;|&nbsp;&nbsp;` +
+                `<strong>Generado:</strong> ${formatFecha(data.fecha)}`;
+
+            const insumos = data.insumos || [];
+            const tbody   = document.getElementById(`detalle-tbody-${id}`);
+            if (insumos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#666;padding:16px;">Sin insumos registrados.</td></tr>';
+            } else {
+                tbody.innerHTML = insumos.map(ins => `
+                    <tr>
+                        <td>${escapeHtml(ins.insumoNombre || '—')}</td>
+                        <td>${escapeHtml(ins.unidadMedida || '—')}</td>
+                        <td class="cant">${formatNum(ins.cantidadTotal)}</td>
+                    </tr>`).join('');
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Generar facturas por insumos                                       */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        document.getElementById('btn-generar-facturas').addEventListener('click', async () => {
+            if (seleccionados.size === 0) return;
+
+            const btn = document.getElementById('btn-generar-facturas');
+            btn.disabled = true;
+            btn.textContent = '⏳ Generando…';
+
+            try {
+                const res  = await fetch('/api/facturas-proveedor', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ reporteIds: [...seleccionados] })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.mensaje || 'Error al generar facturas');
+
+                Toast.success(data.mensaje || 'Facturas generadas correctamente');
+                setTimeout(() => {
+                    window.location.href = '/facturas-proveedores.html';
+                }, 1200);
+            } catch (err) {
+                Toast.error(err.message || 'Error al generar facturas');
+                btn.disabled = seleccionados.size === 0;
+                btn.textContent = '📄 Generar facturas por insumos';
+            }
+        });
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Búsquedas                                                          */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        document.getElementById('btn-listar-todos').addEventListener('click', () => {
+            ultimoContexto = 'todos'; cargarReportes();
+        });
+        document.getElementById('btn-buscar-fecha').addEventListener('click', () => {
+            const fecha = document.getElementById('buscar-fecha').value;
+            if (!fecha) { Toast.error('Selecciona una fecha'); return; }
+            ultimoContexto = 'fecha'; cargarReportes({ fecha });
+        });
+        document.getElementById('btn-buscar-mes').addEventListener('click', () => {
+            const mes = document.getElementById('buscar-mes').value;
+            if (!mes) { Toast.error('Selecciona un mes'); return; }
+            ultimoContexto = 'mes'; cargarReportes({ mes });
+        });
+        document.getElementById('btn-limpiar').addEventListener('click', () => {
+            document.getElementById('buscar-fecha').value = '';
+            document.getElementById('buscar-mes').value   = '';
+            ultimoContexto = null;
+            const cont = document.getElementById('oc-contenedor');
+            if (cont) cont.innerHTML = '<div class="oc-empty-msg"><span class="oc-empty-icon">🔍</span>Usa los filtros para consultar órdenes de compra.</div>';
+        });
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Logout + sidebar móvil + auth + carga inicial                      */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        document.getElementById('btn-logout').addEventListener('click', async () => {
+            if (!window.confirm('¿Desea cerrar sesión?')) return;
+            await authApi.logout();
+            window.location.href = '/';
+        });
+
+        const sb = document.getElementById('compras-jefe-sidebar');
+        const tg = document.getElementById('compras-jefe-sidebar-toggle');
+        if (tg && sb) {
+            tg.addEventListener('click', () => {
+                sb.classList.toggle('open');
+                tg.setAttribute('aria-label', sb.classList.contains('open') ? 'Cerrar menú' : 'Abrir menú');
+            });
+        }
+
+        (async () => {
+            const result = await authApi.getMe();
+            if (!result.ok) { window.location.href = '/login.html'; return; }
+            const rol = (result.usuario?.rol || '').toUpperCase();
+            if (!esRolPanelCompras(rol)) { window.location.href = '/'; return; }
+            document.getElementById('user-name').textContent = result.usuario?.nombre || result.usuario?.usuario;
+            document.getElementById('user-rol').textContent  = (result.usuario?.rol || '').toUpperCase();
+            await cargarReportes();
+        })();
+    </script>
+</body>
+</html>

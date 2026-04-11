@@ -26,14 +26,13 @@
                 </svg>
                 <span class="admin-nav-text">Dashboard</span>
             </a>
-            <span class="admin-nav-item admin-nav-item--disabled">
+            <a href="/ordenes-compras.html" class="admin-nav-item" data-nav="pedidos">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/>
                 </svg>
                 <span class="admin-nav-text">Pedidos</span>
-                <span class="admin-nav-hint">(Próximamente)</span>
-            </span>
-            <a href="#compras-analisis-chart" class="admin-nav-item" data-nav="analisis">
+            </a>
+            <a href="/analisis-insumos.html" class="admin-nav-item" data-nav="analisis">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
                     <rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="8" width="5" height="13" rx="1"/><rect x="17" y="13" width="5" height="8" rx="1"/>
                 </svg>
@@ -46,29 +45,37 @@
                 </svg>
                 <span class="admin-nav-text">Inventario</span>
             </a>
-            <span class="admin-nav-item admin-nav-item--disabled">
+            <a href="/reporte-faltantes.html" class="admin-nav-item" data-nav="reporte">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
                 </svg>
                 <span class="admin-nav-text">Reporte faltantes</span>
-                <span class="admin-nav-hint">(Próximamente)</span>
-            </span>
-            <span class="admin-nav-item admin-nav-item--disabled">
+            </a>
+            <a href="/ordenes-compra.html" class="admin-nav-item" data-nav="ordenes-compra">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
                     <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
                 </svg>
                 <span class="admin-nav-text">Órdenes de compra</span>
-                <span class="admin-nav-hint">(Próximamente)</span>
-            </span>
+            </a>
         </nav>
         <div class="admin-sidebar-footer">
             <div class="admin-user-info">
                 <span class="admin-user-name" id="user-name">—</span>
-                <span class="admin-user-rol" id="user-rol">Jefe de Compras</span>
+                <span class="admin-user-rol" id="user-rol">JEFE DE COMPRAS</span>
             </div>
             <button type="button" class="admin-btn-logout" id="btn-logout">Cerrar sesión</button>
         </div>
+        <script>
+            (function () {
+                try {
+                    var rolTxt = sessionStorage.getItem('_unisoft_rol_txt');
+                    var nombre = sessionStorage.getItem('_unisoft_nombre');
+                    if (rolTxt) { var elR = document.getElementById('user-rol'); if (elR) elR.textContent = rolTxt; }
+                    if (nombre) { var elN = document.getElementById('user-name'); if (elN) elN.textContent = nombre; }
+                } catch (_) {}
+            })();
+        </script>
     </aside>
 
     <div class="compras-jefe-main">
@@ -139,16 +146,16 @@
                 <table class="compras-jefe-dash-table" id="cj-tabla-analisis">
                     <thead>
                         <tr>
-                            <th>Material</th>
-                            <th>Código ref.</th>
+                            <th>Código</th>
+                            <th>Nombre</th>
                             <th>Categoría</th>
+                            <th>Stock actual</th>
+                            <th>Stock mínimo</th>
+                            <th>Precio unit. COP</th>
+                            <th>Unidad</th>
                             <th>Ref. tela</th>
                             <th>Color</th>
-                            <th>Requerido</th>
-                            <th>Disponible</th>
-                            <th>Diferencia</th>
-                            <th>Unidad</th>
-                            <th>Uso en catálogo</th>
+                            <th>Prendas catálogo</th>
                         </tr>
                     </thead>
                     <tbody id="cj-analisis-tbody">
@@ -166,7 +173,7 @@
     <script src="/js/accessibility.js"></script>
     <script src="/js/unisof-brand-info.js" defer></script>
     <script>
-        var cjDashboardState = { filas: [], categorias: [], chart: null };
+        var cjDashboardState = { filas: [], categorias: [], chart: null, filasInventario: [], prendasMap: {} };
 
         function esRolPanelCompras(rol) {
             var r = (rol || '').toUpperCase();
@@ -198,6 +205,20 @@
             return rows.filter(function (r) { return (r.categoriaCodigo || '') === catCodigo; });
         }
 
+        function filasInventarioFiltradas(catCodigo) {
+            var rows = cjDashboardState.filasInventario || [];
+            if (!catCodigo) return rows.slice();
+            return rows.filter(function (r) { return (r.categoriaCodigo || '') === catCodigo; });
+        }
+
+        function getPrendasText(insumoId) {
+            var lista = (cjDashboardState.prendasMap || {})[insumoId];
+            if (!lista || !lista.length) return 'Sin prendas asignadas';
+            return lista.map(function (p) {
+                return escapeHtml(p.nombrePrenda) + (p.genero ? ' (' + escapeHtml(p.genero) + ')' : '');
+            }).join(', ');
+        }
+
         function renderTablaAnalisis(rows) {
             var tbody = document.getElementById('cj-analisis-tbody');
             if (!tbody) return;
@@ -206,17 +227,18 @@
                 return;
             }
             tbody.innerHTML = rows.map(function (r) {
+                var precio = fmtMoneyCOP(r.precioUnitario);
                 return '<tr>' +
-                    '<td>' + escapeHtml(r.insumoNombre || r.insumo || '—') + '</td>' +
                     '<td>' + escapeHtml(r.codigo || '—') + '</td>' +
-                    '<td>' + escapeHtml(r.categoria || '—') + '</td>' +
+                    '<td>' + escapeHtml(r.nombre || '—') + '</td>' +
+                    '<td>' + escapeHtml(r.categoriaNombre || '—') + '</td>' +
+                    '<td>' + fmtNum(r.stockDisponible) + '</td>' +
+                    '<td>' + fmtNum(r.stockMinimo) + '</td>' +
+                    '<td>' + (precio != null ? precio : '—') + '</td>' +
+                    '<td>' + escapeHtml(r.unidadMedida || '—') + '</td>' +
                     '<td>' + escapeHtml(r.referenciaTela || '—') + '</td>' +
                     '<td>' + escapeHtml(r.color || '—') + '</td>' +
-                    '<td>' + fmtNum(r.stockMinimo != null ? r.stockMinimo : r.requerido) + '</td>' +
-                    '<td>' + fmtNum(r.disponible) + '</td>' +
-                    '<td>' + fmtNum(r.diferencia) + '</td>' +
-                    '<td>' + escapeHtml(r.unidad || '—') + '</td>' +
-                    '<td class="cj-cell-catalogo">' + escapeHtml(r.productosCatalogo || '—') + '</td>' +
+                    '<td class="cj-cell-catalogo">' + getPrendasText(r.id) + '</td>' +
                     '</tr>';
             }).join('');
         }
@@ -318,7 +340,7 @@
             var cod = sel ? sel.value : '';
             var rowsChart = filasFiltradasPorCategoria(cod);
             renderChartCompras(rowsChart);
-            renderTablaAnalisis(cjDashboardState.filas || []);
+            renderTablaAnalisis(filasInventarioFiltradas(cod));
         }
 
         function llenarSelectCategorias(cats) {
@@ -339,13 +361,8 @@
             var pAct = dash.pedidosActivos;
             var pAlta = dash.pedidosAltaPrioridad;
             document.getElementById('cj-kpi-pedidos').textContent = pAct != null ? String(pAct) : '—';
-            if (pAct != null && pAlta != null) {
-                document.getElementById('cj-kpi-pedidos-sub').textContent = String(pAlta) + ' de alta prioridad';
-            } else if (pAct != null) {
-                document.getElementById('cj-kpi-pedidos-sub').textContent = 'Sin desglose de prioridad';
-            } else {
-                document.getElementById('cj-kpi-pedidos-sub').textContent = 'Integración de pedidos pendiente';
-            }
+            document.getElementById('cj-kpi-pedidos-sub').textContent =
+                pAct != null ? 'Total de pedidos registrados' : 'Integración de pedidos pendiente';
 
             var totalIns = dash.totalInsumos;
             var conStock = dash.insumosConStockPositivo;
@@ -381,12 +398,18 @@
             }
 
             try {
-                var resDash = await fetch('/api/compras/dashboard', { credentials: 'include' });
-                var resCat = await fetch('/api/compras/categorias-insumo', { credentials: 'include' });
+                var [resDash, resCat, resInv, resPrendas] = await Promise.all([
+                    fetch('/api/compras/dashboard', { credentials: 'include' }),
+                    fetch('/api/compras/categorias-insumo', { credentials: 'include' }),
+                    fetch('/api/compras/insumos', { credentials: 'include' }),
+                    fetch('/api/fichas-tecnicas/prendas-por-insumo', { credentials: 'include' })
+                ]);
 
                 if (!resDash.ok || !resCat.ok) {
                     vaciarKpis();
                     cjDashboardState.filas = [];
+                    cjDashboardState.filasInventario = [];
+                    cjDashboardState.prendasMap = {};
                     llenarSelectCategorias([]);
                     if (note) note.textContent = 'No hay conexión con /api/compras. Inicie sesión con un rol autorizado.';
                     renderChartCompras([]);
@@ -396,11 +419,16 @@
 
                 var dash = await resDash.json();
                 var categorias = await resCat.json();
+                var filasInv = resInv.ok ? (await resInv.json()) : [];
+                var prendasData = resPrendas.ok ? (await resPrendas.json()) : {};
+
                 var filas = Array.isArray(dash.analisisInsumos) ? dash.analisisInsumos : [];
                 var cats = Array.isArray(categorias) ? categorias : [];
 
                 cjDashboardState.filas = filas;
                 cjDashboardState.categorias = cats;
+                cjDashboardState.filasInventario = Array.isArray(filasInv) ? filasInv : [];
+                cjDashboardState.prendasMap = (prendasData && typeof prendasData === 'object') ? prendasData : {};
 
                 aplicarKpisDashboard(dash);
                 llenarSelectCategorias(cats);
@@ -409,6 +437,8 @@
                 vaciarKpis();
                 if (note) note.textContent = 'Error al cargar. Intente de nuevo más tarde.';
                 cjDashboardState.filas = [];
+                cjDashboardState.filasInventario = [];
+                cjDashboardState.prendasMap = {};
                 renderChartCompras([]);
                 renderTablaAnalisis([]);
             }
@@ -431,7 +461,7 @@
                 return;
             }
             document.getElementById('user-name').textContent = result.usuario?.nombre || result.usuario?.usuario;
-            document.getElementById('user-rol').textContent = result.usuario?.rol || 'Jefe de Compras';
+            document.getElementById('user-rol').textContent = (result.usuario?.rol || '').toUpperCase();
 
             const welcomeMsg = document.getElementById('welcome-toast');
             if (new URLSearchParams(window.location.search).get('welcome') === '1') {

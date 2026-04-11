@@ -86,6 +86,7 @@
                 <button type="button" class="btn btn-secondary" id="btn-buscar-cedula" data-i18n-key="clients.searchBtn">Buscar</button>
                 <button type="button" class="btn btn-primary-crud" id="btn-crear" data-i18n-key="clients.create">Crear cliente</button>
                 <button type="button" class="btn btn-secondary" id="btn-listar-todos" data-i18n-key="clients.listAll">Listar todos</button>
+                <button type="button" class="btn btn-secondary" id="btn-limpiar-toolbar">Limpiar campos</button>
             </div>
             <div id="tabla-container">
                 <table class="crud-table" id="tabla-clientes">
@@ -105,7 +106,6 @@
             </div>
             <div class="clientes-actions-bar">
                 <span id="clientes-seleccion-info" data-i18n-key="clients.noSelection">Ningún cliente seleccionado.</span>
-                <button type="button" class="btn btn-secondary" id="btn-limpiar-clientes" data-i18n-key="clients.clearFields">Limpiar campos</button>
             </div>
         </div>
         </div>
@@ -115,7 +115,7 @@
     <button type="button" class="admin-sidebar-toggle" id="admin-sidebar-toggle" aria-label="Abrir menú">☰</button>
 
     <!-- Modal Crear/Editar -->
-    <div class="modal-overlay" id="modal-cliente">
+    <div class="modal-overlay hidden" id="modal-cliente">
         <div class="modal-box">
             <h3 id="modal-titulo" data-i18n-key="clients.modalCreate">Crear cliente</h3>
             <form id="form-cliente">
@@ -223,13 +223,13 @@
 
         document.getElementById('btn-listar-todos').addEventListener('click', listarTodos);
 
-        document.getElementById('btn-limpiar-clientes').addEventListener('click', () => {
-            if (inputBuscarCedula) {
-                inputBuscarCedula.value = '';
-            }
+        document.getElementById('btn-limpiar-toolbar').addEventListener('click', () => {
+            if (inputBuscarCedula) inputBuscarCedula.value = '';
             limpiarSeleccion();
             renderTabla([]);
         });
+
+
 
         document.getElementById('btn-buscar-cedula').addEventListener('click', async () => {
             const cedula = document.getElementById('buscar-cedula').value.trim();

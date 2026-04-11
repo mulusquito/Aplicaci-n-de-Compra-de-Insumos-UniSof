@@ -4,8 +4,10 @@ import com.unisof.insumos.dto.RegistroUsuarioRequest;
 import com.unisof.insumos.dto.UpdateUsuarioRequest;
 import com.unisof.insumos.dto.UsuarioResponse;
 import com.unisof.insumos.model.Usuario;
+import com.unisof.insumos.service.AuditoriaService;
 import com.unisof.insumos.service.RegistroUsuarioService;
 import com.unisof.insumos.service.UsuarioAdminService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,7 +27,8 @@ import java.util.Map;
 
 /**
  * Endpoints de gestión de usuarios. SCRUM-12: registro y CRUD de personal
- * por el administrador.
+ * por el administrador. SCRUM-64: toda creación, edición y eliminación
+ * queda registrada en auditoría.
  */
 @RestController
 @RequestMapping("/api/usuarios")
@@ -34,17 +37,32 @@ public class UsuarioController {
 
     private final RegistroUsuarioService registroUsuarioService;
     private final UsuarioAdminService usuarioAdminService;
+    private final AuditoriaService auditoriaService;  // SCRUM-64
 
     /**
      * Registra un nuevo usuario. Solo administrador.
-     * Valida que todos los campos estén llenos y que no exista usuario con el mismo
-     * usuario, correo o número de identificación.
+     * SCRUM-64: Registra CREAR en módulo USUARIOS.
      */
     @PostMapping
-    public ResponseEntity<?> registrar(@Valid @RequestBody RegistroUsuarioRequest request) {
+    public ResponseEntity<?> registrar(
+            @Valid @RequestBody RegistroUsuarioRequest request,
+            HttpServletRequest httpRequest) {
         try {
             Usuario usuario = registroUsuarioService.registrar(request);
             String mensaje = "Usuario " + usuario.getNombre() + " registrado correctamente.";
+
+            String[] ui = auditoriaService.obtenerUsuarioInfo();
+            auditoriaService.registrar(
+                    AuditoriaService.ACC_CREAR,
+                    AuditoriaService.MOD_USUARIOS,
+                    "Nuevo usuario creado: " + usuario.getNombre() +
+                    " (login=" + usuario.getUsuario() + ", rol=" + usuario.getRol() + ")",
+                    ui[0], ui[1],
+                    auditoriaService.obtenerIp(httpRequest),
+                    AuditoriaService.RES_EXITOSO,
+                    "ID=" + usuario.getId()
+            );
+
             return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
                     "mensaje", mensaje,
                     "nombre", usuario.getNombre(),
@@ -52,6 +70,16 @@ public class UsuarioController {
                     "correo", usuario.getCorreo()
             ));
         } catch (IllegalArgumentException e) {
+            String[] ui = auditoriaService.obtenerUsuarioInfo();
+            auditoriaService.registrar(
+                    AuditoriaService.ACC_CREAR,
+                    AuditoriaService.MOD_USUARIOS,
+                    "Intento fallido de crear usuario: " + request.getNombreCompleto(),
+                    ui[0], ui[1],
+                    auditoriaService.obtenerIp(httpRequest),
+                    AuditoriaService.RES_FALLIDO,
+                    "Error: " + e.getMessage()
+            );
             return ResponseEntity.badRequest().body(Map.of("mensaje", e.getMessage()));
         }
     }
@@ -79,30 +107,63 @@ public class UsuarioController {
     }
 
     /**
-     * Actualiza un usuario.
+     * Actualiza un usuario. SCRUM-64: Registra EDITAR en módulo USUARIOS.
      */
     @PutMapping("/{id}")
     public ResponseEntity<?> actualizar(
             @PathVariable Long id,
-            @Valid @RequestBody UpdateUsuarioRequest request
-    ) {
+            @Valid @RequestBody UpdateUsuarioRequest request,
+            HttpServletRequest httpRequest) {
         try {
             UsuarioResponse actualizado = usuarioAdminService.actualizar(id, request);
+            String[] ui = auditoriaService.obtenerUsuarioInfo();
+            auditoriaService.registrar(
+                    AuditoriaService.ACC_EDITAR,
+                    AuditoriaService.MOD_USUARIOS,
+                    "Usuario actualizado: " + actualizado.getNombreCompleto() +
+                    " (usuario=" + actualizado.getUsuario() + ", rol=" + actualizado.getRol() + ")",
+                    ui[0], ui[1],
+                    auditoriaService.obtenerIp(httpRequest),
+                    AuditoriaService.RES_EXITOSO,
+                    "ID=" + id
+            );
             return ResponseEntity.ok(Map.of(
                     "mensaje", "Usuario actualizado correctamente.",
                     "usuario", actualizado
             ));
         } catch (IllegalArgumentException e) {
+            String[] ui = auditoriaService.obtenerUsuarioInfo();
+            auditoriaService.registrar(
+                    AuditoriaService.ACC_EDITAR,
+                    AuditoriaService.MOD_USUARIOS,
+                    "Intento fallido de actualizar usuario ID=" + id,
+                    ui[0], ui[1],
+                    auditoriaService.obtenerIp(httpRequest),
+                    AuditoriaService.RES_FALLIDO,
+                    "Error: " + e.getMessage()
+            );
             return ResponseEntity.badRequest().body(Map.of("mensaje", e.getMessage()));
         }
     }
 
     /**
-     * Elimina un usuario.
+     * Elimina un usuario. SCRUM-64: Registra ELIMINAR en módulo USUARIOS.
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> eliminar(@PathVariable Long id) {
+    public ResponseEntity<?> eliminar(
+            @PathVariable Long id,
+            HttpServletRequest httpRequest) {
         usuarioAdminService.eliminar(id);
+        String[] ui = auditoriaService.obtenerUsuarioInfo();
+        auditoriaService.registrar(
+                AuditoriaService.ACC_ELIMINAR,
+                AuditoriaService.MOD_USUARIOS,
+                "Usuario eliminado del sistema",
+                ui[0], ui[1],
+                auditoriaService.obtenerIp(httpRequest),
+                AuditoriaService.RES_EXITOSO,
+                "ID=" + id
+        );
         return ResponseEntity.ok(Map.of("mensaje", "Usuario eliminado correctamente."));
     }
 }
