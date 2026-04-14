@@ -30,7 +30,7 @@ public class UpdateUsuarioRequest {
     private String celular;
 
     /**
-     * Rol del usuario (ADMINISTRADOR, VENDEDOR, JEFE DE VENTAS).
+     * Rol del usuario (ADMINISTRADOR, VENDEDOR, JEFE DE COMPRAS; JEFE DE VENTAS solo por compatibilidad).
      */
     @NotBlank(message = "El rol es obligatorio")
     private String rol;

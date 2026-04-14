@@ -3269,6 +3269,23 @@ body.inventario-modal-open .a11y-widget-panel {
     margin-top: 24px;
     justify-content: flex-end;
 }
+/* Gestión de personal: Limpiar y Registrar alineados y mismo ancho visual */
+#form-registro-usuario .modal-registro-actions.personal-registro-form-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 14px 16px;
+}
+#form-registro-usuario .modal-registro-actions.personal-registro-form-actions .btn-registro-cancelar,
+#form-registro-usuario .modal-registro-actions.personal-registro-form-actions .btn-registro-enviar {
+    flex: 1 1 160px;
+    max-width: 280px;
+    min-width: 148px;
+    min-height: 44px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
 .btn-registro-cancelar {
     padding: 12px 20px;
     border: 1px solid #555;

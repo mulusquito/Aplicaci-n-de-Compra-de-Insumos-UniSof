@@ -5,6 +5,7 @@
     <title>Gestión de personal - UNISOF</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/sign-language-bubble.css">
 </head>
 <body class="panel-admin-body">
 
@@ -154,7 +155,7 @@
                     <span>Acepto la <a href="/terminos-y-condiciones.html" id="link-politica">Política de privacidad</a> y los <a href="/terminos-y-condiciones.html" id="link-terminos">Términos y condiciones</a>.</span>
                 </label>
             </div>
-            <div class="modal-registro-actions">
+            <div class="modal-registro-actions personal-registro-form-actions">
                 <button type="reset" class="btn-registro-cancelar" id="btn-form-secundario" data-i18n-key="personal.clear">Limpiar</button>
                 <button type="submit" class="btn-registro-enviar" id="btn-registrar-guardar" data-i18n-key="personal.register">Registrar</button>
             </div>
@@ -217,6 +218,7 @@
 
 <script src="/js/auth.js"></script>
 <script src="/js/accessibility.js"></script>
+<script src="/js/sign-language-bubble.js"></script>
 <script src="/js/unisof-brand-info.js" defer></script>
 <script>
     (async () => {
@@ -531,7 +533,9 @@
                 document.getElementById('reg-identificacion').value = u.numeroIdentificacion || '';
                 document.getElementById('reg-correo').value = u.correo || '';
                 document.getElementById('reg-celular').value = u.celular || '';
-                document.getElementById('reg-rol').value = u.rol || '';
+                let rolEdit = u.rol || '';
+                if (rolEdit === 'JEFE DE VENTAS') rolEdit = 'JEFE DE COMPRAS';
+                document.getElementById('reg-rol').value = rolEdit;
                 document.getElementById('reg-clave').value = '';
                 document.getElementById('reg-confirmar-clave').value = '';
 
