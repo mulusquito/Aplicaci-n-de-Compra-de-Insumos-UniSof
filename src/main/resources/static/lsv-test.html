@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba vídeo LSV — UNISOF</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background: #1a1a1a; color: #eee; padding: 20px; max-width: 640px; margin: 0 auto; }
+        video { width: 100%; max-width: 360px; background: #000; display: block; margin: 12px 0; }
+        .warn { background: #422; border: 1px solid #c66; padding: 12px; border-radius: 8px; margin: 16px 0; }
+        .ok { background: #243; border: 1px solid #6c6; padding: 12px; border-radius: 8px; margin: 16px 0; }
+        code { background: #333; padding: 2px 6px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>Prueba LSV (lengua de señas)</h1>
+    <p>Si el reproductor muestra <strong>tiempo (ej. 0:03)</strong> pero la imagen es <strong>negra</strong>, el archivo suele ser <strong>H.265 / HEVC</strong>. Los navegadores web suelen necesitar <strong>H.264</strong>.</p>
+    <div class="warn">
+        <strong>Archivo para la web (sin paréntesis en la URL):</strong><br>
+        <video controls muted playsinline src="/videos/lsv/0409-2.mp4"></video>
+    </div>
+    <p><strong>Solución:</strong> ejecute <code>scripts\reencode-lsv-a-h264.bat</code> en la raíz del proyecto, o en <code>videos/lsv/</code> ejecute (necesita <a href="https://ffmpeg.org/download.html" style="color:#9cf">ffmpeg</a>):</p>
+    <pre style="background:#111;padding:12px;overflow:auto;border-radius:8px;">ffmpeg -y -i "0409(2).mp4" -c:v libx264 -profile:v main -pix_fmt yuv420p -movflags +faststart -an "0409-2.mp4"</pre>
+    <p>Eso <strong>sustituye</strong> <code>0409-2.mp4</code> por una copia en H.264. Reinicie Spring y recargue con Ctrl+F5.</p>
+    <p><a href="/" style="color:#9cf">← Volver al inicio</a></p>
+</body>
+</html>

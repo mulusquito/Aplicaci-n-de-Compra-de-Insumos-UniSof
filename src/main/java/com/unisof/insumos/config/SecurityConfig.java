@@ -98,9 +98,11 @@ public class SecurityConfig {
                                 "/analisis-insumos.html",
                                 "/ordenes-compra.html",
                                 "/facturas-proveedores.html",
+                                "/lsv-test.html",
                                 "/css/**",
                                 "/js/**",
-                                "/images/**"
+                                "/images/**",
+                                "/videos/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

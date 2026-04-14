@@ -1,0 +1,186 @@
+/* Burbuja LSV: hover escritorio, panel táctil móvil. Usar con sign-language-bubble.js
+ *
+ * MP4 (H.264) no lleva transparencia en la web: el círculo se logra con
+ * border-radius: 50%, overflow: hidden y object-fit: cover.
+ */
+
+:root {
+    --sign-bubble-size: 140px;
+    /* transparent: evita halo blanco en el antialias del círculo sobre fondo oscuro. Use #fff si la página es clara. */
+    --sign-bubble-face: transparent;
+    --sign-mobile-panel-bg: #141414;
+    --sign-mobile-panel-border: #333;
+    --sign-mobile-bubble-size: min(72vw, 280px);
+}
+
+.unisof-sign-bubble-wrap {
+    position: fixed;
+    z-index: 12000;
+    width: var(--sign-bubble-size);
+    height: var(--sign-bubble-size);
+    border-radius: 50%;
+    overflow: hidden;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.96);
+    transition: opacity 0.18s ease, visibility 0.18s ease, transform 0.18s ease;
+    background: var(--sign-bubble-face);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+
+.unisof-sign-bubble-wrap.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+}
+
+.unisof-sign-bubble-wrap video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    pointer-events: none;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    background: transparent;
+    transform: translateZ(0);
+}
+
+.unisof-sign-bubble-wrap[data-anchor="element"] {
+    transform: none;
+}
+
+.unisof-sign-bubble-wrap[data-anchor="element"].is-visible {
+    transform: none;
+}
+
+.unisof-sign-mobile-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 11990;
+    background: rgba(0, 0, 0, 0.55);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    pointer-events: none;
+}
+
+.unisof-sign-mobile-backdrop.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.unisof-sign-mobile-panel {
+    position: fixed;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%) translateY(100%);
+    z-index: 11995;
+    width: min(92vw, 360px);
+    max-height: 55vh;
+    background: var(--sign-mobile-panel-bg);
+    border: 1px solid var(--sign-mobile-panel-border);
+    border-radius: 20px 20px 0 0;
+    padding: 16px 16px 20px;
+    box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.5);
+    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+}
+
+.unisof-sign-mobile-panel.is-open {
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+}
+
+.unisof-sign-mobile-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.unisof-sign-mobile-panel-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #eee;
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+}
+
+.unisof-sign-mobile-close {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid #444;
+    background: #222;
+    color: #fff;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.unisof-sign-mobile-close:hover,
+.unisof-sign-mobile-close:focus-visible {
+    border-color: #f5a623;
+    outline: none;
+}
+
+.unisof-sign-mobile-video-ring {
+    width: var(--sign-mobile-bubble-size);
+    height: var(--sign-mobile-bubble-size);
+    margin: 0 auto;
+    border-radius: 50%;
+    overflow: hidden;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    background: #000;
+    flex-shrink: 0;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+
+.unisof-sign-mobile-video-ring video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    background: #000;
+    /* Capa propia: evita pantalla negra en Edge al componer el vídeo en el panel */
+    transform: translateZ(0);
+}
+
+.unisof-sign-mobile-hint {
+    font-size: 12px;
+    color: #888;
+    text-align: center;
+    margin: 12px 0 0;
+    line-height: 1.4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .unisof-sign-bubble-wrap,
+    .unisof-sign-mobile-backdrop,
+    .unisof-sign-mobile-panel {
+        transition: none;
+    }
+
+}
