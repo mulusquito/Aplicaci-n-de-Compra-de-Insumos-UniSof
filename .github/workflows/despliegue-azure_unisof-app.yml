@@ -1,12 +1,12 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy JAR app to Azure Web App - unisof-app
+name: Build and deploy JAR app to Azure Web App - unisof-insumos-app
 
 on:
   push:
     branches:
-      - despliegue-azure
+      - avance
   workflow_dispatch:
 
 jobs:
@@ -57,6 +57,6 @@ jobs:
       id: deploy-to-webapp
       uses: azure/webapps-deploy@v3
       with:
-        app-name: 'unisof-app'
+        app-name: 'unisof-insumos-app'
         slot-name: 'Production'
         package: '*.jar'
