@@ -141,7 +141,7 @@ public class UsuarioAdminService {
     private static String normalizarRol(String rol) {
         if (rol == null || rol.isBlank()) return "VENDEDOR";
         String r = rol.trim().toUpperCase();
-        if ("ADMINISTRADOR".equals(r) || "VENDEDOR".equals(r) || "JEFE DE VENTAS".equals(r)) {
+        if ("ADMINISTRADOR".equals(r) || "VENDEDOR".equals(r) || "JEFE DE COMPRAS".equals(r)) {
             return r;
         }
         return "VENDEDOR";
