@@ -5,14 +5,24 @@ package com.unisof.insumos.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
@@ -39,18 +49,48 @@ public class SecurityConfig {
      */
     private final LogoutAuditoriaHandler logoutAuditoriaHandler;
 
+    @Value("${app.actuator.username:prometheus}")
+    private String actuatorUsername;
+
+    @Value("${app.actuator.password:Unisof2025!}")
+    private String actuatorPassword;
+
     public SecurityConfig(LogoutAuditoriaHandler logoutAuditoriaHandler) {
         this.logoutAuditoriaHandler = logoutAuditoriaHandler;
     }
 
     /**
-     * Ignora Spring Security completamente para /actuator/prometheus y /actuator/health.
-     * Grafana Cloud puede acceder sin credenciales. La info de métricas no es sensible.
+     * Cadena de seguridad para /actuator/prometheus y /actuator/health.
+     * Basic Auth con usuario dedicado para Grafana Cloud. Stateless, sin sesión.
      */
     @Bean
-    public org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer webSecurityCustomizer() {
-        return web -> web.ignoring()
-                .requestMatchers("/actuator/prometheus", "/actuator/health");
+    @Order(1)
+    public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
+        PasswordEncoder encoder = new BCryptPasswordEncoder();
+        UserDetailsService uds = new InMemoryUserDetailsManager(
+                User.withUsername(actuatorUsername)
+                        .password(encoder.encode(actuatorPassword))
+                        .roles("ACTUATOR")
+                        .build()
+        );
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(uds);
+        provider.setPasswordEncoder(encoder);
+        AuthenticationManager authManager = new ProviderManager(provider);
+
+        http
+                .securityMatcher("/actuator/prometheus", "/actuator/health")
+                .authenticationManager(authManager)
+                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+                .httpBasic(basic -> basic
+                        .authenticationEntryPoint((req, res, ex) -> {
+                            res.setHeader("WWW-Authenticate", "Basic realm=\"Grafana\"");
+                            res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        })
+                )
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(csrf -> csrf.disable());
+        return http.build();
     }
 
     /** Codificador BCrypt para contrasenas */
