@@ -15,7 +15,7 @@
 
 .unisof-sign-bubble-wrap {
     position: fixed;
-    z-index: 12000;
+    z-index: 13000;
     width: var(--sign-bubble-size);
     height: var(--sign-bubble-size);
     border-radius: 50%;

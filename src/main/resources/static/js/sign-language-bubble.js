@@ -7,7 +7,8 @@
  *   </button>
  *
  * Atributos opcionales:
- *   data-sign-position="cursor" | "element" | "element-right" — por defecto cursor
+ *   data-sign-position="cursor" | "element" | "element-right" | "element-left" — por defecto cursor
+ *   element-left: a la izquierda del control (p. ej. icono login en la esquina superior derecha)
  *   data-sign-size="160" — diámetro del círculo en px (hover)
  *
  * Requisitos del video: muted + sin audio para autoplay en navegadores.
@@ -30,6 +31,8 @@
      */
     function useHoverBubble() {
         if (!window.matchMedia) return true;
+        /* Alinear con chat.js (Nova): si el navegador reporta hover real, usar burbuja hover. */
+        if (window.matchMedia('(hover: hover)').matches) return true;
         var anyFine = window.matchMedia('(any-pointer: fine)').matches;
         var fine = window.matchMedia('(pointer: fine)').matches;
         var coarse = window.matchMedia('(pointer: coarse)').matches;
@@ -180,6 +183,28 @@
         });
     }
 
+    /** A la izquierda del elemento; si no cabe (borde izquierdo), a la derecha. Ideal para iconos en la esquina superior derecha. */
+    function positionBubbleLeftOfElement(wrap, el, size) {
+        const r = el.getBoundingClientRect();
+        const pad = 12;
+        const gap = 12;
+        const box = bubbleBox(wrap, size);
+        const bw = box.w;
+        const bh = box.h;
+        let x = r.left - bw - gap;
+        let y = r.top + r.height / 2 - bh / 2;
+        if (x < pad) {
+            x = r.right + gap;
+        }
+        x = Math.max(pad, Math.min(x, window.innerWidth - bw - pad));
+        y = Math.max(pad, Math.min(y, window.innerHeight - bh - pad));
+        wrap.style.left = x + 'px';
+        wrap.style.top = y + 'px';
+        wrap.style.width = '';
+        wrap.style.height = '';
+        wrap.setAttribute('data-anchor', 'element');
+    }
+
     /** Asigna URL al <video> y elimina nodos hijos (evita <source> obsoletos). */
     function applyVideoUrl(video, normalized) {
         while (video.firstChild) {
@@ -292,6 +317,8 @@
             positionBubbleOnElement(dom.wrap, el, size);
         } else if (pos === 'element-right') {
             positionBubbleRightOfElement(dom.wrap, el, size);
+        } else if (pos === 'element-left') {
+            positionBubbleLeftOfElement(dom.wrap, el, size);
         } else {
             dom.wrap.removeAttribute('data-anchor');
             positionBubbleNearCursor(dom.wrap, size);
@@ -311,6 +338,7 @@
             if (currentSrc !== src || !dom.wrap.classList.contains('is-visible')) return;
             if (pos === 'element') positionBubbleOnElement(dom.wrap, el, size);
             else if (pos === 'element-right') positionBubbleRightOfElement(dom.wrap, el, size);
+            else if (pos === 'element-left') positionBubbleLeftOfElement(dom.wrap, el, size);
             else positionBubbleNearCursor(dom.wrap, size);
         }
         dom.video.addEventListener('loadedmetadata', repositionHover, { once: true });
@@ -376,6 +404,8 @@
             /* pointer*: mejor soporte en Edge con pantallas táctiles / Pen que solo mouseenter */
             el.addEventListener('pointerenter', function (e) {
                 if (e.pointerType === 'touch') return;
+                lastMouse.x = e.clientX;
+                lastMouse.y = e.clientY;
                 showHoverBubble(el);
             });
             el.addEventListener('pointerleave', function (e) {
@@ -388,7 +418,7 @@
                 lastMouse.y = e.clientY;
                 if (dom.wrap && dom.wrap.classList.contains('is-visible')) {
                     const pos = (el.getAttribute('data-sign-position') || 'cursor').toLowerCase();
-                    if (pos !== 'element' && pos !== 'element-right') {
+                    if (pos !== 'element' && pos !== 'element-right' && pos !== 'element-left') {
                         const size = getSizePx(el) || 140;
                         positionBubbleNearCursor(dom.wrap, size);
                     }

@@ -22,6 +22,14 @@
     <p><strong>Solución:</strong> ejecute <code>scripts\reencode-lsv-a-h264.bat</code> en la raíz del proyecto, o en <code>videos/lsv/</code> ejecute (necesita <a href="https://ffmpeg.org/download.html" style="color:#9cf">ffmpeg</a>):</p>
     <pre style="background:#111;padding:12px;overflow:auto;border-radius:8px;">ffmpeg -y -i "0409(2).mp4" -c:v libx264 -profile:v main -pix_fmt yuv420p -movflags +faststart -an "0409-2.mp4"</pre>
     <p>Eso <strong>sustituye</strong> <code>0409-2.mp4</code> por una copia en H.264. Reinicie Spring y recargue con Ctrl+F5.</p>
+
+    <h2>Vídeo LSV del chatbot Nova</h2>
+    <p>Misma carpeta <code>/videos/lsv/</code>. El widget usa el archivo <code>0409(16).mp4</code> (URL con paréntesis codificados):</p>
+    <div class="ok">
+        <video controls muted playsinline src="/videos/lsv/0409%2816%29.mp4"></video>
+    </div>
+    <p>Si la imagen es negra, convierta a H.264 y sustituya el archivo, o ejecute <code>scripts\reencode-lsv-chat-a-h264.bat</code>.</p>
+
     <p><a href="/" style="color:#9cf">← Volver al inicio</a></p>
 </body>
 </html>
