@@ -5,20 +5,14 @@ package com.unisof.insumos.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
@@ -45,37 +39,18 @@ public class SecurityConfig {
      */
     private final LogoutAuditoriaHandler logoutAuditoriaHandler;
 
-    @Value("${app.actuator.username:prometheus}")
-    private String actuatorUsername;
-
-    @Value("${app.actuator.password:prometheus123}")
-    private String actuatorPassword;
-
     public SecurityConfig(LogoutAuditoriaHandler logoutAuditoriaHandler) {
         this.logoutAuditoriaHandler = logoutAuditoriaHandler;
     }
 
     /**
-     * Cadena de seguridad exclusiva para /actuator/prometheus y /actuator/health.
-     * Usa Basic Auth con usuario dedicado para Grafana Cloud (no afecta la app principal).
+     * Ignora Spring Security completamente para /actuator/prometheus y /actuator/health.
+     * Grafana Cloud puede acceder sin credenciales. La info de métricas no es sensible.
      */
     @Bean
-    @Order(1)
-    public SecurityFilterChain actuatorSecurityFilterChain(HttpSecurity http) throws Exception {
-        UserDetails prometheusUser = User.builder()
-                .username(actuatorUsername)
-                .password(new BCryptPasswordEncoder().encode(actuatorPassword))
-                .roles("ACTUATOR")
-                .build();
-        InMemoryUserDetailsManager userDetailsManager = new InMemoryUserDetailsManager(prometheusUser);
-
-        http
-                .securityMatcher("/actuator/prometheus", "/actuator/health")
-                .userDetailsService(userDetailsManager)
-                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-                .httpBasic(Customizer.withDefaults())
-                .csrf(csrf -> csrf.disable());
-        return http.build();
+    public org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer webSecurityCustomizer() {
+        return web -> web.ignoring()
+                .requestMatchers("/actuator/prometheus", "/actuator/health");
     }
 
     /** Codificador BCrypt para contrasenas */
