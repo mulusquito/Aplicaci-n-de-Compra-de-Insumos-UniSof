@@ -24,7 +24,13 @@ Ruta en el proyecto:
   src/main/resources/static/videos/lsv/
 
 En index.html:
-  data-sign-src="/videos/lsv/0409-2.mp4"
+  Catálogo "Ver catálogo": data-sign-src="/videos/lsv/0409-2.mp4"
+  Icono iniciar sesión (header): data-sign-src="/videos/lsv/0409.mp4"
+
+Chatbot Nova (hover sobre el icono flotante, chat.js — CHAT_LAUNCHER_LSV_CANDIDATES):
+  Principal: 0409(16).mp4; respaldos: 0409-16.mp4, 0409.mp4, 0409-2.mp4.
+  Debe ser H.264 para Edge/Chrome (imagen negra → convertir con ffmpeg como arriba).
 
 URL directa en el navegador:
   http://localhost:8080/videos/lsv/0409-2.mp4
+  http://localhost:8080/videos/lsv/0409.mp4
