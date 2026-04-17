@@ -82,9 +82,6 @@
         .rf-empty { text-align: center; padding: 56px 24px; color: #666; font-size: 14px; }
         .rf-empty-icon { font-size: 40px; display: block; margin-bottom: 12px; }
 
-        /* Checkbox selección */
-        .rf-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: #f5a623; flex-shrink: 0; }
-        .rf-select-all-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 13px; color: #aaa; }
         /* Quitar del panel */
         .btn-quitar { padding: 4px 10px; font-size: 11px; border-radius: 6px; border: 1px solid #e05a5a; background: transparent; color: #e05a5a; cursor: pointer; font-weight: 600; white-space: nowrap; transition: background 0.15s, color 0.15s; margin-left: 8px; }
         .btn-quitar:hover { background: #e05a5a; color: #fff; }
@@ -217,14 +214,9 @@
                         <button type="button" class="oc-btn oc-btn-yellow" id="btn-listar-todos">Listar todas</button>
                         <button type="button" class="oc-btn oc-btn-outline" id="btn-limpiar">Limpiar</button>
                         <button type="button" class="oc-btn oc-btn-secondary" id="btn-generar-reporte" disabled
-                                title="Selecciona al menos una orden para generar el reporte">
+                                title="Lista los pedidos primero para generar el reporte">
                             📋 Generar reporte de faltantes
                         </button>
-                    </div>
-                    <div class="rf-select-all-row" id="select-all-row" style="display:none;">
-                        <input type="checkbox" id="chk-select-all" class="rf-checkbox">
-                        <label for="chk-select-all" style="cursor:pointer;">Seleccionar todas las órdenes</label>
-                        <span id="selected-count" style="margin-left:auto;font-size:12px;color:#666;">0 seleccionadas</span>
                     </div>
                 </div>
 
@@ -251,7 +243,7 @@
                 Reporte generado correctamente. Puedes consultarlo en el apartado <strong>Órdenes de Compra</strong>.
             </p>
             <div class="rf-modal-actions">
-                <a href="/ordenes-compra.html" class="rf-modal-btn rf-modal-btn-primary">Ver Órdenes de Compra</a>
+                <button type="button" class="rf-modal-btn rf-modal-btn-primary" id="modal-reporte-ver-ordenes">Ver Órdenes de Compra</button>
                 <button type="button" class="rf-modal-btn rf-modal-btn-secondary" id="modal-reporte-cerrar">Cerrar</button>
             </div>
         </div>
@@ -270,6 +262,12 @@
         function esRolPanelCompras(rol) {
             const r = (rol || '').toUpperCase();
             return r === 'JEFE DE COMPRAS' || r === 'JEFE DE VENTAS' || r === 'ADMINISTRADOR';
+        }
+
+        function formatUnidad(u) {
+            if (!u) return '—';
+            const MAP = { 'ud': 'Unidad', 'm': 'Metro', 'm_lineal': 'Metro lineal' };
+            return MAP[String(u).toLowerCase()] || u;
         }
 
         function escapeHtml(s) {
@@ -313,6 +311,7 @@
 
                 const lista = (Array.isArray(data) ? data : []).filter(
                     a => (a.estado || '').toUpperCase() === 'EN ESPERA POR PRODUCCION'
+                       && !a.consolidado
                 );
                 renderLista(lista);
             } catch (err) {
@@ -322,27 +321,36 @@
         }
 
         /* ═══════════════════════════════════════════════════════════════════ */
-        /* Renderizar lista                                                   */
+        /* Estado de selección                                               */
         /* ═══════════════════════════════════════════════════════════════════ */
-        let selectedIds = new Set();
+        let cardSeleccionadaId = null;
+
+        function seleccionarCard(id) {
+            cardSeleccionadaId = id;
+            document.querySelectorAll('.rf-card').forEach(c => c.classList.remove('selected'));
+            if (id) {
+                const card = document.querySelector(`.rf-card[data-analisis-id="${id}"]`);
+                if (card) card.classList.add('selected');
+            }
+            const btn = document.getElementById('btn-generar-reporte');
+            if (btn) btn.disabled = !id;
+        }
 
         function actualizarBtnReporte() {
             const btn = document.getElementById('btn-generar-reporte');
-            const countEl = document.getElementById('selected-count');
-            if (btn) btn.disabled = selectedIds.size === 0;
-            if (countEl) countEl.textContent = selectedIds.size + ' seleccionada' + (selectedIds.size !== 1 ? 's' : '');
+            if (btn) btn.disabled = !cardSeleccionadaId;
         }
 
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Renderizar lista                                                   */
+        /* ═══════════════════════════════════════════════════════════════════ */
         function renderLista(lista) {
             const contenedor = document.getElementById('rf-contenedor');
             contenedor.innerHTML = '';
-            selectedIds.clear();
+            cardSeleccionadaId = null;
             actualizarBtnReporte();
 
-            const selectAllRow = document.getElementById('select-all-row');
-
             if (lista.length === 0) {
-                if (selectAllRow) selectAllRow.style.display = 'none';
                 contenedor.innerHTML = `<div class="rf-empty">
                     <span class="rf-empty-icon">✅</span>
                     ${ultimoContexto === 'todos'
@@ -351,8 +359,6 @@
                 </div>`;
                 return;
             }
-
-            if (selectAllRow) selectAllRow.style.display = 'flex';
 
             const wrapper = document.createElement('div');
             wrapper.className = 'rf-lista';
@@ -367,9 +373,8 @@
                 const consolidadoChip = analisis.consolidado ? '<span class="rf-consolidado-chip">✓ En reporte</span>' : '';
 
                 card.innerHTML = `
-                    <div class="rf-card-header" style="cursor:default;">
-                        <input type="checkbox" class="rf-checkbox rf-card-chk" data-id="${analisis.id}" style="cursor:pointer;">
-                        <span class="rf-card-num" style="cursor:pointer;">#${escapeHtml(numFmt)}</span>
+                    <div class="rf-card-header">
+                        <span class="rf-card-num">#${escapeHtml(numFmt)}</span>
                         <span class="rf-card-cliente">${escapeHtml(analisis.clienteNombre || '—')}</span>
                         <div class="rf-card-meta">
                             <span class="rf-estado-badge rf-estado-espera">En espera por producción</span>
@@ -378,36 +383,24 @@
                             <span class="rf-card-analisis-fecha">Analizado: ${formatFecha(analisis.fechaAnalisis)}</span>
                         </div>
                         <button type="button" class="btn-quitar" data-quitar-id="${analisis.id}" data-quitar-num="${escapeHtml(numFmt)}">✕ Quitar</button>
-                        <span class="rf-toggle-icon" style="cursor:pointer;">▼</span>
+                        <span class="rf-toggle-icon">▼</span>
                     </div>
                     <div class="rf-card-detail" id="detail-${analisis.id}">
-                        <div style="text-align:center;padding:20px;color:#666;font-size:13px;">Haz clic en el número para ver los insumos faltantes…</div>
+                        <div style="text-align:center;padding:20px;color:#666;font-size:13px;">Haz clic para ver los insumos faltantes…</div>
                     </div>`;
 
-                // Toggle detalle al hacer clic en número o flecha
-                const toggleDetalle = () => {
+                // Clic en header: seleccionar card + toggle detalle
+                card.querySelector('.rf-card-header').addEventListener('click', (e) => {
+                    if (e.target.closest('.btn-quitar')) return; // no interferir con quitar
+                    const yaSeleccionada = cardSeleccionadaId === String(analisis.id);
+                    seleccionarCard(yaSeleccionada ? null : String(analisis.id));
                     const isOpen = card.classList.contains('open');
                     if (!isOpen) {
                         card.classList.add('open');
                         cargarDetalleFaltantes(analisis.id, card.querySelector('.rf-card-detail'));
-                    } else {
+                    } else if (yaSeleccionada) {
                         card.classList.remove('open');
                     }
-                };
-                card.querySelector('.rf-card-num').addEventListener('click', toggleDetalle);
-                card.querySelector('.rf-toggle-icon').addEventListener('click', toggleDetalle);
-
-                // Checkbox
-                const chk = card.querySelector('.rf-card-chk');
-                chk.addEventListener('change', () => {
-                    if (chk.checked) selectedIds.add(String(analisis.id));
-                    else selectedIds.delete(String(analisis.id));
-                    actualizarBtnReporte();
-                    // Sync select-all
-                    const allChks = document.querySelectorAll('.rf-card-chk');
-                    const allChecked = [...allChks].every(c => c.checked);
-                    const chkAll = document.getElementById('chk-select-all');
-                    if (chkAll) chkAll.checked = allChecked && allChks.length > 0;
                 });
 
                 // Quitar del panel → estado EN CONFECCION
@@ -425,7 +418,7 @@
                         if (!res.ok) throw new Error('Error al actualizar estado');
                         const cardEl = document.querySelector(`.rf-card[data-analisis-id="${aid}"]`);
                         if (cardEl) cardEl.remove();
-                        selectedIds.delete(String(aid));
+                        if (cardSeleccionadaId === String(aid)) cardSeleccionadaId = null;
                         actualizarBtnReporte();
                         Toast.success(`Pedido #${num} movido a En confección.`);
                     } catch (err) { Toast.error('Error: ' + err.message); }
@@ -528,7 +521,7 @@
                             : `<td class="conseguir-ok">Con existencia</td>`;
                         html += `<tr>
                             <td>${escapeHtml(ins.insumoNombre || '—')}</td>
-                            <td>${escapeHtml(ins.unidadMedida || '—')}</td>
+                            <td>${escapeHtml(formatUnidad(ins.unidadMedida))}</td>
                             <td class="num">${formatNum(ins.cantidadRequerida)}</td>
                             <td class="num">${formatNum(ins.stockAntes)}</td>
                             <td class="num">${formatNum(ins.consumido)}</td>
@@ -595,48 +588,55 @@
             });
         }
 
-        // Select-all checkbox
-        document.getElementById('chk-select-all')?.addEventListener('change', (e) => {
-            const allChks = document.querySelectorAll('.rf-card-chk');
-            allChks.forEach(chk => {
-                chk.checked = e.target.checked;
-                const id = chk.dataset.id;
-                if (e.target.checked) selectedIds.add(id);
-                else selectedIds.delete(id);
-            });
-            actualizarBtnReporte();
-        });
-
-        // Generar reporte consolidado
+        // Generar reporte consolidado — usa solo el pedido seleccionado
         document.getElementById('btn-generar-reporte')?.addEventListener('click', async () => {
-            if (selectedIds.size === 0) { Toast.error('Selecciona al menos una orden'); return; }
+            if (!cardSeleccionadaId) { Toast.error('Selecciona un pedido primero'); return; }
             const btn = document.getElementById('btn-generar-reporte');
             const orig = btn.textContent;
             btn.disabled = true;
             btn.textContent = '⏳ Generando…';
             try {
-                const res  = await fetch('/api/reportes-consolidados', {
+                const res = await fetch('/api/reportes-consolidados', {
                     method: 'POST', credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ analisisIds: [...selectedIds].map(Number) })
+                    body: JSON.stringify({ analisisIds: [Number(cardSeleccionadaId)] })
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.mensaje || 'Error al generar reporte');
+                // Quitar la card inmediatamente del listado
+                const cardEl = document.querySelector(`.rf-card[data-analisis-id="${cardSeleccionadaId}"]`);
+                if (cardEl) cardEl.remove();
+                cardSeleccionadaId = null;
+                actualizarBtnReporte();
                 document.getElementById('modal-reporte-desc').innerHTML =
                     `Reporte generado con <strong>${data.totalInsumosDistintos}</strong> insumo(s) consolidado(s). ` +
                     `Puedes consultarlo en el apartado <strong>Órdenes de Compra</strong>.`;
                 document.getElementById('modal-reporte').classList.add('visible');
-                selectedIds.clear();
-                actualizarBtnReporte();
-                await cargarAnalisis(); // recargar lista
             } catch (err) {
                 Toast.error(err.message || 'Error al generar reporte');
-                btn.disabled = selectedIds.size === 0;
+                btn.disabled = false;
+                btn.textContent = orig;
             }
-            btn.textContent = orig;
         });
 
+        // "Ver Órdenes de Compra" — quita la card seleccionada y navega
+        document.getElementById('modal-reporte-ver-ordenes')?.addEventListener('click', () => {
+            if (cardSeleccionadaId) {
+                const cardEl = document.querySelector(`.rf-card[data-analisis-id="${cardSeleccionadaId}"]`);
+                if (cardEl) cardEl.remove();
+                cardSeleccionadaId = null;
+            }
+            window.location.href = '/ordenes-compra.html';
+        });
+
+        // "Cerrar" — quita la card seleccionada y cierra el modal
         document.getElementById('modal-reporte-cerrar')?.addEventListener('click', () => {
+            if (cardSeleccionadaId) {
+                const cardEl = document.querySelector(`.rf-card[data-analisis-id="${cardSeleccionadaId}"]`);
+                if (cardEl) cardEl.remove();
+                cardSeleccionadaId = null;
+            }
+            actualizarBtnReporte();
             document.getElementById('modal-reporte').classList.remove('visible');
         });
 

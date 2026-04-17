@@ -33,4 +33,8 @@ public class ReporteConsolidado {
     /** JSON: [{insumoNombre, unidadMedida, cantidadTotal}, ...] */
     @Column(name = "insumos_json", columnDefinition = "TEXT", nullable = false)
     private String insumosJson;
+
+    /** true cuando ya se generaron facturas a proveedores desde este reporte. */
+    @Column(name = "facturas_generadas", nullable = false)
+    private boolean facturasGeneradas = false;
 }

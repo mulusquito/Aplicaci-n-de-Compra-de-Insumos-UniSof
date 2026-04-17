@@ -172,6 +172,20 @@
         .btn-quitar { padding: 4px 10px; font-size: 11px; border-radius: 6px; border: 1px solid #e05a5a; background: transparent; color: #e05a5a; cursor: pointer; font-weight: 600; white-space: nowrap; transition: background 0.15s, color 0.15s; margin-left: 8px; }
         .btn-quitar:hover { background: #e05a5a; color: #fff; }
 
+        /* Modal de faltantes */
+        .oc-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 1000; align-items: center; justify-content: center; }
+        .oc-modal-overlay.visible { display: flex; }
+        .oc-modal-box { background: #1e1e1e; border: 1px solid #333; border-radius: 14px; padding: 32px 28px 24px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 8px 40px rgba(0,0,0,0.5); }
+        .oc-modal-icon { font-size: 42px; display: block; margin-bottom: 14px; }
+        .oc-modal-title { font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+        .oc-modal-desc { font-size: 13px; color: #aaa; line-height: 1.6; margin-bottom: 24px; }
+        .oc-modal-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .oc-modal-btn { padding: 10px 22px; border-radius: 8px; border: none; font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.15s; text-decoration: none; display: inline-block; }
+        .oc-modal-btn-primary { background: #f5a623; color: #1a1a1a; }
+        .oc-modal-btn-primary:hover { background: #e09520; }
+        .oc-modal-btn-secondary { background: #2a2a2a; color: #ddd; border: 1px solid #444; }
+        .oc-modal-btn-secondary:hover { background: #333; }
+
         @media (max-width: 768px) {
             .oc-toolbar { max-width: 100%; }
             .oc-search-row { flex-direction: column; align-items: stretch; }
@@ -287,7 +301,7 @@
                         <button type="button" class="oc-btn oc-btn-outline" id="btn-limpiar">Limpiar</button>
                         <button type="button" class="oc-btn oc-btn-calc" id="btn-calcular-faltantes" disabled
                                 title="Selecciona un análisis primero">
-                            ⚙ Calcular insumos faltantes para el pedido seleccionado
+                            ⚙ Calcular insumos faltantes
                         </button>
                     </div>
                 </div>
@@ -307,6 +321,7 @@
                 <div id="rf-resultado-panel">
                     <div class="rfr-header">
                         <span class="rfr-header-title" id="rfr-title">Resultado del cálculo</span>
+                        <div id="rfr-header-actions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"></div>
                         <button type="button" class="rfr-close-btn" id="rfr-close">✕ Cerrar</button>
                     </div>
                     <div id="rfr-estado-row"></div>
@@ -321,6 +336,22 @@
                     </div>
                 </div>
 
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: insumos faltantes detectados -->
+    <div class="oc-modal-overlay" id="modal-faltantes" role="dialog" aria-modal="true" aria-labelledby="modal-faltantes-title">
+        <div class="oc-modal-box">
+            <span class="oc-modal-icon">⚠️</span>
+            <p class="oc-modal-title" id="modal-faltantes-title">¡Insumos faltantes detectados!</p>
+            <p class="oc-modal-desc">
+                La orden <strong id="modal-faltantes-num"></strong> tiene insumos que no están disponibles en inventario.<br>
+                Ha sido movida a <strong>Reporte faltantes</strong>, donde podrás ver el detalle completo y gestionar las compras necesarias.
+            </p>
+            <div class="oc-modal-actions">
+                <a href="/reporte-faltantes.html" class="oc-modal-btn oc-modal-btn-primary">Ver Reporte faltantes</a>
+                <button type="button" class="oc-modal-btn oc-modal-btn-secondary" id="modal-faltantes-cerrar">Cerrar</button>
             </div>
         </div>
     </div>
@@ -341,6 +372,12 @@
         function esRolPanelCompras(rol) {
             const r = (rol || '').toUpperCase();
             return r === 'JEFE DE COMPRAS' || r === 'JEFE DE VENTAS' || r === 'ADMINISTRADOR';
+        }
+
+        function formatUnidad(u) {
+            if (!u) return '—';
+            const MAP = { 'ud': 'Unidad', 'm': 'Metro', 'm_lineal': 'Metro lineal' };
+            return MAP[String(u).toLowerCase()] || u;
         }
 
         function escapeHtml(s) {
@@ -389,6 +426,23 @@
         const btnCalcFaltantes = document.getElementById('btn-calcular-faltantes');
         const panelResultado   = document.getElementById('rf-resultado-panel');
 
+        /* ID del análisis a quitar cuando se cierre el panel en modo yaCalculado */
+        let panelAnalisisIdParaQuitar = null;
+
+        function quitarCardDelPanel() {
+            const idQuitar = panelAnalisisIdParaQuitar || analisisSeleccionadoId;
+            if (idQuitar) {
+                const card = document.querySelector(`.rf-card[data-analisis-id="${idQuitar}"]`);
+                if (card) card.remove();
+            }
+            panelAnalisisIdParaQuitar = null;
+            analisisSeleccionadoId    = null;
+            analisisSeleccionadoData  = null;
+            btnCalcFaltantes.disabled = true;
+            btnCalcFaltantes.textContent = '⚙ Calcular insumos faltantes';
+            panelResultado.classList.remove('visible');
+        }
+
         /* ═══════════════════════════════════════════════════════════════════ */
         /* Banner informativo faltantes                                       */
         /* ═══════════════════════════════════════════════════════════════════ */
@@ -416,6 +470,13 @@
                     const data = await res.json();
                     if (data.faltantesResultado) {
                         mostrarPanelFaltantes(data, data.faltantesResultado, true);
+                        // Quitar la card inmediatamente — ya cumplió su ciclo en Análisis de Insumos
+                        const card = document.querySelector(`.rf-card[data-analisis-id="${analisisSeleccionadoId}"]`);
+                        if (card) card.remove();
+                        analisisSeleccionadoId   = null;
+                        analisisSeleccionadoData = null;
+                        btnCalcFaltantes.disabled = true;
+                        btnCalcFaltantes.textContent = '⚙ Calcular insumos faltantes';
                     } else {
                         Toast.error('No se encontró el resultado guardado.');
                     }
@@ -441,24 +502,28 @@
                 mostrarPanelFaltantes(analisisSeleccionadoData, data.resultado, data.yaCalculado);
 
                 if (data.todoCompleto) {
-                    // CASO A: todos los insumos disponibles — el pedido se queda en la lista
+                    // CASO A: todos los insumos disponibles — quitar del listado y notificar
                     if (typeof Toast !== 'undefined' && Toast.success) {
                         Toast.success(data.mensaje);
                     }
-                    actualizarBadgeCard(analisisSeleccionadoId, data.nuevoEstado);
-                    if (analisisSeleccionadoData) {
-                        analisisSeleccionadoData.faltantesCalculados = true;
-                        analisisSeleccionadoData.estado = data.nuevoEstado;
-                    }
+                    const cardA = document.querySelector(`.rf-card[data-analisis-id="${analisisSeleccionadoId}"]`);
+                    if (cardA) cardA.remove();
+                    analisisSeleccionadoId   = null;
+                    analisisSeleccionadoData = null;
+                    btnCalcFaltantes.disabled = true;
+                    btnCalcFaltantes.textContent = '⚙ Calcular insumos faltantes';
                 } else {
-                    // CASO B: hay faltantes — sacar el pedido de esta lista y mostrar banner
-                    mostrarBannerFaltantes();
+                    // CASO B: hay faltantes — sacar el pedido de esta lista y mostrar modal
+                    const numFmt = analisisSeleccionadoData?.ordenNumeroFormateado
+                        || String(analisisSeleccionadoData?.ordenNumero || '').padStart(3, '0');
+                    document.getElementById('modal-faltantes-num').textContent = '#' + numFmt;
+                    document.getElementById('modal-faltantes').classList.add('visible');
                     const card = document.querySelector(`.rf-card[data-analisis-id="${analisisSeleccionadoId}"]`);
                     if (card) card.remove();
                     analisisSeleccionadoId   = null;
                     analisisSeleccionadoData = null;
                     btnCalcFaltantes.disabled = true;
-                    btnCalcFaltantes.textContent = '⚙ Calcular insumos faltantes para el pedido seleccionado';
+                    btnCalcFaltantes.textContent = '⚙ Calcular insumos faltantes';
                 }
 
             } catch (err) {
@@ -470,7 +535,19 @@
 
         /* ── Cerrar panel ── */
         document.getElementById('rfr-close').addEventListener('click', () => {
-            panelResultado.classList.remove('visible');
+            if (panelAnalisisIdParaQuitar) {
+                quitarCardDelPanel();   // quita la card + cierra el panel
+            } else {
+                panelResultado.classList.remove('visible');
+            }
+        });
+
+        /* ── Cerrar modal de faltantes ── */
+        document.getElementById('modal-faltantes-cerrar').addEventListener('click', () => {
+            document.getElementById('modal-faltantes').classList.remove('visible');
+        });
+        document.getElementById('modal-faltantes').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) e.currentTarget.classList.remove('visible');
         });
 
         /* ── Actualiza el badge de una tarjeta en la lista ── */
@@ -573,7 +650,7 @@
                                     : `<td class="conseguir-ok">Con existencia</td>`;
                                 html += `<tr>
                                     <td>${escapeHtml(ins.insumoNombre || '—')}</td>
-                                    <td>${escapeHtml(ins.unidadMedida || '—')}</td>
+                                    <td>${escapeHtml(formatUnidad(ins.unidadMedida))}</td>
                                     <td class="num">${formatNum(ins.cantidadRequerida)}</td>
                                     <td class="num">${formatNum(ins.stockAntes)}</td>
                                     <td class="num">${formatNum(ins.consumido)}</td>
@@ -587,6 +664,24 @@
                     div.innerHTML = html;
                     body.appendChild(div);
                 });
+            }
+
+            // Gestionar botón "Ver Reporte faltantes" en header (solo para yaCalculado)
+            const actionsContainer = document.getElementById('rfr-header-actions');
+            actionsContainer.innerHTML = '';
+            if (yaCalculado) {
+                panelAnalisisIdParaQuitar = analisisSummary?.id || analisisSeleccionadoId;
+                const btnVerReporte = document.createElement('a');
+                btnVerReporte.href = '/reporte-faltantes.html';
+                btnVerReporte.className = 'rfr-close-btn';
+                btnVerReporte.style.cssText = 'background:#f5a62318;color:#f5a623;border-color:#f5a62355;text-decoration:none;display:inline-block;';
+                btnVerReporte.textContent = '📋 Ver Reporte faltantes';
+                btnVerReporte.addEventListener('click', () => {
+                    quitarCardDelPanel();
+                });
+                actionsContainer.appendChild(btnVerReporte);
+            } else {
+                panelAnalisisIdParaQuitar = null;
             }
 
             panelResultado.classList.add('visible');
@@ -609,9 +704,15 @@
                 const res = await fetch('/api/analisis-ordenes' + (qs ? '?' + qs : ''), { credentials: 'include' });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.mensaje || 'Error al cargar');
-                const lista = (Array.isArray(data) ? data : []).filter(
-                    a => (a.estado || '').toUpperCase() !== 'EN ESPERA POR PRODUCCION'
-                );
+                const ESTADOS_PROCESADOS = new Set([
+                    'EN ESPERA POR PRODUCCION',
+                    'EN CONFECCION',
+                    'TERMINADO'
+                ]);
+                const lista = (Array.isArray(data) ? data : []).filter(a => {
+                    const estado = (a.estado || '').toUpperCase();
+                    return !ESTADOS_PROCESADOS.has(estado) && !a.faltantesCalculados;
+                });
                 renderLista(lista);
             } catch (err) {
                 Toast.error(err.message || 'Error al cargar análisis');
@@ -676,7 +777,7 @@
                     // Cambiar label del botón según si ya está calculado
                     btnCalcFaltantes.textContent = analisis.faltantesCalculados
                         ? '⚙ Ver resultado ya calculado'
-                        : '⚙ Calcular insumos faltantes para el pedido seleccionado';
+                        : '⚙ Calcular insumos faltantes';
 
                     if (!isOpen) {
                         card.classList.add('open');
@@ -766,7 +867,7 @@
                     item.insumos.forEach(ins => {
                         html += `<tr>
                             <td>${escapeHtml(ins.insumoNombre || '—')}</td>
-                            <td>${escapeHtml(ins.unidadMedida || '—')}</td>
+                            <td>${escapeHtml(formatUnidad(ins.unidadMedida))}</td>
                             <td class="num">${formatNum(ins.cantidadUnitaria)}</td>
                             <td class="total">${formatNum(ins.cantidadTotal)}</td>
                         </tr>`;

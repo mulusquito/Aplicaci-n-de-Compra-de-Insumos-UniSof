@@ -75,8 +75,9 @@
         .oc-empty-msg { text-align: center; padding: 56px 24px; color: #666; font-size: 14px; }
         .oc-empty-icon { font-size: 40px; display: block; margin-bottom: 12px; }
 
-        /* Checkbox personalizado */
-        .oc-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: #f5a623; }
+        /* Fila seleccionada (single-click) */
+        .oc-table tbody tr.fila-datos.selected { background: #2a1f00 !important; outline: 2px solid #f5a623; outline-offset: -1px; }
+        .oc-table tbody tr.fila-datos.selected td { color: #fff; }
 
         /* Botón de flecha toggle */
         .btn-toggle { background: none; border: none; cursor: pointer; color: #f5a623; font-size: 18px; padding: 4px 10px; transition: transform 0.3s ease; line-height: 1; }
@@ -86,12 +87,13 @@
         /* Fila de detalle inline */
         .fila-detalle { display: none; }
         .fila-detalle.visible { display: table-row; }
-        .fila-detalle td { padding: 0 !important; background: #111 !important; border-bottom: 2px solid #f5a623 !important; }
+        .fila-detalle td { padding: 0 !important; background: #f8f8f8 !important; border-bottom: 1px solid #ddd !important; }
         .detalle-inner {
             overflow: hidden;
             max-height: 0;
             transition: max-height 0.35s ease, padding 0.35s ease;
             padding: 0 20px;
+            background: #f8f8f8;
         }
         .fila-detalle.visible .detalle-inner {
             max-height: 600px;
@@ -99,16 +101,16 @@
         }
 
         /* Tabla de insumos en detalle */
-        .rc-detalle-ordenes { font-size: 12px; color: #888; margin-bottom: 12px; }
-        .rc-detalle-ordenes strong { color: #ddd; }
-        .rc-ins-table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid #2a2a2a; }
-        .rc-ins-table { width: 100%; border-collapse: collapse; font-size: 15px; background: #111; }
-        .rc-ins-table th { background: #1e1e1e; color: #aaa; font-weight: 700; padding: 9px 13px; text-align: left; border-bottom: 1px solid #2a2a2a; white-space: nowrap; }
-        .rc-ins-table th.col-cant { color: #f5a623; }
-        .rc-ins-table td { padding: 8px 13px; border-bottom: 1px solid #1e1e1e; color: #ddd; }
+        .rc-detalle-ordenes { font-size: 12px; color: #555; margin-bottom: 12px; }
+        .rc-detalle-ordenes strong { color: #222; }
+        .rc-ins-table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid #ddd; }
+        .rc-ins-table { width: 100%; border-collapse: collapse; font-size: 15px; background: #fff; }
+        .rc-ins-table th { background: #f0f0f0; color: #555; font-weight: 700; padding: 9px 13px; text-align: left; border-bottom: 1px solid #ddd; white-space: nowrap; }
+        .rc-ins-table th.col-cant { color: #c07800; }
+        .rc-ins-table td { padding: 8px 13px; border-bottom: 1px solid #eee; color: #333; }
         .rc-ins-table tbody tr:last-child td { border-bottom: none; }
-        .rc-ins-table tbody tr:hover { background: #181818; }
-        .rc-ins-table td.cant { text-align: right; font-weight: 700; color: #e05a5a; font-variant-numeric: tabular-nums; }
+        .rc-ins-table tbody tr:hover { background: #fafafa; }
+        .rc-ins-table td.cant { text-align: right; font-weight: 700; color: #c0392b; font-variant-numeric: tabular-nums; }
 
         /* Barra de acciones sobre la tabla */
         .oc-table-actions { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
@@ -237,7 +239,7 @@
 
                 <!-- Acciones sobre la selección -->
                 <div class="oc-table-actions" id="oc-table-actions" style="display:none;">
-                    <span class="oc-sel-count" id="sel-count-label"><strong>0</strong> seleccionados</span>
+                    <span class="oc-sel-count" id="sel-count-label">Selecciona un reporte para activar</span>
                     <button type="button" class="oc-btn oc-btn-green" id="btn-generar-facturas" disabled>
                         📄 Generar facturas por insumos
                     </button>
@@ -270,6 +272,12 @@
             return r === 'JEFE DE COMPRAS' || r === 'JEFE DE VENTAS' || r === 'ADMINISTRADOR';
         }
 
+        function formatUnidad(u) {
+            if (!u) return '—';
+            const MAP = { 'ud': 'Unidad', 'm': 'Metro', 'm_lineal': 'Metro lineal' };
+            return MAP[String(u).toLowerCase()] || u;
+        }
+
         function escapeHtml(s) {
             if (s == null) return '';
             const d = document.createElement('div');
@@ -295,8 +303,21 @@
         }
 
         let ultimoContexto = 'todos';
-        let filaAbiertoId = null;   // ID del reporte cuya fila está expandida
-        const seleccionados = new Set();
+        let filaAbiertoId      = null;   // ID del reporte cuya fila está expandida
+        let reporteSeleccionadoId = null; // ID del reporte seleccionado (single-click)
+
+        /* ═══════════════════════════════════════════════════════════════════ */
+        /* Selección single-click                                             */
+        /* ═══════════════════════════════════════════════════════════════════ */
+        function seleccionarReporte(id) {
+            reporteSeleccionadoId = id;
+            document.querySelectorAll('.oc-table .fila-datos').forEach(tr => tr.classList.remove('selected'));
+            if (id) {
+                const fila = document.querySelector(`.oc-table .fila-datos[data-reporte-id="${id}"]`);
+                if (fila) fila.classList.add('selected');
+            }
+            actualizarAcciones();
+        }
 
         /* ═══════════════════════════════════════════════════════════════════ */
         /* Cargar lista de reportes consolidados                              */
@@ -305,7 +326,7 @@
             const contenedor = document.getElementById('oc-contenedor');
             contenedor.innerHTML = '<div class="oc-empty-msg"><span class="oc-empty-icon">⏳</span>Cargando reportes…</div>';
             filaAbiertoId = null;
-            seleccionados.clear();
+            reporteSeleccionadoId = null;
             actualizarAcciones();
 
             try {
@@ -313,7 +334,9 @@
                 const res = await fetch('/api/reportes-consolidados' + (qs ? '?' + qs : ''), { credentials: 'include' });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.mensaje || 'Error al cargar');
-                renderTabla(Array.isArray(data) ? data : []);
+                // Filtrar reportes que ya tienen facturas generadas
+                const lista = (Array.isArray(data) ? data : []).filter(r => !r.facturasGeneradas);
+                renderTabla(lista);
             } catch (err) {
                 Toast.error(err.message || 'Error al cargar reportes');
                 contenedor.innerHTML = '<div class="oc-empty-msg"><span class="oc-empty-icon">⚠️</span>Error al cargar los reportes.</div>';
@@ -327,11 +350,15 @@
             const actionsBar = document.getElementById('oc-table-actions');
             const btnGenerar = document.getElementById('btn-generar-facturas');
             const label      = document.getElementById('sel-count-label');
-            const n          = seleccionados.size;
 
             actionsBar.style.display = 'flex';
-            label.innerHTML = `<strong>${n}</strong> seleccionado${n !== 1 ? 's' : ''}`;
-            btnGenerar.disabled = n === 0;
+            if (reporteSeleccionadoId) {
+                const numPad = String(reporteSeleccionadoId).padStart(4, '0');
+                label.innerHTML = `Reporte <strong style="color:#f5a623;">REP-${numPad}</strong> seleccionado`;
+            } else {
+                label.innerHTML = 'Selecciona un reporte para activar';
+            }
+            btnGenerar.disabled = !reporteSeleccionadoId;
         }
 
         /* ═══════════════════════════════════════════════════════════════════ */
@@ -344,7 +371,7 @@
                 contenedor.innerHTML = `<div class="oc-empty-msg">
                     <span class="oc-empty-icon">📋</span>
                     ${ultimoContexto === 'todos'
-                        ? 'No hay reportes consolidados generados aún. Genera uno desde <strong>Reporte faltantes</strong>.'
+                        ? 'No hay reportes consolidados pendientes. Genera uno desde <strong>Reporte faltantes</strong>.'
                         : 'No se encontraron reportes para la búsqueda realizada.'}
                 </div>`;
                 actualizarAcciones();
@@ -355,9 +382,6 @@
                 <table class="oc-table">
                     <thead>
                         <tr>
-                            <th class="th-check">
-                                <input type="checkbox" class="oc-checkbox" id="chk-todos" title="Seleccionar todos">
-                            </th>
                             <th>Nº reporte</th>
                             <th>Fecha y hora</th>
                             <th>Órdenes incluidas</th>
@@ -370,10 +394,7 @@
             lista.forEach(r => {
                 const numPad = String(r.id).padStart(4, '0');
                 html += `
-                <tr class="fila-datos" data-reporte-id="${r.id}">
-                    <td class="td-check">
-                        <input type="checkbox" class="oc-checkbox chk-fila" data-reporte-id="${r.id}" aria-label="Seleccionar reporte REP-${escapeHtml(numPad)}">
-                    </td>
+                <tr class="fila-datos" data-reporte-id="${r.id}" style="cursor:pointer;">
                     <td><strong style="color:#f5a623;">REP-${escapeHtml(numPad)}</strong></td>
                     <td>${formatFecha(r.fecha)}</td>
                     <td style="font-size:12px;color:#aaa;">${escapeHtml(r.ordenesNums || '—')}</td>
@@ -383,10 +404,10 @@
                     </td>
                 </tr>
                 <tr class="fila-detalle" id="detalle-fila-${r.id}">
-                    <td colspan="6">
+                    <td colspan="5">
                         <div class="detalle-inner" id="detalle-inner-${r.id}">
                             <div class="rc-detalle-ordenes" id="detalle-ordenes-${r.id}">
-                                <em style="color:#666;">Cargando detalle…</em>
+                                <em style="color:#888;">Cargando detalle…</em>
                             </div>
                             <div class="rc-ins-table-wrap">
                                 <table class="rc-ins-table">
@@ -407,37 +428,20 @@
             contenedor.innerHTML = html;
             actualizarAcciones();
 
-            // ── Evento: checkbox "seleccionar todos" ──
-            document.getElementById('chk-todos').addEventListener('change', e => {
-                const checked = e.target.checked;
-                contenedor.querySelectorAll('.chk-fila').forEach(chk => {
-                    chk.checked = checked;
-                    const rid = parseInt(chk.dataset.reporteId);
-                    if (checked) seleccionados.add(rid);
-                    else seleccionados.delete(rid);
-                });
-                actualizarAcciones();
-            });
-
-            // ── Evento: checkboxes individuales ──
-            contenedor.querySelectorAll('.chk-fila').forEach(chk => {
-                chk.addEventListener('change', e => {
-                    const rid = parseInt(e.target.dataset.reporteId);
-                    if (e.target.checked) seleccionados.add(rid);
-                    else seleccionados.delete(rid);
-                    // Sincronizar "seleccionar todos"
-                    const total   = contenedor.querySelectorAll('.chk-fila').length;
-                    const checked = contenedor.querySelectorAll('.chk-fila:checked').length;
-                    const chkAll  = document.getElementById('chk-todos');
-                    chkAll.checked       = checked === total;
-                    chkAll.indeterminate = checked > 0 && checked < total;
-                    actualizarAcciones();
+            // ── Evento: clic en fila para seleccionar ──
+            contenedor.querySelectorAll('.fila-datos').forEach(tr => {
+                tr.addEventListener('click', e => {
+                    // No interferir con el botón toggle
+                    if (e.target.closest('.btn-toggle')) return;
+                    const id = parseInt(tr.dataset.reporteId);
+                    seleccionarReporte(reporteSeleccionadoId === id ? null : id);
                 });
             });
 
             // ── Evento: flechas toggle de detalle ──
             contenedor.querySelectorAll('.btn-toggle').forEach(btn => {
-                btn.addEventListener('click', () => {
+                btn.addEventListener('click', e => {
+                    e.stopPropagation();
                     const id  = parseInt(btn.dataset.reporteId);
                     const num = btn.dataset.reporteNum;
                     toggleDetalle(id, num, btn);
@@ -517,7 +521,7 @@
                 tbody.innerHTML = insumos.map(ins => `
                     <tr>
                         <td>${escapeHtml(ins.insumoNombre || '—')}</td>
-                        <td>${escapeHtml(ins.unidadMedida || '—')}</td>
+                        <td>${escapeHtml(formatUnidad(ins.unidadMedida))}</td>
                         <td class="cant">${formatNum(ins.cantidadTotal)}</td>
                     </tr>`).join('');
             }
@@ -527,29 +531,40 @@
         /* Generar facturas por insumos                                       */
         /* ═══════════════════════════════════════════════════════════════════ */
         document.getElementById('btn-generar-facturas').addEventListener('click', async () => {
-            if (seleccionados.size === 0) return;
+            if (!reporteSeleccionadoId) return;
 
             const btn = document.getElementById('btn-generar-facturas');
             btn.disabled = true;
             btn.textContent = '⏳ Generando…';
+
+            const idProcesado = reporteSeleccionadoId;
 
             try {
                 const res  = await fetch('/api/facturas-proveedor', {
                     method:  'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
-                    body: JSON.stringify({ reporteIds: [...seleccionados] })
+                    body: JSON.stringify({ reporteIds: [idProcesado] })
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.mensaje || 'Error al generar facturas');
 
                 Toast.success(data.mensaje || 'Facturas generadas correctamente');
+
+                // Remover la fila (datos + detalle) del DOM inmediatamente
+                const filaDatos   = document.querySelector(`.fila-datos[data-reporte-id="${idProcesado}"]`);
+                const filaDetalle = document.getElementById(`detalle-fila-${idProcesado}`);
+                if (filaDatos)   filaDatos.remove();
+                if (filaDetalle) filaDetalle.remove();
+                reporteSeleccionadoId = null;
+                actualizarAcciones();
+
                 setTimeout(() => {
                     window.location.href = '/facturas-proveedores.html';
                 }, 1200);
             } catch (err) {
                 Toast.error(err.message || 'Error al generar facturas');
-                btn.disabled = seleccionados.size === 0;
+                btn.disabled = false;
                 btn.textContent = '📄 Generar facturas por insumos';
             }
         });

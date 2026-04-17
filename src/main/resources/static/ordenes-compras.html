@@ -377,8 +377,13 @@
             document.getElementById('buscar-numero').value = '';
             document.getElementById('buscar-fecha').value  = '';
             document.getElementById('buscar-mes').value    = '';
-            ultimoContexto = 'todos';
-            cargarOrdenes();
+            ultimoContexto = null;
+            const tbody = document.getElementById('tabla-body');
+            tbody.innerHTML = '';
+            document.getElementById('tabla-ordenes').style.display = 'none';
+            const emptyMsg = document.getElementById('empty-msg');
+            emptyMsg.innerHTML = '<span class="oc-empty-icon">🔍</span>Usa los filtros o presiona <strong>Listar todas</strong> para ver los pedidos.';
+            emptyMsg.style.display = 'block';
         });
 
         // Enter en el campo número dispara búsqueda por número
