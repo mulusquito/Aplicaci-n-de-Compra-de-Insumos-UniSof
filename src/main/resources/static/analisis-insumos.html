@@ -171,6 +171,7 @@
         /* Quitar del panel */
         .btn-quitar { padding: 4px 10px; font-size: 11px; border-radius: 6px; border: 1px solid #e05a5a; background: transparent; color: #e05a5a; cursor: pointer; font-weight: 600; white-space: nowrap; transition: background 0.15s, color 0.15s; margin-left: 8px; }
         .btn-quitar:hover { background: #e05a5a; color: #fff; }
+        .rol-jefe-compras .btn-quitar { display: none !important; }
 
         /* Modal de faltantes */
         .oc-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 1000; align-items: center; justify-content: center; }
@@ -936,6 +937,7 @@
             if (!result.ok) { window.location.href = '/login.html'; return; }
             const rol = (result.usuario?.rol || '').toUpperCase();
             if (!esRolPanelCompras(rol)) { window.location.href = '/'; return; }
+            if (rol === 'JEFE DE COMPRAS') document.body.classList.add('rol-jefe-compras');
             document.getElementById('user-name').textContent = result.usuario?.nombre || result.usuario?.usuario;
             document.getElementById('user-rol').textContent  = (result.usuario?.rol || '').toUpperCase();
             await cargarAnalisis();

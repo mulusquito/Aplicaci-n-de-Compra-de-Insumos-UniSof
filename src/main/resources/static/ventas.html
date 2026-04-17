@@ -554,6 +554,10 @@
                 if (result.mensaje && result.mensaje.includes('conexión')) {
                     Toast.error(result.mensaje);
                 }
+                const paymentParam = new URLSearchParams(window.location.search).get('payment');
+                if (paymentParam) {
+                    localStorage.setItem('unisof_return_url', window.location.pathname + window.location.search);
+                }
                 window.location.href = '/login.html';
                 return;
             }
@@ -585,7 +589,7 @@
             const params = new URLSearchParams(window.location.search);
             const payment = params.get('payment');
             if (payment === 'success') {
-                const pendingData = sessionStorage.getItem('unisof_pending_checkout');
+                const pendingData = localStorage.getItem('unisof_pending_checkout');
                 if (pendingData) {
                     try {
                         const { items, cliente, clienteId } = JSON.parse(pendingData);
@@ -600,7 +604,7 @@
                             body: JSON.stringify(body)
                         });
                         const data = await res.json();
-                        sessionStorage.removeItem('unisof_pending_checkout');
+                        localStorage.removeItem('unisof_pending_checkout');
                         if (res.ok) {
                             const num = data.numeroFormateado || String(data.numero || 0).padStart(3, '0');
                             Toast.success('¡Pago aprobado! Recibo Nº ' + num + ' enviado al cliente y a UNISOF.', 5000);
@@ -618,11 +622,11 @@
                 await cargarEstadisticasVentas();
                 window.history.replaceState({}, '', '/ventas.html');
             } else if (payment === 'failure') {
-                sessionStorage.removeItem('unisof_pending_checkout');
+                localStorage.removeItem('unisof_pending_checkout');
                 Toast.error('El pago fue rechazado. Puede intentar nuevamente.');
                 window.history.replaceState({}, '', '/ventas.html');
             } else if (payment === 'pending') {
-                sessionStorage.removeItem('unisof_pending_checkout');
+                localStorage.removeItem('unisof_pending_checkout');
                 Toast.info('El pago está pendiente. Se le notificará cuando se confirme.');
                 window.history.replaceState({}, '', '/ventas.html');
             }
@@ -930,7 +934,7 @@
                         const subtotal = i.quantity * i.unitPrice;
                         return { nombre: i.name, talla: i.size || 'M', cantidad: i.quantity, precioUnit: i.unitPrice, subtotal, genero: i.genero || '' };
                     });
-                    sessionStorage.setItem('unisof_pending_checkout', JSON.stringify({
+                    localStorage.setItem('unisof_pending_checkout', JSON.stringify({
                         items: itemsPayload,
                         cliente: { nombre: c.nombre, cedula: c.cedula, correo: c.correo, telefono: c.telefono, direccion: c.direccion },
                         clienteId: clienteEncontrado?.id || null

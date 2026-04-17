@@ -48,6 +48,14 @@
         .btn-ficha { padding: 5px 12px; font-size: 11px; border-radius: 6px; cursor: pointer; border: 1px solid #f5a623; background: transparent; color: #f5a623; font-weight: 600; white-space: nowrap; transition: background 0.15s, color 0.15s; }
         .btn-ficha:hover { background: #f5a623; color: #1a1a1a; }
         .btn-ficha:disabled { cursor: not-allowed; border-color: #444; background: #2a2a2a; color: #888; }
+        .oc-expand-btn { padding: 4px 10px; font-size: 11px; border-radius: 6px; cursor: pointer; border: 1px solid #555; background: #2a2a2a; color: #ccc; font-weight: 600; white-space: nowrap; transition: background 0.15s; }
+        .oc-expand-btn:hover { background: #333; color: #fff; }
+        .oc-productos-row { display: none; }
+        .oc-productos-row.open { display: table-row; }
+        .oc-productos-row > td { padding: 0 14px 10px; background: #161616; }
+        .oc-sub-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .oc-sub-table th { color: #888; font-weight: 600; padding: 6px 10px; border-bottom: 1px solid #2a2a2a; text-align: left; }
+        .oc-sub-table td { padding: 6px 10px; border-bottom: 1px solid #1e1e1e; color: #ccc; }
 
         /* Modal de confirmación de análisis */
         .oc-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 1000; align-items: center; justify-content: center; }
@@ -185,10 +193,7 @@
                                 <th>Cliente</th>
                                 <th>Fecha y hora</th>
                                 <th>Estado</th>
-                                <th>Prenda</th>
-                                <th>Género</th>
-                                <th>Talla</th>
-                                <th>Cantidad</th>
+                                <th>Ver productos</th>
                                 <th>Análisis</th>
                             </tr>
                         </thead>
@@ -284,30 +289,21 @@
             }
         }
 
+        function toggleProductos(id) {
+            const row = document.getElementById(id);
+            if (!row) return;
+            const isOpen = row.classList.toggle('open');
+            const btn = document.querySelector(`[data-toggle-id="${id}"]`);
+            if (btn) btn.textContent = isOpen ? 'Ocultar ▲' : btn.dataset.label;
+        }
+
         function renderTabla(ordenes) {
             const tbody = document.getElementById('tabla-body');
             const emptyMsg = document.getElementById('empty-msg');
             const tabla = document.getElementById('tabla-ordenes');
             tbody.innerHTML = '';
 
-            const filas = [];
-            ordenes.forEach(orden => {
-                let items = [];
-                try {
-                    items = typeof orden.itemsJson === 'string'
-                        ? JSON.parse(orden.itemsJson)
-                        : (orden.itemsJson || []);
-                } catch (_) {}
-                if (items.length === 0) {
-                    filas.push({ orden, item: null, esPrimera: true });
-                } else {
-                    items.forEach((item, idx) => {
-                        filas.push({ orden, item, esPrimera: idx === 0 });
-                    });
-                }
-            });
-
-            if (filas.length === 0) {
+            if (ordenes.length === 0) {
                 tabla.style.display = 'none';
                 emptyMsg.innerHTML = '<span class="oc-empty-icon">📋</span>' +
                     (ultimoContexto === 'todos'
@@ -320,29 +316,52 @@
             tabla.style.display = 'table';
             emptyMsg.style.display = 'none';
 
-            filas.forEach(({ orden, item, esPrimera }) => {
-                const tr = document.createElement('tr');
-                if (esPrimera) tr.classList.add('oc-row-first');
+            ordenes.forEach(orden => {
+                let items = [];
+                try {
+                    items = typeof orden.itemsJson === 'string'
+                        ? JSON.parse(orden.itemsJson)
+                        : (orden.itemsJson || []);
+                } catch (_) {}
 
                 const { cls: estadoClase, txt: estadoTexto } = estadoBadge(orden.estado);
                 const numFormateado = orden.numeroFormateado || ('00' + orden.numero).slice(-3);
+                const subId = 'sub-' + orden.id;
 
-                const tdNumero  = esPrimera ? `<td><strong>${escapeHtml(numFormateado)}</strong></td>` : `<td class="oc-td-empty">—</td>`;
-                const tdCliente = esPrimera ? `<td>${escapeHtml(orden.clienteNombre || '—')}</td>` : `<td class="oc-td-empty">—</td>`;
-                const tdFecha   = esPrimera ? `<td>${formatFecha(orden.fecha)}</td>` : `<td class="oc-td-empty">—</td>`;
-                const tdEstado  = esPrimera ? `<td><span class="oc-estado-badge ${estadoClase}">${escapeHtml(estadoTexto)}</span></td>` : `<td class="oc-td-empty">—</td>`;
-                const tdAnalizar = esPrimera
-                    ? `<td><button type="button" class="btn-ficha" data-recibo-id="${orden.id}" data-orden-num="${escapeHtml(numFormateado)}" onclick="analizarOrden(this)">Analizar con Ficha técnica</button></td>`
-                    : `<td></td>`;
+                const tr = document.createElement('tr');
+                tr.classList.add('oc-row-first');
 
-                const nombre   = item ? escapeHtml(item.nombre  || '—') : '—';
-                const genero   = item ? escapeHtml(item.genero  || '—') : '—';
-                const talla    = item ? escapeHtml(item.talla   || '—') : '—';
-                const cantidad = item && item.cantidad != null ? item.cantidad : '—';
+                const label = 'Detalle ▼';
+                const productosCells = `<td><button type="button" class="oc-expand-btn" data-toggle-id="${subId}" data-label="${label}" onclick="toggleProductos('${subId}')">${label}</button></td>`;
 
-                tr.innerHTML = tdNumero + tdCliente + tdFecha + tdEstado +
-                    `<td>${nombre}</td><td>${genero}</td><td>${talla}</td><td>${cantidad}</td>` + tdAnalizar;
+                tr.innerHTML = `
+                    <td><strong>${escapeHtml(numFormateado)}</strong></td>
+                    <td>${escapeHtml(orden.clienteNombre||'—')}</td>
+                    <td>${formatFecha(orden.fecha)}</td>
+                    <td><span class="oc-estado-badge ${estadoClase}">${escapeHtml(estadoTexto)}</span></td>
+                    ${productosCells}
+                    <td><button type="button" class="btn-ficha" data-recibo-id="${orden.id}" data-orden-num="${escapeHtml(numFormateado)}" onclick="analizarOrden(this)">Analizar con Ficha técnica</button></td>
+                `;
                 tbody.appendChild(tr);
+
+                const trSub = document.createElement('tr');
+                trSub.id = subId;
+                trSub.className = 'oc-productos-row';
+                const itemsHtml = items.length === 0
+                    ? '<tr><td colspan="4" style="color:#666;text-align:center;">Sin productos</td></tr>'
+                    : items.map(it => `
+                        <tr>
+                            <td>${escapeHtml(it.nombre||'—')}</td>
+                            <td>${escapeHtml(it.genero||'—')}</td>
+                            <td>${escapeHtml(it.talla||'—')}</td>
+                            <td>${it.cantidad??'—'}</td>
+                        </tr>`).join('');
+                trSub.innerHTML = `<td colspan="6">
+                    <table class="oc-sub-table">
+                        <thead><tr><th>Prenda</th><th>Género</th><th>Talla</th><th>Cantidad</th></tr></thead>
+                        <tbody>${itemsHtml}</tbody>
+                    </table></td>`;
+                tbody.appendChild(trSub);
             });
         }
 
