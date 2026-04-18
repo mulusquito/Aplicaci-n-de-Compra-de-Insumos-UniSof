@@ -15,6 +15,19 @@ import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Servicio de gestión del inventario de insumos textiles — Proceso 3.
+ *
+ * <p>Expone operaciones CRUD sobre {@link com.unisof.insumos.model.Insumo}:
+ * listar con filtros por categoría o criterio, crear, actualizar y eliminar
+ * mediante soft-delete (campo {@code activo = false}).</p>
+ *
+ * <p>También provee métodos de consulta agregada útiles para el dashboard
+ * del Jefe de Compras: {@link #sumaStockDisponible()}, {@link #sumaStockMinimo()}
+ * y {@link #contarBajoMinimo()}.</p>
+ *
+ * @see com.unisof.insumos.controller.ComprasInsumoController
+ */
 @Service
 @RequiredArgsConstructor
 public class ComprasInsumoService {

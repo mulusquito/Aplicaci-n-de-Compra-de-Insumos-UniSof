@@ -8,6 +8,7 @@ import com.unisof.insumos.repository.ReciboRepository;
 import com.unisof.insumos.repository.UsuarioRepository;
 import com.unisof.insumos.service.AuditoriaService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,6 +51,12 @@ class DashboardControllerTest {
 
     @InjectMocks
     private DashboardController controller;
+
+    @BeforeEach
+    void stubAuditoria() {
+        when(auditoriaService.obtenerUsuarioInfo()).thenReturn(new String[]{"testuser", "ADMIN"});
+        when(auditoriaService.obtenerIp(any())).thenReturn("127.0.0.1");
+    }
 
     @Test
     @DisplayName("Estadísticas del dashboard retornan estructura con usuarios, órdenes, ventas y fechas")

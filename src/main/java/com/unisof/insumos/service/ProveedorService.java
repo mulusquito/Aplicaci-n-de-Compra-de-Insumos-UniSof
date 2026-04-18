@@ -19,6 +19,19 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+/**
+ * Servicio de gestión de proveedores de insumos — Proceso 3.
+ *
+ * <p>Gestiona el ciclo de vida completo de un {@link com.unisof.insumos.model.Proveedor}:
+ * registro, consulta, actualización y eliminación. Valida unicidad de NIT y correo
+ * electrónico antes de persistir, y envía notificación por correo al proveedor
+ * al momento del registro.</p>
+ *
+ * <p>Un proveedor debe tener al menos una {@link com.unisof.insumos.model.CategoriaInsumo}
+ * asignada, que indica qué tipo de insumos suministra.</p>
+ *
+ * @see com.unisof.insumos.controller.ProveedorController
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

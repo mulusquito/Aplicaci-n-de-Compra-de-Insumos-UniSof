@@ -48,6 +48,8 @@ class CheckoutControllerTest {
     @BeforeEach
     void setUp() {
         ReflectionTestUtils.setField(controller, "paymentProvider", "mercadopago");
+        when(auditoriaService.obtenerUsuarioInfo()).thenReturn(new String[]{"testuser", "ADMIN"});
+        when(auditoriaService.obtenerIp(any())).thenReturn("127.0.0.1");
 
         CheckoutRequest.ClienteData cliente = new CheckoutRequest.ClienteData(
                 "Juan", "juan@test.com", "300", "Calle 1", "CC", "123");
