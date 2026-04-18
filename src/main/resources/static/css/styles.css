@@ -133,57 +133,16 @@ body.has-fixed-nav {
     pointer-events: none;
 }
 
-/* Icono login index: vídeo LSV en capa fija (nav-login-lsv.js); SVG al enlace */
-#btn-login svg {
+/* LSV en sidebar compras: el <a> recibe hover/toque; el SVG no debe interceptar. */
+.admin-nav-item[data-sign-src] svg {
     pointer-events: none;
 }
 
-/* Burbuja LSV fija junto al icono (no absolute dentro del header estrecho) */
-.nav-login-lsv-float {
-    position: fixed;
-    z-index: 20000;
-    border-radius: 50%;
-    overflow: hidden;
-    background: #000;
-    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.55);
+/* LSV en sidebar admin (icono emoji + texto): el enlace recibe el puntero. */
+.admin-nav-item[data-sign-src] .admin-nav-icon,
+.admin-nav-item[data-sign-src] .admin-nav-item-label,
+.admin-nav-item[data-sign-src] .admin-nav-text {
     pointer-events: none;
-    opacity: 0;
-    visibility: hidden;
-    transform: scale(0.96);
-    transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-}
-
-.nav-login-lsv-float.nav-login-lsv-float--visible {
-    opacity: 1;
-    visibility: visible;
-    transform: scale(1);
-    pointer-events: auto;
-}
-
-.nav-login-lsv-float-ring {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    overflow: hidden;
-}
-
-.nav-login-lsv-float-video {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center center;
-    border-radius: 50%;
-    /* Chrome/Edge: a veces el códec no pinta bien solo con overflow:hidden del padre */
-    clip-path: circle(50% at 50% 50%);
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .nav-login-lsv-float {
-        transition: none;
-    }
 }
 
 .nav-cart-btn {
@@ -325,6 +284,60 @@ h1 {
     gap: 20px;
 }
 
+/* Hero: «Ver Catálogo» y «Manual de Usuario» — compactos y alineados */
+.hero-left .buttons {
+    align-items: stretch;
+    gap: 14px;
+}
+
+.hero-left .buttons > .dropdown-catalogo,
+.hero-left .buttons > a.btn-hero-manual {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 220px;
+}
+
+/* Misma tipografía y centrado en «Ver Catálogo» y «Manual de Usuario» */
+.hero-left .buttons > .dropdown-catalogo .btn-catalogo,
+.hero-left .buttons > a.btn-hero-manual {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: 0.02em;
+    text-align: center;
+    text-shadow: none;
+    color: #fff;
+    justify-content: center;
+    padding: 10px 14px;
+    border-radius: 8px;
+}
+
+.hero-left .buttons .btn-catalogo .chevron {
+    width: 18px;
+    height: 18px;
+}
+
+.hero-left .buttons > a.btn-hero-manual {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.hero-left .buttons > a.btn-hero-manual:hover,
+.hero-left .buttons > a.btn-hero-manual:visited {
+    color: #fff;
+}
+
+.hero-left .buttons > a.btn-hero-manual:focus-visible {
+    outline: 2px solid #f5a623;
+    outline-offset: 2px;
+}
+
 .btn-primary {
     background: #f5a623;
     color: black;
@@ -452,6 +465,15 @@ h1 {
     font-style: italic;
 }
 
+/* LSV: la burbuja se alinea al texto, no al ancho completo del bloque */
+.catalog-title[data-sign-src],
+.catalog-category-title[data-sign-src],
+.auth-title[data-sign-src] {
+    display: inline-block;
+    width: fit-content;
+    max-width: 100%;
+}
+
 .catalog-subtitle {
     color: #888;
     margin-bottom: 40px;
@@ -562,6 +584,15 @@ h1 {
         gap: 32px;
     }
     .hero-left { max-width: 100%; }
+    .hero-left .buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    .hero-left .buttons > .dropdown-catalogo,
+    .hero-left .buttons > a.btn-hero-manual {
+        max-width: none;
+        width: 100%;
+    }
     .hero-brand { font-size: clamp(3rem, 12vw, 5rem); }
     .hero-right {
         flex-direction: row;
@@ -743,6 +774,13 @@ footer {
 
 .auth-footer a:hover {
     text-decoration: underline;
+}
+
+/* LSV: anclar la burbuja al ancho del enlace, no a todo el párrafo centrado */
+.auth-footer a[data-sign-src] {
+    display: inline-block;
+    width: fit-content;
+    max-width: 100%;
 }
 
 .success-msg {
@@ -1060,6 +1098,12 @@ button.panel-btn:hover {
 .admin-user-rol {
     font-size: 12px;
     color: #f5a623;
+}
+/* Ancla LSV (burbuja sobre «ADMINISTRADOR») al ancho del texto, no a toda la columna del sidebar */
+.admin-user-rol[data-sign-src] {
+    display: inline-block;
+    width: fit-content;
+    max-width: 100%;
 }
 .admin-link-inicio {
     display: block;

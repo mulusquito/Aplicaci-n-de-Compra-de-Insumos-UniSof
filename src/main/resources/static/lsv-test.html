@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prueba vídeo LSV — UNISOF</title>
+    <link rel="stylesheet" href="/css/sign-language-bubble.css">
     <style>
         body { font-family: system-ui, sans-serif; background: #1a1a1a; color: #eee; padding: 20px; max-width: 640px; margin: 0 auto; }
         video { width: 100%; max-width: 360px; background: #000; display: block; margin: 12px 0; }
@@ -17,19 +18,26 @@
     <p>Si el reproductor muestra <strong>tiempo (ej. 0:03)</strong> pero la imagen es <strong>negra</strong>, el archivo suele ser <strong>H.265 / HEVC</strong>. Los navegadores web suelen necesitar <strong>H.264</strong>.</p>
     <div class="warn">
         <strong>Archivo para la web (sin paréntesis en la URL):</strong><br>
-        <video controls muted playsinline src="/videos/lsv/0409-2.mp4"></video>
+        <video controls muted playsinline src="/videos/lsv/ver catalogo (1).mp4"></video>
     </div>
     <p><strong>Solución:</strong> ejecute <code>scripts\reencode-lsv-a-h264.bat</code> en la raíz del proyecto, o en <code>videos/lsv/</code> ejecute (necesita <a href="https://ffmpeg.org/download.html" style="color:#9cf">ffmpeg</a>):</p>
     <pre style="background:#111;padding:12px;overflow:auto;border-radius:8px;">ffmpeg -y -i "0409(2).mp4" -c:v libx264 -profile:v main -pix_fmt yuv420p -movflags +faststart -an "0409-2.mp4"</pre>
     <p>Eso <strong>sustituye</strong> <code>0409-2.mp4</code> por una copia en H.264. Reinicie Spring y recargue con Ctrl+F5.</p>
 
-    <h2>Vídeo LSV del chatbot Nova</h2>
-    <p>Misma carpeta <code>/videos/lsv/</code>. El widget usa el archivo <code>0409(16).mp4</code> (URL con paréntesis codificados):</p>
+    <h2>Dashboard (panel administrador)</h2>
+    <p>Archivo en la ruta principal del proyecto: <code>src/main/resources/static/videos/lsv/Dashboard.mp4</code> → URL <code>/videos/lsv/Dashboard.mp4</code></p>
     <div class="ok">
-        <video controls muted playsinline src="/videos/lsv/0409%2816%29.mp4"></video>
+        <video controls muted playsinline src="/videos/lsv/Dashboard.mp4"></video>
     </div>
-    <p>Si la imagen es negra, convierta a H.264 y sustituya el archivo, o ejecute <code>scripts\reencode-lsv-chat-a-h264.bat</code>.</p>
+
+    <h2>Vídeo LSV del chatbot Nova</h2>
+    <p>Misma carpeta <code>/videos/lsv/</code>. El widget usa <code>0417 (1)(3).mp4</code> (chat.js codifica la URL al cargar el &lt;video&gt;):</p>
+    <div class="ok">
+        <video controls muted playsinline src="/videos/lsv/0417%20%281%29%283%29.mp4"></video>
+    </div>
+    <p>Si la imagen es negra, convierta el origen a H.264 con ffmpeg (ver README en <code>videos/lsv/</code>).</p>
 
     <p><a href="/" style="color:#9cf">← Volver al inicio</a></p>
+    <script src="/js/sign-language-bubble.js"></script>
 </body>
 </html>

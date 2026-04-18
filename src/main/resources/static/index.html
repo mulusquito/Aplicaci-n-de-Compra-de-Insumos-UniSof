@@ -17,7 +17,11 @@
         </a>
 
         <div class="nav-actions">
-            <a href="/login.html" class="nav-icon nav-icon-user" id="btn-login" data-nav-lsv-src="/videos/lsv/0409.mp4" data-i18n-title="home.loginTitle" title="Iniciar Sesión">
+            <a href="/login.html" class="nav-icon nav-icon-user" id="btn-login"
+                data-sign-src="/videos/lsv/0409.mp4"
+                data-sign-position="element-left"
+                data-sign-label="Iniciar sesión"
+                data-i18n-title="home.loginTitle" title="Iniciar Sesión">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
             </a>
             <div class="nav-user-logged" id="nav-user-logged" style="display:none">
@@ -26,7 +30,11 @@
                 </button>
                 <div class="dropdown-user" id="dropdown-user">
                     <span class="dropdown-user-name" id="user-display-name"></span>
-                    <button class="dropdown-user-logout" id="btn-logout">Cerrar Sesión</button>
+                    <button type="button" class="dropdown-user-logout" id="btn-logout"
+                        data-sign-src="/videos/lsv/Cerrar Sesion.mp4"
+                        data-sign-position="element-right"
+                        data-sign-size="140"
+                        data-sign-label="Cerrar sesión">Cerrar Sesión</button>
                 </div>
             </div>
         </div>
@@ -41,8 +49,9 @@
             <div class="buttons">
                 <div class="dropdown-catalogo">
                     <button type="button" class="btn-secondary btn-catalogo" data-i18n-key="home.catalog"
-                        data-sign-src="/videos/lsv/0409-2.mp4"
-                        data-sign-position="element-right"
+                        data-sign-src="/videos/lsv/ver catalogo (1).mp4"
+                        data-sign-position="element"
+                        data-sign-size="140"
                         data-sign-label="Catálogo de productos UNISOF">
                         Ver Catálogo
                         <svg class="chevron" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"></path></svg>
@@ -52,6 +61,15 @@
                         <a href="#caballeros" data-i18n-key="home.man">Hombre</a>
                     </div>
                 </div>
+                <a href="/docs/Manual%20de%20usuario%20UNISOF%20%282%29.pdf" target="_blank" rel="noopener noreferrer"
+                    class="btn-secondary btn-hero-manual" data-i18n-key="home.manual"
+                    data-i18n-title="home.manualTitle" title="Abrir manual de usuario (PDF)"
+                    data-sign-src="/videos/lsv/0417(10).mp4"
+                    data-sign-position="element"
+                    data-sign-size="140"
+                    data-sign-label="Manual de usuario UNISOF">
+                    Manual de Usuario
+                </a>
             </div>
         </div>
 
@@ -71,11 +89,17 @@
 
     <!-- CATÁLOGO CABALLEROS -->
     <section id="caballeros" class="catalog-section">
-        <h2 class="catalog-title" data-i18n-key="home.catalogTitle">Caballeros</h2>
+        <h2 class="catalog-title" data-i18n-key="home.catalogTitle"
+            data-sign-src="/videos/lsv/0409(20).mp4"
+            data-sign-position="element-right"
+            data-sign-label="Caballeros — colección hombre">Caballeros</h2>
         <p class="catalog-subtitle" data-i18n-key="home.catalogSubtitle">Explora nuestra colección para hombre.</p>
 
         <div class="catalog-category">
-            <h3 class="catalog-category-title">Blaizer</h3>
+            <h3 class="catalog-category-title"
+                data-sign-src="/videos/lsv/0409(14).mp4"
+                data-sign-position="element-right"
+                data-sign-label="Blaizer — categoría">Blaizer</h3>
             <div class="catalog-grid">
                 <div class="product-card">
                     <img src="/images/catalogo/caballeros/blaizer/blaizer1.webp" alt="Blaizer clásico" onerror="this.src='https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400'">
@@ -102,7 +126,10 @@
         </div>
 
         <div class="catalog-category">
-            <h3 class="catalog-category-title">Camisas</h3>
+            <h3 class="catalog-category-title"
+                data-sign-src="/videos/lsv/0409(15).mp4"
+                data-sign-position="element-right"
+                data-sign-label="Camisas — categoría">Camisas</h3>
             <div class="catalog-grid">
                 <div class="product-card">
                     <img src="/images/catalogo/caballeros/camisas/camisa1.png" alt="Camisa" onerror="this.src='https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400'">
@@ -136,7 +163,10 @@
         </div>
 
         <div class="catalog-category">
-            <h3 class="catalog-category-title">Chaquetas</h3>
+            <h3 class="catalog-category-title"
+                data-sign-src="/videos/lsv/0409(17).mp4"
+                data-sign-position="element-right"
+                data-sign-label="Chaquetas — categoría">Chaquetas</h3>
             <div class="catalog-grid">
                 <div class="product-card">
                     <img src="/images/catalogo/caballeros/chaquetas/chaqueta1.png" alt="Chaqueta" onerror="this.src='https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400'">
@@ -170,7 +200,10 @@
         </div>
 
         <div class="catalog-category">
-            <h3 class="catalog-category-title">Pantalones</h3>
+            <h3 class="catalog-category-title"
+                data-sign-src="/videos/lsv/0409(13).mp4"
+                data-sign-position="element-right"
+                data-sign-label="Pantalones — categoría">Pantalones</h3>
             <div class="catalog-grid">
                 <div class="product-card">
                     <img src="/images/catalogo/caballeros/pantalones/pantalon1.png" alt="Pantalón" onerror="this.src='https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=400'">
@@ -199,11 +232,17 @@
 
     <!-- CATÁLOGO DAMAS -->
     <section id="damas" class="catalog-section catalog-section-alt">
-        <h2 class="catalog-title">Damas</h2>
+        <h2 class="catalog-title"
+            data-sign-src="/videos/lsv/0409(18).mp4"
+            data-sign-position="element-right"
+            data-sign-label="Damas — colección mujer">Damas</h2>
         <p class="catalog-subtitle">Explora nuestra colección para damas.</p>
 
         <div class="catalog-category">
-            <h3 class="catalog-category-title">Blaizer</h3>
+            <h3 class="catalog-category-title"
+                data-sign-src="/videos/lsv/0409(14).mp4"
+                data-sign-position="element-right"
+                data-sign-label="Blaizer — categoría">Blaizer</h3>
             <div class="catalog-grid">
                 <div class="product-card">
                     <img src="/images/catalogo/damas/blaizer/Blaizer1.jpeg" alt="Blaizer clásico" onerror="this.src='https://images.unsplash.com/photo-1595776613215-fe04b78de7d0?w=400'">
@@ -230,7 +269,10 @@
         </div>
 
         <div class="catalog-category">
-            <h3 class="catalog-category-title">Camisas</h3>
+            <h3 class="catalog-category-title"
+                data-sign-src="/videos/lsv/0409(15).mp4"
+                data-sign-position="element-right"
+                data-sign-label="Camisas — categoría">Camisas</h3>
             <div class="catalog-grid">
                 <div class="product-card">
                     <img src="/images/catalogo/damas/camisas/Camisa1.jpg" alt="Camisa" onerror="this.src='https://images.unsplash.com/photo-1564257631407-2f76eee0ca2a?w=400'">
@@ -257,7 +299,10 @@
         </div>
 
         <div class="catalog-category">
-            <h3 class="catalog-category-title">Chaquetas</h3>
+            <h3 class="catalog-category-title"
+                data-sign-src="/videos/lsv/0409(17).mp4"
+                data-sign-position="element-right"
+                data-sign-label="Chaquetas — categoría">Chaquetas</h3>
             <div class="catalog-grid">
                 <div class="product-card">
                     <img src="/images/catalogo/damas/chaquetas/chaqueta.jpg" alt="Chaqueta" onerror="this.src='https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=400'">
@@ -284,7 +329,10 @@
         </div>
 
         <div class="catalog-category">
-            <h3 class="catalog-category-title">Pantalones</h3>
+            <h3 class="catalog-category-title"
+                data-sign-src="/videos/lsv/0409(13).mp4"
+                data-sign-position="element-right"
+                data-sign-label="Pantalones — categoría">Pantalones</h3>
             <div class="catalog-grid">
                 <div class="product-card">
                     <img src="/images/catalogo/damas/pantalones/pantalon1.jpg" alt="Pantalón" onerror="this.src='https://images.unsplash.com/photo-1584370848010-d7fe6bc767ec?w=400'">
@@ -318,7 +366,6 @@
     <script src="/js/auth.js"></script>
     <script src="/js/accessibility.js"></script>
     <script src="/js/sign-language-bubble.js"></script>
-    <script src="/js/nav-login-lsv.js"></script>
     <script src="/js/unisof-brand-info.js" defer></script>
     <script src="/js/chat.js" defer></script>
     <script>
@@ -339,8 +386,6 @@
                     return;
                 }
                 document.getElementById('btn-login').style.display = 'none';
-                var navLsvFloat = document.getElementById('nav-login-lsv-float');
-                if (navLsvFloat) navLsvFloat.style.display = 'none';
                 document.getElementById('nav-user-logged').style.display = 'flex';
                 document.getElementById('user-display-name').innerHTML = 'Hola, ' + (result.usuario?.nombre || result.usuario?.usuario) + '<br><small>' + (result.usuario?.rol || '') + '</small>';
             }

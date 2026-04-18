@@ -12,25 +12,24 @@ if errorlevel 1 (
     exit /b 1
 )
 
-if not exist "0409(16).mp4" (
-    echo No existe "0409(16).mp4" en:
+set "CHAT_LSV=0417 (1)(3).mp4"
+if not exist "%CHAT_LSV%" (
+    echo No existe "%CHAT_LSV%" en:
     echo %CD%
     pause
     exit /b 1
 )
 
-echo Convirtiendo 0409(16).mp4 a H.264 ^(soluciona pantalla negra en Chrome/Edge^)...
-ffmpeg -y -i "0409(16).mp4" -c:v libx264 -profile:v main -pix_fmt yuv420p -movflags +faststart -an "0409(16)-h264.mp4"
+echo Convirtiendo %CHAT_LSV% a H.264 ^(soluciona pantalla negra en Chrome/Edge^)...
+ffmpeg -y -i "%CHAT_LSV%" -c:v libx264 -profile:v main -pix_fmt yuv420p -movflags +faststart -an "0417 (1)(3)-h264-temp.mp4"
 if errorlevel 1 ( echo Error en ffmpeg. & pause & exit /b 1 )
 
 echo.
-echo Reemplazando archivo: el original HEVC queda como respaldo.
-if exist "0409(16)-original-hevc-backup.mp4" del /f /q "0409(16)-original-hevc-backup.mp4"
-move /Y "0409(16).mp4" "0409(16)-original-hevc-backup.mp4" >nul
-move /Y "0409(16)-h264.mp4" "0409(16).mp4" >nul
+echo Reemplazando archivo: el original queda como respaldo.
+if exist "0417 (1)(3)-original-hevc-backup.mp4" del /f /q "0417 (1)(3)-original-hevc-backup.mp4"
+move /Y "%CHAT_LSV%" "0417 (1)(3)-original-hevc-backup.mp4" >nul
+move /Y "0417 (1)(3)-h264-temp.mp4" "%CHAT_LSV%" >nul
 
-copy /Y "0409(16).mp4" "0409-16.mp4" >nul
-echo Listo. "0409(16).mp4" ahora es H.264. Respaldo: 0409(16)-original-hevc-backup.mp4
-echo Copia para el chat ^(URL sin parentesis^): 0409-16.mp4
+echo Listo. "%CHAT_LSV%" ahora es H.264. Respaldo: 0417 (1)(3)-original-hevc-backup.mp4
 echo Reinicie Spring Boot y recargue el navegador con Ctrl+F5.
 pause

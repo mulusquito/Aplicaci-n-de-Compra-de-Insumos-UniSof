@@ -9,19 +9,14 @@
     var API_CHAT = '/api/chat';
     var AVATAR_SRC = '/images/robot-avatar.png';
     /**
-     * LSV del chatbot Nova: clip principal 0409(16).mp4; respaldos si falla la carga.
+     * LSV del chatbot Nova: hover a la izquierda del lanzador (chat.css). Clip en /videos/lsv/.
      */
-    var CHAT_LAUNCHER_LSV_CANDIDATES = [
-        '/videos/lsv/0409(16).mp4',
-        '/videos/lsv/0409-16.mp4',
-        '/videos/lsv/0409.mp4',
-        '/videos/lsv/0409-2.mp4'
-    ];
+    var CHAT_LAUNCHER_LSV_CANDIDATES = ['/videos/lsv/0417 (1)(3).mp4'];
 
     var LSV_ROW_HOVER_CLASS = 'chat-widget-launcher-row--lsv-hover';
 
     /**
-     * Codifica cada segmento del path (p. ej. 0409(16).mp4 → 0409%2816%29.mp4).
+     * Codifica cada segmento del path (p. ej. 0417 (1)(3).mp4 → espacios y paréntesis en %XX).
      * Misma lógica que sign-language-bubble.js para paréntesis en la URL.
      */
     function normalizeLsvVideoSrc(src) {

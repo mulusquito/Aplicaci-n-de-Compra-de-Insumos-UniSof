@@ -1,4 +1,4 @@
-/* Burbuja LSV: hover escritorio, panel táctil móvil. Usar con sign-language-bubble.js
+/* Burbuja LSV: hover en escritorio; móvil/tablet con doble toque (sign-language-bubble.js).
  *
  * MP4 (H.264) no lleva transparencia en la web: el círculo se logra con
  * border-radius: 50%, overflow: hidden y object-fit: cover.
@@ -37,6 +37,11 @@
     opacity: 1;
     visibility: visible;
     transform: scale(1);
+}
+
+/* Modo táctil: la burbuja recibe toques (no cerrar al pulsar el vídeo; toque fuera en document). */
+.unisof-sign-bubble-wrap.unisof-sign-bubble-wrap--interactive {
+    pointer-events: auto;
 }
 
 .unisof-sign-bubble-wrap video {

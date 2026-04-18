@@ -103,37 +103,61 @@
             </a>
         </div>
         <nav class="admin-nav" id="admin-nav">
-            <a href="/panel-admin.html" class="admin-nav-item" data-section="dashboard">
+            <a href="/panel-admin.html" class="admin-nav-item" data-section="dashboard"
+                data-sign-src="/videos/lsv/Dashboard.mp4"
+                data-sign-position="element-right"
+                data-sign-size="140"
+                data-sign-label="Dashboard">
                 <span class="admin-nav-icon">📊</span>
                 <span class="admin-nav-item-label">
                     <span class="admin-nav-text" data-i18n-key="nav.dashboard">Dashboard</span>
                 </span>
             </a>
-            <a href="/personal.html" class="admin-nav-item" data-section="personal">
+            <a href="/personal.html" class="admin-nav-item" data-section="personal"
+                data-sign-src="/videos/lsv/Personal.mp4"
+                data-sign-position="element-right"
+                data-sign-size="140"
+                data-sign-label="Personal">
                 <span class="admin-nav-icon">👤</span>
                 <span class="admin-nav-item-label">
                     <span class="admin-nav-text" data-i18n-key="nav.personal">Personal</span>
                 </span>
             </a>
-            <a href="/ordenes.html" class="admin-nav-item active" data-section="ordenes">
+            <a href="/ordenes.html" class="admin-nav-item active" data-section="ordenes"
+                data-sign-src="/videos/lsv/0417 (1)(2).mp4"
+                data-sign-position="element-right"
+                data-sign-size="140"
+                data-sign-label="Consultar órdenes de compra">
                 <span class="admin-nav-icon">📋</span>
                 <span class="admin-nav-item-label">
                     <span class="admin-nav-text" data-i18n-key="nav.orders">Consultar órdenes de compra</span>
                 </span>
             </a>
-            <a href="/facturas-proveedores.html" class="admin-nav-item" data-section="compras">
+            <a href="/facturas-proveedores.html" class="admin-nav-item" data-section="compras"
+                data-sign-src="/videos/lsv/Consultar Compras insumos.mp4"
+                data-sign-position="element-right"
+                data-sign-size="140"
+                data-sign-label="Consultar compras insumos">
                 <span class="admin-nav-icon">📦</span>
                 <span class="admin-nav-item-label">
                     <span class="admin-nav-text" data-i18n-key="nav.purchases">Consultar compras insumos</span>
                 </span>
             </a>
-            <a href="/inventario-insumos.html?ctx=admin" class="admin-nav-item" data-section="inventario">
+            <a href="/inventario-insumos.html?ctx=admin" class="admin-nav-item" data-section="inventario"
+                data-sign-src="/videos/lsv/0417 (1)(1).mp4"
+                data-sign-position="element-right"
+                data-sign-size="140"
+                data-sign-label="Consultar inventario">
                 <span class="admin-nav-icon">📁</span>
                 <span class="admin-nav-item-label">
                     <span class="admin-nav-text" data-i18n-key="nav.inventory">Consultar inventario</span>
                 </span>
             </a>
-            <a href="/proveedores.html" class="admin-nav-item" data-section="proveedores">
+            <a href="/proveedores.html" class="admin-nav-item" data-section="proveedores"
+                data-sign-src="/videos/lsv/proveedores.mp4"
+                data-sign-position="element-right"
+                data-sign-size="140"
+                data-sign-label="Proveedores">
                 <span class="admin-nav-icon">🏭</span>
                 <span class="admin-nav-item-label">
                     <span class="admin-nav-text" data-i18n-key="nav.suppliers">Proveedores</span>
@@ -145,7 +169,11 @@
                 <span class="admin-user-name" id="user-name">—</span>
                 <span class="admin-user-rol" id="user-rol">VENDEDOR</span>
             </div>
-            <button type="button" class="admin-btn-logout" id="btn-logout" data-i18n-key="common.logout">Cerrar sesión</button>
+            <button type="button" class="admin-btn-logout" id="btn-logout" data-i18n-key="common.logout"
+                data-sign-src="/videos/lsv/Cerrar Sesion.mp4"
+                data-sign-position="element-right"
+                data-sign-size="140"
+                data-sign-label="Cerrar sesión">Cerrar sesión</button>
         </div>
     </aside>
     <script>
@@ -159,13 +187,13 @@
                 if (nombre) { var elN = document.getElementById('user-name'); if (elN) elN.textContent = nombre; }
                 if (rol === 'VENDEDOR') {
                     document.getElementById('admin-nav').innerHTML =
-                        '<a href="/ventas.html" class="admin-nav-item" data-section="ventas">' +
+                        '<a href="/ventas.html" class="admin-nav-item" data-section="ventas" data-sign-src="/videos/lsv/Ventas.mp4" data-sign-position="element-right" data-sign-size="140" data-sign-label="Ventas">' +
                         '<span class="admin-nav-icon">🛒</span>' +
                         '<span class="admin-nav-item-label"><span class="admin-nav-text">Ventas</span></span></a>' +
-                        '<a href="/clientes.html" class="admin-nav-item" data-section="clientes">' +
+                        '<a href="/clientes.html" class="admin-nav-item" data-section="clientes" data-sign-src="/videos/lsv/Clientes.mp4" data-sign-position="element-right" data-sign-size="140" data-sign-label="Clientes">' +
                         '<span class="admin-nav-icon">👥</span>' +
                         '<span class="admin-nav-item-label"><span class="admin-nav-text">Clientes</span></span></a>' +
-                        '<a href="/ordenes.html" class="admin-nav-item active" data-section="ordenes">' +
+                        '<a href="/ordenes.html" class="admin-nav-item active" data-section="ordenes" data-sign-src="/videos/lsv/Pedidos.mp4" data-sign-position="element-right" data-sign-size="140" data-sign-label="Pedidos">' +
                         '<span class="admin-nav-icon">📋</span>' +
                         '<span class="admin-nav-item-label"><span class="admin-nav-text">Pedidos</span></span></a>';
                 }
@@ -287,15 +315,18 @@
 
             if (rol === 'VENDEDOR') {
                 document.getElementById('admin-nav').innerHTML =
-                    '<a href="/ventas.html" class="admin-nav-item" data-section="ventas">' +
+                    '<a href="/ventas.html" class="admin-nav-item" data-section="ventas" data-sign-src="/videos/lsv/Ventas.mp4" data-sign-position="element-right" data-sign-size="140" data-sign-label="Ventas">' +
                     '<span class="admin-nav-icon">🛒</span>' +
                     '<span class="admin-nav-item-label"><span class="admin-nav-text">Ventas</span></span></a>' +
-                    '<a href="/clientes.html" class="admin-nav-item" data-section="clientes">' +
+                    '<a href="/clientes.html" class="admin-nav-item" data-section="clientes" data-sign-src="/videos/lsv/Clientes.mp4" data-sign-position="element-right" data-sign-size="140" data-sign-label="Clientes">' +
                     '<span class="admin-nav-icon">👥</span>' +
                     '<span class="admin-nav-item-label"><span class="admin-nav-text">Clientes</span></span></a>' +
-                    '<a href="/ordenes.html" class="admin-nav-item active" data-section="ordenes">' +
+                    '<a href="/ordenes.html" class="admin-nav-item active" data-section="ordenes" data-sign-src="/videos/lsv/Pedidos.mp4" data-sign-position="element-right" data-sign-size="140" data-sign-label="Pedidos">' +
                     '<span class="admin-nav-icon">📋</span>' +
                     '<span class="admin-nav-item-label"><span class="admin-nav-text">Pedidos</span></span></a>';
+                if (typeof window.initUnisofSignLanguageBubble === 'function') {
+                    window.initUnisofSignLanguageBubble();
+                }
             }
             document.getElementById('admin-nav').style.visibility = 'visible';
         })();
