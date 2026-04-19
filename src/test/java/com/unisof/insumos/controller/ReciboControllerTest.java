@@ -2,6 +2,7 @@ package com.unisof.insumos.controller;
 
 import com.unisof.insumos.model.Cliente;
 import com.unisof.insumos.model.Recibo;
+import com.unisof.insumos.model.Usuario;
 import com.unisof.insumos.repository.ClienteRepository;
 import com.unisof.insumos.repository.ReciboRepository;
 import com.unisof.insumos.service.AuditoriaService;
@@ -19,12 +20,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -141,5 +145,37 @@ class ReciboControllerTest {
         ResponseEntity<?> response = controller.crear(body, mockRequest);
 
         assertThat(response.getStatusCode().is4xxClientError()).isTrue();
+    }
+
+    @Test
+    @DisplayName("miResumenVentas sin usuario autenticado retorna 401")
+    void miResumenVentas_sinUsuario_401() {
+        when(authService.obtenerUsuarioActual()).thenReturn(Optional.empty());
+
+        ResponseEntity<?> response = controller.miResumenVentas(14);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(401);
+    }
+
+    @Test
+    @DisplayName("miResumenVentas con usuario retorna porDia y hoy")
+    void miResumenVentas_conUsuario_ok() {
+        Usuario v = new Usuario();
+        v.setId(5L);
+        v.setNombre("Ana Vendedora");
+        when(authService.obtenerUsuarioActual()).thenReturn(Optional.of(v));
+        when(reciboRepository.findByVendedorIdAndFechaBetween(eq(5L), any(Instant.class), any(Instant.class)))
+                .thenReturn(Collections.emptyList());
+
+        ResponseEntity<?> response = controller.miResumenVentas(3);
+
+        assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+        @SuppressWarnings("unchecked")
+        Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertThat(body).containsKeys("porDia", "hoy", "dias", "zona");
+        assertThat(body.get("dias")).isEqualTo(3);
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> porDia = (List<Map<String, Object>>) body.get("porDia");
+        assertThat(porDia).hasSize(3);
     }
 }

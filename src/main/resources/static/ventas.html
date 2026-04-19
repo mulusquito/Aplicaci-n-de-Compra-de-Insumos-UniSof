@@ -107,8 +107,23 @@
                     </article>
                 </section>
 
-                <section class="dashboard-section">
-                    <h2 style="text-align:center;font-size:26px;font-weight:800;color:#f5a623;margin:8px 0 24px;letter-spacing:0.01em;">Catálogo</h2>
+                <section class="dashboard-section ventas-mis-stats-section" aria-labelledby="ventas-stats-heading">
+                    <h2 class="dashboard-section-title" id="ventas-stats-heading">Estadísticas de mis ventas</h2>
+                    <p class="dashboard-section-desc">Total facturado y pedidos que registraste como vendedor en los últimos 14 días (hora Colombia).</p>
+                    <div class="ventas-stats-charts-grid">
+                        <article class="ventas-stats-chart-card">
+                            <h3 class="ventas-stats-chart-title">Total vendido por día (COP)</h3>
+                            <div class="ventas-stats-chart-box">
+                                <canvas id="ventas-chart-total" aria-label="Gráfico de total vendido por día"></canvas>
+                            </div>
+                        </article>
+                        <article class="ventas-stats-chart-card">
+                            <h3 class="ventas-stats-chart-title">Pedidos por día</h3>
+                            <div class="ventas-stats-chart-box">
+                                <canvas id="ventas-chart-pedidos" aria-label="Gráfico de pedidos por día"></canvas>
+                            </div>
+                        </article>
+                    </div>
                 </section>
             </div>
 
@@ -488,6 +503,7 @@
         </div>
     </aside>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
     <script src="/js/auth.js"></script>
     <script src="/js/toast.js"></script>
     <script src="/js/cart.js"></script>
@@ -495,36 +511,152 @@
     <script src="/js/sign-language-bubble.js"></script>
     <script src="/js/unisof-brand-info.js" defer></script>
     <script>
-        /** Actualiza el resumen de ventas (Ventas de hoy, Pedidos de hoy, Ticket promedio) */
+        let ventasChartTotal = null;
+        let ventasChartPedidos = null;
+
+        function destroyVentasCharts() {
+            if (ventasChartTotal) {
+                ventasChartTotal.destroy();
+                ventasChartTotal = null;
+            }
+            if (ventasChartPedidos) {
+                ventasChartPedidos.destroy();
+                ventasChartPedidos = null;
+            }
+        }
+
+        function formatCOPValue(n) {
+            const x = typeof n === 'number' ? n : Number(n);
+            if (Number.isNaN(x)) return '—';
+            return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(x);
+        }
+
+        /** Resumen del día + gráficas de ventas diarias del vendedor autenticado */
         async function cargarEstadisticasVentas() {
             try {
-                const hoy = new Date();
-                const y = hoy.getFullYear();
-                const m = String(hoy.getMonth() + 1).padStart(2, '0');
-                const d = String(hoy.getDate()).padStart(2, '0');
-                const fecha = `${y}-${m}-${d}`;
-                const res = await fetch('/api/recibos?fecha=' + fecha, { credentials: 'include' });
-                if (res.ok) {
-                    const data = await res.json();
-                    const pedidos = Array.isArray(data) ? data : [];
-                    let total = 0;
-                    let count = 0;
-                    pedidos.forEach(r => {
-                        if (r && r.total != null) {
-                            const valor = typeof r.total === 'number' ? r.total : Number(r.total);
-                            if (!Number.isNaN(valor)) {
-                                total += valor;
-                                count += 1;
-                            }
+                const res = await fetch('/api/recibos/mi-resumen-ventas?dias=14', { credentials: 'include' });
+                if (!res.ok) return;
+                const data = await res.json();
+                const h = data.hoy || {};
+                const porDia = Array.isArray(data.porDia) ? data.porDia : [];
+                const formatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+                const totalHoy = h.total != null ? Number(h.total) : 0;
+                const pedidosHoy = h.pedidos != null ? Number(h.pedidos) : 0;
+                const promedioNum = h.promedio != null ? Number(h.promedio) : 0;
+                const totalEl = document.getElementById('ventas-hoy-total');
+                const pedidosEl = document.getElementById('ventas-hoy-pedidos');
+                const promedioEl = document.getElementById('ventas-hoy-promedio');
+                if (totalEl) totalEl.textContent = formatter.format(Number.isNaN(totalHoy) ? 0 : totalHoy);
+                if (pedidosEl) pedidosEl.textContent = String(Number.isNaN(pedidosHoy) ? 0 : pedidosHoy);
+                if (promedioEl) {
+                    promedioEl.textContent = pedidosHoy > 0 && !Number.isNaN(promedioNum)
+                        ? formatter.format(promedioNum)
+                        : '—';
+                }
+
+                if (typeof Chart === 'undefined') return;
+
+                const labels = porDia.map((row) => {
+                    const fd = row.fecha;
+                    if (!fd || fd.length < 10) return fd || '';
+                    const dt = new Date(fd + 'T12:00:00');
+                    return dt.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' });
+                });
+                const totals = porDia.map((row) => {
+                    const v = row.total != null ? Number(row.total) : 0;
+                    return Number.isNaN(v) ? 0 : v;
+                });
+                const pedidosSerie = porDia.map((row) => {
+                    const v = row.pedidos != null ? Number(row.pedidos) : 0;
+                    return Number.isNaN(v) ? 0 : v;
+                });
+
+                const amber = 'rgba(245, 166, 35, 0.88)';
+                const amberBorder = '#d97706';
+                const tealLine = '#2dd4bf';
+                const tealFill = 'rgba(45, 212, 191, 0.12)';
+
+                const scalesCommon = {
+                    x: {
+                        ticks: { color: '#aaa', maxRotation: 0, font: { size: 10 } },
+                        grid: { color: 'rgba(255,255,255,0.06)' },
+                        border: { color: '#444' }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#aaa', font: { size: 10 } },
+                        grid: { color: 'rgba(255,255,255,0.08)' },
+                        border: { color: '#444' }
+                    }
+                };
+
+                destroyVentasCharts();
+                const c1 = document.getElementById('ventas-chart-total');
+                const c2 = document.getElementById('ventas-chart-pedidos');
+                if (c1) {
+                    ventasChartTotal = new Chart(c1.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels,
+                            datasets: [{
+                                label: 'Total (COP)',
+                                data: totals,
+                                backgroundColor: amber,
+                                borderColor: amberBorder,
+                                borderWidth: 1,
+                                borderRadius: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label(ctx) {
+                                            return formatCOPValue(ctx.parsed.y);
+                                        }
+                                    }
+                                }
+                            },
+                            scales: scalesCommon
                         }
                     });
-                    const formatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
-                    const totalEl = document.getElementById('ventas-hoy-total');
-                    const pedidosEl = document.getElementById('ventas-hoy-pedidos');
-                    const promedioEl = document.getElementById('ventas-hoy-promedio');
-                    if (totalEl) totalEl.textContent = formatter.format(total);
-                    if (pedidosEl) pedidosEl.textContent = count;
-                    if (promedioEl) promedioEl.textContent = count > 0 ? formatter.format(total / count) : '—';
+                }
+                if (c2) {
+                    ventasChartPedidos = new Chart(c2.getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels,
+                            datasets: [{
+                                label: 'Pedidos',
+                                data: pedidosSerie,
+                                borderColor: tealLine,
+                                backgroundColor: tealFill,
+                                fill: true,
+                                tension: 0.3,
+                                pointBackgroundColor: tealLine,
+                                pointRadius: 3,
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label(ctx) {
+                                            return 'Pedidos: ' + ctx.parsed.y;
+                                        }
+                                    }
+                                }
+                            },
+                            scales: scalesCommon
+                        }
+                    });
                 }
             } catch (_) {}
         }

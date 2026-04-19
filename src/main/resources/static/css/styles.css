@@ -2099,6 +2099,56 @@ body.inventario-modal-open .a11y-widget-panel {
     color: #888;
     margin: 0 0 20px 0;
 }
+
+/* Panel vendedor — gráficas de ventas diarias (ventas.html) */
+.ventas-mis-stats-section {
+    margin-top: 4px;
+}
+.ventas-stats-charts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    max-width: 1100px;
+}
+@media (max-width: 900px) {
+    .ventas-stats-charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.ventas-stats-chart-card {
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 12px;
+    overflow: hidden;
+}
+.ventas-stats-chart-card::before {
+    content: "";
+    display: block;
+    height: 3px;
+    background: #f5a623;
+}
+.ventas-stats-chart-title {
+    margin: 0;
+    padding: 14px 18px 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: #e8e8e8;
+    letter-spacing: 0.02em;
+}
+.ventas-stats-chart-box {
+    position: relative;
+    height: min(280px, 42vw);
+    min-height: 220px;
+    margin: 12px 14px 16px;
+    padding: 10px 8px 8px;
+    background: #0d0d0d;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+.ventas-stats-chart-box canvas {
+    display: block;
+}
 .dashboard-section--finanzas .dashboard-section-desc {
     max-width: 720px;
     line-height: 1.5;

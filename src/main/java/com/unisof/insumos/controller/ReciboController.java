@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -106,6 +107,77 @@ public class ReciboController {
         }
         List<Map<String, Object>> resultado = recibos.stream().map(this::toMap).toList();
         return ResponseEntity.ok(resultado);
+    }
+
+    /**
+     * Resumen de ventas del usuario autenticado (vendedor): totales y pedidos por día + resumen del día actual.
+     * GET /api/recibos/mi-resumen-ventas?dias=14
+     */
+    @GetMapping("/mi-resumen-ventas")
+    public ResponseEntity<?> miResumenVentas(
+            @RequestParam(name = "dias", defaultValue = "14") int dias) {
+
+        var usuarioOpt = authService.obtenerUsuarioActual();
+        if (usuarioOpt.isEmpty()) {
+            return ResponseEntity.status(401).body(Map.of("mensaje", "No autenticado"));
+        }
+        Usuario usuario = usuarioOpt.get();
+        ZoneId zone = ZoneId.of("America/Bogota");
+        LocalDate hoy = LocalDate.now(zone);
+        if (dias < 1) {
+            dias = 1;
+        }
+        if (dias > 90) {
+            dias = 90;
+        }
+        LocalDate desde = hoy.minusDays((long) dias - 1);
+        Instant inicio = desde.atStartOfDay(zone).toInstant();
+        Instant finExclusivo = hoy.plusDays(1).atStartOfDay(zone).toInstant();
+
+        List<Recibo> recibos = reciboRepository.findByVendedorIdAndFechaBetween(usuario.getId(), inicio, finExclusivo);
+
+        Map<LocalDate, BigDecimal> totalPorDia = new LinkedHashMap<>();
+        Map<LocalDate, Integer> pedidosPorDia = new LinkedHashMap<>();
+        for (LocalDate d = desde; !d.isAfter(hoy); d = d.plusDays(1)) {
+            totalPorDia.put(d, BigDecimal.ZERO);
+            pedidosPorDia.put(d, 0);
+        }
+        for (Recibo r : recibos) {
+            LocalDate d = LocalDate.ofInstant(r.getFecha(), zone);
+            if (totalPorDia.containsKey(d)) {
+                totalPorDia.merge(d, r.getTotal(), BigDecimal::add);
+                pedidosPorDia.merge(d, 1, Integer::sum);
+            }
+        }
+
+        List<Map<String, Object>> porDia = new ArrayList<>();
+        DateTimeFormatter fmt = DateTimeFormatter.ISO_LOCAL_DATE;
+        for (LocalDate d = desde; !d.isAfter(hoy); d = d.plusDays(1)) {
+            Map<String, Object> fila = new LinkedHashMap<>();
+            fila.put("fecha", d.format(fmt));
+            fila.put("total", totalPorDia.get(d));
+            fila.put("pedidos", pedidosPorDia.get(d));
+            porDia.add(fila);
+        }
+
+        BigDecimal totalHoy = totalPorDia.getOrDefault(hoy, BigDecimal.ZERO);
+        int pedidosHoy = pedidosPorDia.getOrDefault(hoy, 0);
+        BigDecimal promedioHoy = pedidosHoy > 0
+                ? totalHoy.divide(BigDecimal.valueOf(pedidosHoy), 2, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+
+        Map<String, Object> hoyMap = new LinkedHashMap<>();
+        hoyMap.put("fecha", hoy.format(fmt));
+        hoyMap.put("total", totalHoy);
+        hoyMap.put("pedidos", pedidosHoy);
+        hoyMap.put("promedio", promedioHoy);
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("zona", zone.getId());
+        body.put("dias", dias);
+        body.put("porDia", porDia);
+        body.put("hoy", hoyMap);
+        return ResponseEntity.ok(body);
     }
 
     /**
