@@ -2,6 +2,8 @@ package com.unisof.insumos.controller;
 
 import com.unisof.insumos.model.Cliente;
 import com.unisof.insumos.model.Recibo;
+import com.unisof.insumos.repository.DetalleFacturaProveedorRepository;
+import com.unisof.insumos.repository.FacturaProveedorRepository;
 import com.unisof.insumos.repository.InsumoRepository;
 import com.unisof.insumos.repository.ProveedorRepository;
 import com.unisof.insumos.repository.ReciboRepository;
@@ -44,6 +46,12 @@ class DashboardControllerTest {
     private ProveedorRepository proveedorRepository;
 
     @Mock
+    private FacturaProveedorRepository facturaProveedorRepository;
+
+    @Mock
+    private DetalleFacturaProveedorRepository detalleFacturaProveedorRepository;
+
+    @Mock
     private AuditoriaService auditoriaService;
 
     @Mock
@@ -64,6 +72,8 @@ class DashboardControllerTest {
         when(usuarioRepository.count()).thenReturn(5L);
         when(reciboRepository.findByFechaBetween(any(Instant.class), any(Instant.class)))
                 .thenReturn(Collections.emptyList());
+        when(facturaProveedorRepository.findByFechaGeneracionGreaterThanEqualAndFechaGeneracionLessThan(
+                any(Instant.class), any(Instant.class))).thenReturn(Collections.emptyList());
 
         var response = controller.stats(null, null, mockRequest);
 
@@ -83,6 +93,8 @@ class DashboardControllerTest {
         when(usuarioRepository.count()).thenReturn(5L);
         when(reciboRepository.findByFechaBetween(any(Instant.class), any(Instant.class)))
                 .thenReturn(Collections.emptyList());
+        when(facturaProveedorRepository.findByFechaGeneracionGreaterThanEqualAndFechaGeneracionLessThan(
+                any(Instant.class), any(Instant.class))).thenReturn(Collections.emptyList());
 
         var response = controller.stats(null, null, mockRequest);
 
@@ -100,6 +112,8 @@ class DashboardControllerTest {
         when(usuarioRepository.count()).thenReturn(5L);
         when(reciboRepository.findByFechaBetween(any(Instant.class), any(Instant.class)))
                 .thenReturn(List.of(crearReciboMock(BigDecimal.valueOf(100000))));
+        when(facturaProveedorRepository.findByFechaGeneracionGreaterThanEqualAndFechaGeneracionLessThan(
+                any(Instant.class), any(Instant.class))).thenReturn(Collections.emptyList());
 
         var response = controller.stats("2026-01-01", "2026-01-31", mockRequest);
 

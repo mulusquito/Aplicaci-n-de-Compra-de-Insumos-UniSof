@@ -6,8 +6,11 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 public interface InsumoRepository extends JpaRepository<Insumo, Long> {
+
+    Optional<Insumo> findFirstByActivoTrueAndNombreIgnoreCase(String nombre);
 
     // ── Consultas solo-activos (activo = true) ──────────────────────────────
 
@@ -32,6 +35,8 @@ public interface InsumoRepository extends JpaRepository<Insumo, Long> {
     boolean existsByCodigoIgnoreCase(String codigo);
 
     long countByPrecioUnitarioIsNotNull();
+
+    long countByActivoTrueAndPrecioUnitarioIsNotNull();
 
     @Query("SELECT COUNT(i) FROM Insumo i WHERE i.activo = true AND i.stockMinimo IS NOT NULL "
             + "AND i.stockDisponible IS NOT NULL AND i.stockDisponible <= i.stockMinimo")

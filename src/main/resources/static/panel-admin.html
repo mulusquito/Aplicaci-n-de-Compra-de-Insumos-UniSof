@@ -140,18 +140,17 @@
 
             <section class="dashboard-section dashboard-section--finanzas" aria-labelledby="dashboard-finanzas-title">
                 <h2 class="dashboard-section-title" id="dashboard-finanzas-title">Finanzas y operación</h2>
-                <p class="dashboard-section-desc">Indicadores del periodo seleccionado y estado de inventario y proveedores. Las métricas pendientes muestran <span class="dashboard-soon-inline">Próximamente</span> hasta integrar el módulo correspondiente.</p>
+                <p class="dashboard-section-desc">Indicadores del periodo seleccionado, inventario y proveedores. Compras y resultado operativo son <strong>estimaciones</strong> a partir de facturas a proveedor e insumos con precio unitario.</p>
                 <div class="dashboard-finanzas-grid">
                     <article class="dashboard-finanza-card">
                         <h3 class="dashboard-finanza-title">Ticket promedio</h3>
                         <p class="dashboard-finanza-value" id="df-ticket">—</p>
                         <p class="dashboard-finanza-hint">Ventas ÷ órdenes en el periodo</p>
                     </article>
-                    <article class="dashboard-finanza-card dashboard-finanza-card--soon">
-                        <span class="dashboard-finanza-badge" aria-hidden="true">Próximamente</span>
+                    <article class="dashboard-finanza-card" id="df-compras-card">
                         <h3 class="dashboard-finanza-title">Compras de insumos</h3>
-                        <p class="dashboard-finanza-value dashboard-finanza-value--muted">—</p>
-                        <p class="dashboard-finanza-hint">Total de compras a proveedores en el periodo</p>
+                        <p class="dashboard-finanza-value" id="df-compras">—</p>
+                        <p class="dashboard-finanza-hint">Estimado: líneas de factura × precio unitario (insumo activo, nombre coincidente)</p>
                     </article>
                     <article class="dashboard-finanza-card dashboard-finanza-card--soon" id="df-valor-card">
                         <span class="dashboard-finanza-badge" id="df-valor-badge" aria-hidden="true">Próximamente</span>
@@ -171,11 +170,10 @@
                         <p class="dashboard-finanza-value" id="df-proveedores">—</p>
                         <p class="dashboard-finanza-hint">Proveedores dados de alta</p>
                     </article>
-                    <article class="dashboard-finanza-card dashboard-finanza-card--soon">
-                        <span class="dashboard-finanza-badge" aria-hidden="true">Próximamente</span>
+                    <article class="dashboard-finanza-card" id="df-resultado-card">
                         <h3 class="dashboard-finanza-title">Resultado operativo</h3>
-                        <p class="dashboard-finanza-value dashboard-finanza-value--muted">—</p>
-                        <p class="dashboard-finanza-hint">Ventas del periodo − compras del periodo (aprox.)</p>
+                        <p class="dashboard-finanza-value" id="df-resultado">—</p>
+                        <p class="dashboard-finanza-hint">Ventas del periodo − compras estimadas del periodo</p>
                     </article>
                 </div>
             </section>
@@ -210,15 +208,32 @@
     <script>
         let lastDashboardStats = null;
 
+        function toCopNumber(val) {
+            if (val == null || val === '') return NaN;
+            if (typeof val === 'number' && Number.isFinite(val)) return val;
+            if (typeof val === 'string') {
+                const t = val.trim().replace(/\s/g, '').replace(/COP/gi, '');
+                const n = Number(t.replace(/\./g, '').replace(',', '.'));
+                return Number.isFinite(n) ? n : NaN;
+            }
+            if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
+                const v = val.valueOf();
+                if (typeof v === 'number' && Number.isFinite(v)) return v;
+            }
+            const n = Number(val);
+            return Number.isFinite(n) ? n : NaN;
+        }
+
         function formatVentas(val) {
-            if (val == null) return '—';
-            const n = typeof val === 'number' ? val : Number(val);
+            const n = toCopNumber(val);
             if (Number.isNaN(n)) return '—';
             return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
         }
 
         function renderFinanzas(f) {
             const ticket = document.getElementById('df-ticket');
+            const compras = document.getElementById('df-compras');
+            const resultado = document.getElementById('df-resultado');
             const insumos = document.getElementById('df-insumos');
             const insumosSub = document.getElementById('df-insumos-sub');
             const prov = document.getElementById('df-proveedores');
@@ -230,6 +245,8 @@
             if (!ticket || !insumos || !insumosSub || !prov) return;
             if (!f) {
                 ticket.textContent = '—';
+                if (compras) compras.textContent = '—';
+                if (resultado) resultado.textContent = '—';
                 insumos.textContent = '—';
                 insumosSub.textContent = '—';
                 prov.textContent = '—';
@@ -240,10 +257,28 @@
                 if (valorHint) valorHint.textContent = 'Σ (stock × precio unitario) en COP. Cargue precio en inventario.';
                 return;
             }
-            if (f.ticketPromedioDisponible && f.ticketPromedio != null) {
+            if (f.ticketPromedioDisponible && f.ticketPromedio != null && !Number.isNaN(toCopNumber(f.ticketPromedio))) {
                 ticket.textContent = formatVentas(f.ticketPromedio);
             } else {
                 ticket.textContent = '—';
+            }
+            if (compras) {
+                if (f.comprasEstimadasDisponible && f.comprasEstimadas != null) {
+                    compras.textContent = formatVentas(f.comprasEstimadas);
+                    compras.classList.remove('dashboard-finanza-value--muted');
+                } else {
+                    compras.textContent = '—';
+                    compras.classList.add('dashboard-finanza-value--muted');
+                }
+            }
+            if (resultado) {
+                if (f.resultadoOperativoDisponible && f.resultadoOperativo != null) {
+                    resultado.textContent = formatVentas(f.resultadoOperativo);
+                    resultado.classList.remove('dashboard-finanza-value--muted');
+                } else {
+                    resultado.textContent = '—';
+                    resultado.classList.add('dashboard-finanza-value--muted');
+                }
             }
             insumos.textContent = f.insumosRegistrados != null ? String(f.insumosRegistrados) : '—';
             const bajo = f.insumosBajoMinimo != null ? Number(f.insumosBajoMinimo) : 0;
@@ -382,6 +417,10 @@
             y += 8;
             const fin = stats.finanzas || {};
             doc.text('Ticket promedio: ' + (fin.ticketPromedioDisponible && fin.ticketPromedio != null ? formatVentas(fin.ticketPromedio) : '—'), 14, y);
+            y += 6;
+            doc.text('Compras insumos (estim.): ' + (fin.comprasEstimadasDisponible && fin.comprasEstimadas != null ? formatVentas(fin.comprasEstimadas) : '—'), 14, y);
+            y += 6;
+            doc.text('Resultado operativo (aprox.): ' + (fin.resultadoOperativoDisponible && fin.resultadoOperativo != null ? formatVentas(fin.resultadoOperativo) : '—'), 14, y);
             y += 6;
             doc.text('Insumos en catálogo: ' + (fin.insumosRegistrados != null ? fin.insumosRegistrados : '—')
                 + ' | Bajo stock mín.: ' + (fin.insumosBajoMinimo != null ? fin.insumosBajoMinimo : '—'), 14, y);

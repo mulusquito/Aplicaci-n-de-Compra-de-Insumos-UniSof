@@ -661,64 +661,6 @@
             } catch (_) {}
         }
 
-        function updateCartUI() {
-            const items = Cart.getItems();
-            const count = Cart.getCount();
-            const badge = document.getElementById('cart-badge');
-            const fabBadge = document.getElementById('cart-fab-badge');
-            if (badge) { badge.textContent = count; badge.style.display = count > 0 ? 'flex' : 'none'; }
-            if (fabBadge) { fabBadge.textContent = count; fabBadge.style.display = count > 0 ? 'flex' : 'none'; }
-            const container = document.getElementById('cart-items');
-            if (!container) return;
-            const seenIdBases = new Set();
-            container.innerHTML = items.length === 0
-                ? '<p class="cart-empty">El carrito está vacío</p>'
-                : items.map(item => {
-                    const subtotal = item.quantity * item.unitPrice;
-                    const sizes = ['XS','S','M','L','XL','2XL','3XL'];
-                    const sizeOpts = sizes.map(s => `<option value="${s}" ${(item.size || 'M') === s ? 'selected' : ''}>${s}</option>`).join('');
-                    const idBase = item.idBase || item.id?.replace(/-[^-]*$/, '');
-                    const showAddVariant = !seenIdBases.has(idBase);
-                    if (showAddVariant) seenIdBases.add(idBase);
-                    return `
-                    <div class="cart-item" data-id="${item.id}" data-idbase="${idBase}">
-                        <div class="cart-item-info">
-                            <span class="cart-item-name">${item.name}</span>
-                            <select class="cart-item-size" data-id="${item.id}" title="Cambiar talla">${sizeOpts}</select>
-                            <span class="cart-item-price">${item.quantity} × ${item.unitPrice.toLocaleString('es-CO')} COP = ${subtotal.toLocaleString('es-CO')} COP</span>
-                            ${showAddVariant ? `<button type="button" class="cart-add-variant" data-idbase="${idBase}" title="Agregar otra talla de este producto">+ Otra talla</button>` : ''}
-                        </div>
-                        <div class="cart-item-actions">
-                            <button type="button" class="cart-qty-btn" data-action="minus">−</button>
-                            <span class="cart-qty">${item.quantity}</span>
-                            <button type="button" class="cart-qty-btn" data-action="plus">+</button>
-                            <button type="button" class="cart-remove" title="Quitar">×</button>
-                        </div>
-                    </div>
-                `;
-                }).join('');
-            const totalEl = document.getElementById('cart-total');
-            if (totalEl) totalEl.textContent = Cart.getTotal().toLocaleString('es-CO') + ' COP';
-            container.querySelectorAll('.cart-qty-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const itemId = btn.closest('.cart-item').dataset.id;
-                    const action = btn.dataset.action;
-                    const item = Cart.getItems().find(i => i.id === itemId);
-                    if (item) Cart.updateQuantity(itemId, action === 'plus' ? item.quantity + 1 : item.quantity - 1);
-                });
-            });
-            container.querySelectorAll('.cart-remove').forEach(btn => {
-                btn.addEventListener('click', () => Cart.removeItem(btn.closest('.cart-item').dataset.id));
-            });
-            container.querySelectorAll('.cart-item-size').forEach(sel => {
-                sel.addEventListener('change', () => Cart.updateSize(sel.dataset.id, sel.value));
-            });
-            container.querySelectorAll('.cart-add-variant').forEach(btn => {
-                btn.addEventListener('click', () => { Cart.addItemVariant(btn.dataset.idbase); Toast.success('Línea agregada. Cambia la talla si lo deseas.'); });
-            });
-        }
-        Cart.onUpdate = updateCartUI;
-
         (async () => {
             let result;
             try {
@@ -876,8 +818,9 @@
                 : items.map(item => {
                     const subtotal = item.quantity * item.unitPrice;
                     const sizes = ['XS','S','M','L','XL','2XL','3XL'];
-                    const sizeOpts = sizes.map(s => `<option value="${s}" ${(item.size || 'M') === s ? 'selected' : ''}>${s}</option>`).join('');
-                    const idBase = item.idBase || item.id?.replace(/-[^-]*$/, '');
+                    const tallaActual = Cart.deriveSize(item);
+                    const sizeOpts = sizes.map(s => `<option value="${s}" ${tallaActual === s ? 'selected' : ''}>${s}</option>`).join('');
+                    const idBase = Cart.deriveIdBase(item);
                     const showAddVariant = !seenIdBases.has(idBase);
                     if (showAddVariant) seenIdBases.add(idBase);
                     return `

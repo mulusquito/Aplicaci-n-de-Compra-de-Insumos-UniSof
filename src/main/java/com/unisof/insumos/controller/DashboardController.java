@@ -1,6 +1,11 @@
 package com.unisof.insumos.controller;
 
+import com.unisof.insumos.model.DetalleFacturaProveedor;
+import com.unisof.insumos.model.FacturaProveedor;
+import com.unisof.insumos.model.Insumo;
 import com.unisof.insumos.model.Recibo;
+import com.unisof.insumos.repository.DetalleFacturaProveedorRepository;
+import com.unisof.insumos.repository.FacturaProveedorRepository;
 import com.unisof.insumos.repository.InsumoRepository;
 import com.unisof.insumos.repository.ProveedorRepository;
 import com.unisof.insumos.repository.ReciboRepository;
@@ -23,6 +28,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * API de estadísticas del dashboard (solo ADMINISTRADOR).
@@ -42,6 +48,8 @@ public class DashboardController {
     private final ReciboRepository reciboRepository;
     private final InsumoRepository insumoRepository;
     private final ProveedorRepository proveedorRepository;
+    private final FacturaProveedorRepository facturaProveedorRepository;
+    private final DetalleFacturaProveedorRepository detalleFacturaProveedorRepository;
     private final AuditoriaService auditoriaService;  // SCRUM-64
 
     public DashboardController(
@@ -49,12 +57,46 @@ public class DashboardController {
             ReciboRepository reciboRepository,
             InsumoRepository insumoRepository,
             ProveedorRepository proveedorRepository,
+            FacturaProveedorRepository facturaProveedorRepository,
+            DetalleFacturaProveedorRepository detalleFacturaProveedorRepository,
             AuditoriaService auditoriaService) {
         this.usuarioRepository = usuarioRepository;
         this.reciboRepository = reciboRepository;
         this.insumoRepository = insumoRepository;
         this.proveedorRepository = proveedorRepository;
+        this.facturaProveedorRepository = facturaProveedorRepository;
+        this.detalleFacturaProveedorRepository = detalleFacturaProveedorRepository;
         this.auditoriaService = auditoriaService;
+    }
+
+    /**
+     * Suma aproximada de compras a proveedores en el periodo: para cada línea de factura,
+     * cantidad a pedir (o mínima) × precio unitario del insumo activo con el mismo nombre.
+     */
+    private BigDecimal estimarComprasInsumosEnPeriodo(Instant inicio, Instant finExclusivo) {
+        List<FacturaProveedor> facturas = facturaProveedorRepository
+                .findByFechaGeneracionGreaterThanEqualAndFechaGeneracionLessThan(inicio, finExclusivo);
+        BigDecimal sum = BigDecimal.ZERO;
+        for (FacturaProveedor f : facturas) {
+            List<DetalleFacturaProveedor> detalles = detalleFacturaProveedorRepository
+                    .findByFacturaProveedor_IdOrderByInsumoNombreAsc(f.getId());
+            for (DetalleFacturaProveedor d : detalles) {
+                BigDecimal qty = d.getCantidadAPedir() != null ? d.getCantidadAPedir() : d.getCantidadMinima();
+                if (qty == null || qty.compareTo(BigDecimal.ZERO) <= 0) {
+                    continue;
+                }
+                String nombre = d.getInsumoNombre() != null ? d.getInsumoNombre().trim() : "";
+                if (nombre.isEmpty()) {
+                    continue;
+                }
+                Optional<Insumo> ins = insumoRepository.findFirstByActivoTrueAndNombreIgnoreCase(nombre);
+                if (ins.isEmpty() || ins.get().getPrecioUnitario() == null) {
+                    continue;
+                }
+                sum = sum.add(qty.multiply(ins.get().getPrecioUnitario()));
+            }
+        }
+        return sum;
     }
 
     private static final ZoneId ZONE = ZoneId.of("America/Bogota");
@@ -115,17 +157,22 @@ public class DashboardController {
             ticketPromedio = ventas.divide(BigDecimal.valueOf(ordenes), 2, RoundingMode.HALF_UP);
         }
 
+        BigDecimal comprasEstimadas = estimarComprasInsumosEnPeriodo(inicio, fin);
+        BigDecimal resultadoOperativo = ventas.subtract(comprasEstimadas);
+
         Map<String, Object> finanzas = new LinkedHashMap<>();
         finanzas.put("ticketPromedio", ticketPromedio);
         finanzas.put("ticketPromedioDisponible", ordenes > 0);
-        finanzas.put("comprasTotalDisponible", false);
-        long insumosConPrecio = insumoRepository.countByPrecioUnitarioIsNotNull();
+        finanzas.put("comprasEstimadas", comprasEstimadas);
+        finanzas.put("comprasEstimadasDisponible", true);
+        long insumosConPrecio = insumoRepository.countByActivoTrueAndPrecioUnitarioIsNotNull();
         BigDecimal valorInventario = insumoRepository.sumValorInventarioPorPrecioUnitario();
         if (valorInventario == null) valorInventario = BigDecimal.ZERO;
         finanzas.put("valorInventario", valorInventario);
         finanzas.put("valorInventarioDisponible", insumosConPrecio > 0);
         finanzas.put("insumosSinPrecioUnitario", insumoRepository.countSinPrecioUnitario());
-        finanzas.put("resultadoOperativoDisponible", false);
+        finanzas.put("resultadoOperativo", resultadoOperativo);
+        finanzas.put("resultadoOperativoDisponible", true);
         finanzas.put("insumosRegistrados", insumoRepository.count());
         finanzas.put("insumosBajoMinimo", insumoRepository.countBajoStockMinimo());
         finanzas.put("proveedoresRegistrados", proveedorRepository.count());
