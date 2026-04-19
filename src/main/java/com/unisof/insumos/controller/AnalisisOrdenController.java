@@ -10,6 +10,7 @@ import com.unisof.insumos.repository.AnalisisOrdenRepository;
 import com.unisof.insumos.repository.FichaTecnicaRepository;
 import com.unisof.insumos.repository.InsumoRepository;
 import com.unisof.insumos.repository.ReciboRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +42,8 @@ public class AnalisisOrdenController {
     private final InsumoRepository        insumoRepo;
     private final AnalisisOrdenRepository analisisRepo;
     private final ObjectMapper            objectMapper;
+    /** Registro de métricas Prometheus — RNF-13: insumo más consumido. */
+    private final MeterRegistry           meterRegistry;
 
     /** Estados que corresponden a pago confirmado (antes de entrar al flujo de producción). */
     private static final Set<String> ESTADOS_PAGO = Set.of("PAGADO", "PENDIENTE", "APROBADO", "APPROVED");
@@ -210,6 +213,15 @@ public class AnalisisOrdenController {
                 // Descontar del inventario
                 insumo.setStockDisponible(stockAntes.subtract(consumir));
                 insumoRepo.save(insumo);
+
+                // RNF-13: registrar consumo acumulado por insumo para Prometheus
+                if (consumir.compareTo(BigDecimal.ZERO) > 0) {
+                    meterRegistry.counter(
+                        "unisof_insumo_consumo_total",
+                        "nombre_insumo", insumo.getNombre(),
+                        "codigo_insumo",  insumo.getCodigo() != null ? insumo.getCodigo() : "sin-codigo"
+                    ).increment(consumir.doubleValue());
+                }
 
                 Map<String, Object> r = new LinkedHashMap<>();
                 r.put("insumoId",          insumoId);

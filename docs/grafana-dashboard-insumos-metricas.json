@@ -1,0 +1,471 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "RNF-01: Tiempo promedio de autenticación (login + verify-token). Meta: ≤ 60 segundos.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "thresholdsStyle": { "mode": "line+area" } },
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 60 } ] },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "avg(rate(http_server_requests_seconds_sum{job=~\".*insumos.*\", uri=~\".*login.*|.*verify-token.*\"}[5m]) / rate(http_server_requests_seconds_count{job=~\".*insumos.*\", uri=~\".*login.*|.*verify-token.*\"}[5m]))",
+          "legendFormat": "Tiempo promedio autenticación",
+          "refId": "A"
+        }
+      ],
+      "title": "RNF-01: Tiempo de autenticación (meta ≤ 60s)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "RNF-02: Porcentaje de autenticaciones exitosas (verify-token con status 200). Meta: ≥ 95%.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [ { "options": { "match": "nan", "result": { "text": "Sin datos aún" } }, "type": "special" } ],
+          "min": 0, "max": 100,
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "yellow", "value": 80 }, { "color": "green", "value": 95 } ] },
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "id": 2,
+      "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showThresholdLabels": true, "showThresholdMarkers": true },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(http_server_requests_seconds_count{job=~\".*insumos.*\", status=\"200\", uri=~\".*verify-token.*\"}[10m])) / sum(rate(http_server_requests_seconds_count{job=~\".*insumos.*\", uri=~\".*verify-token.*\"}[10m]))",
+          "legendFormat": "Tasa de éxito (%)",
+          "refId": "A"
+        }
+      ],
+      "title": "RNF-02: Tasa de autenticación exitosa (meta ≥ 95%)",
+      "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "RNF-03: Porcentaje de solicitudes de recuperación de contraseña exitosas. Meta: ≥ 95%.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [ { "options": { "match": "nan", "result": { "text": "Sin datos aún" } }, "type": "special" } ],
+          "min": 0, "max": 100,
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "yellow", "value": 80 }, { "color": "green", "value": 95 } ] },
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 3,
+      "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showThresholdLabels": true, "showThresholdMarkers": true },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(http_server_requests_seconds_count{job=~\".*insumos.*\", status=~\"200|201\", uri=~\".*recuperacion.*|.*restablecer.*\"}[10m])) / sum(rate(http_server_requests_seconds_count{job=~\".*insumos.*\", uri=~\".*recuperacion.*|.*restablecer.*\"}[10m]))",
+          "legendFormat": "Recuperaciones exitosas (%)",
+          "refId": "A"
+        }
+      ],
+      "title": "RNF-03: Recuperación confiable de contraseña (meta ≥ 95%)",
+      "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "RNF-04: Tiempo promedio de respuesta del endpoint verify-token (envío/validación del código). Meta: ≤ 60 segundos.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "thresholdsStyle": { "mode": "line+area" } },
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 60 } ] },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 4,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "avg(rate(http_server_requests_seconds_sum{job=~\".*insumos.*\", uri=~\".*verify-token.*\"}[5m]) / rate(http_server_requests_seconds_count{job=~\".*insumos.*\", uri=~\".*verify-token.*\"}[5m]))",
+          "legendFormat": "Tiempo envío token",
+          "refId": "A"
+        }
+      ],
+      "title": "RNF-04: Tiempo envío token de verificación (meta ≤ 60s)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "RNF-05: Porcentaje de accesos correctamente autorizados (sin errores 403 Forbidden). Meta: = 99%.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [ { "options": { "match": "nan", "result": { "text": "Sin datos aún" } }, "type": "special" } ],
+          "min": 0, "max": 100,
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "yellow", "value": 95 }, { "color": "green", "value": 99 } ] },
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "id": 5,
+      "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showThresholdLabels": true, "showThresholdMarkers": true },
+      "targets": [
+        {
+          "expr": "100 * (1 - sum(rate(http_server_requests_seconds_count{job=~\".*insumos.*\", status=\"403\"}[10m])) / sum(rate(http_server_requests_seconds_count{job=~\".*insumos.*\"}[10m])))",
+          "legendFormat": "Exactitud control de roles (%)",
+          "refId": "A"
+        }
+      ],
+      "title": "RNF-05: Control estricto de roles (meta = 99%)",
+      "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "RNF-06: Porcentaje de errores en registro de pedidos/recibos (4xx/5xx). Meta: ≤ 5% de errores.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [ { "options": { "match": "nan", "result": { "text": "Sin datos aún" } }, "type": "special" } ],
+          "min": 0, "max": 100,
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 3 }, { "color": "red", "value": 5 } ] },
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "id": 6,
+      "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showThresholdLabels": true, "showThresholdMarkers": true },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(http_server_requests_seconds_count{job=~\".*insumos.*\", status=~\"4..|5..\", uri=~\".*recibos.*|.*clientes.*\"}[10m])) / sum(rate(http_server_requests_seconds_count{job=~\".*insumos.*\", uri=~\".*recibos.*|.*clientes.*\"}[10m]))",
+          "legendFormat": "Tasa de errores en pedidos (%)",
+          "refId": "A"
+        }
+      ],
+      "title": "RNF-06: Errores en registro de pedidos (meta ≤ 5%)",
+      "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "RNF-07: Tiempo promedio de respuesta del proceso de pago (checkout). Meta: < 900 segundos (15 min).",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "thresholdsStyle": { "mode": "line+area" } },
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 900 } ] },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "id": 7,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "avg(rate(http_server_requests_seconds_sum{job=~\".*insumos.*\", uri=~\".*checkout.*|.*webhook.*\"}[5m]) / rate(http_server_requests_seconds_count{job=~\".*insumos.*\", uri=~\".*checkout.*|.*webhook.*\"}[5m]))",
+          "legendFormat": "Tiempo proceso de pago",
+          "refId": "A"
+        }
+      ],
+      "title": "RNF-07: Tiempo proceso de pago (meta < 15 min)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "RNF-08: Tiempo promedio de respuesta del servidor al registrar un pedido (POST /api/recibos). Meta: ≤ 120 segundos (2 min).",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "thresholdsStyle": { "mode": "line+area" } },
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 120 } ] },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "id": 8,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "avg(rate(http_server_requests_seconds_sum{job=~\".*insumos.*\", method=\"POST\", uri=~\".*recibos.*\"}[5m]) / rate(http_server_requests_seconds_count{job=~\".*insumos.*\", method=\"POST\", uri=~\".*recibos.*\"}[5m]))",
+          "legendFormat": "Tiempo registro de pedido",
+          "refId": "A"
+        }
+      ],
+      "title": "RNF-08: Tiempo registro de pedidos (meta ≤ 2 min)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "RNF-09: Porcentaje de pedidos rechazados por datos incompletos (4xx en POST /api/recibos). Meta: ≤ 5%.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [ { "options": { "match": "nan", "result": { "text": "Sin datos aún" } }, "type": "special" } ],
+          "min": 0, "max": 100,
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 3 }, { "color": "red", "value": 5 } ] },
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 32 },
+      "id": 9,
+      "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showThresholdLabels": true, "showThresholdMarkers": true },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(http_server_requests_seconds_count{job=~\".*insumos.*\", method=\"POST\", status=~\"4..\", uri=~\".*recibos.*\"}[10m])) / sum(rate(http_server_requests_seconds_count{job=~\".*insumos.*\", method=\"POST\", uri=~\".*recibos.*\"}[10m]))",
+          "legendFormat": "Pedidos incompletos (%)",
+          "refId": "A"
+        }
+      ],
+      "title": "RNF-09: Pedidos con información incompleta (meta ≤ 5%)",
+      "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "RNF-10: Tiempo promedio de respuesta del webhook de confirmación de pago. Meta: ≤ 300 segundos (5 min).",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "thresholdsStyle": { "mode": "line+area" } },
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 300 } ] },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 32 },
+      "id": 10,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "avg(rate(http_server_requests_seconds_sum{job=~\".*insumos.*\", uri=~\".*webhook.*\"}[5m]) / rate(http_server_requests_seconds_count{job=~\".*insumos.*\", uri=~\".*webhook.*\"}[5m]))",
+          "legendFormat": "Tiempo confirmación de pago",
+          "refId": "A"
+        }
+      ],
+      "title": "RNF-10: Tiempo confirmación de pago (meta ≤ 5 min)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "RNF-11: Porcentaje de solicitudes exitosas a endpoints de análisis e inventario. Meta: ≥ 90%.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [ { "options": { "match": "nan", "result": { "text": "Sin datos aún" } }, "type": "special" } ],
+          "min": 0, "max": 100,
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "yellow", "value": 80 }, { "color": "green", "value": 90 } ] },
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 40 },
+      "id": 11,
+      "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showThresholdLabels": true, "showThresholdMarkers": true },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(http_server_requests_seconds_count{job=~\".*insumos.*\", status=~\"200|201\", uri=~\".*compras.*|.*analisis.*|.*fichas.*|.*ordenes.*\"}[10m])) / sum(rate(http_server_requests_seconds_count{job=~\".*insumos.*\", uri=~\".*compras.*|.*analisis.*|.*fichas.*|.*ordenes.*\"}[10m]))",
+          "legendFormat": "Precisión (%)",
+          "refId": "A"
+        }
+      ],
+      "title": "RNF-11: Precisión cálculo de insumos (meta ≥ 90%)",
+      "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "RNF-12: Porcentaje de solicitudes exitosas al endpoint de reporte de faltantes. Meta: ≥ 98%.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [ { "options": { "match": "nan", "result": { "text": "Sin datos aún" } }, "type": "special" } ],
+          "min": 0, "max": 100,
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "yellow", "value": 90 }, { "color": "green", "value": 98 } ] },
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 40 },
+      "id": 12,
+      "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showThresholdLabels": true, "showThresholdMarkers": true },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(http_server_requests_seconds_count{job=~\".*insumos.*\", status=~\"200|201\", uri=~\".*faltantes.*|.*con-faltantes.*\"}[10m])) / sum(rate(http_server_requests_seconds_count{job=~\".*insumos.*\", uri=~\".*faltantes.*|.*con-faltantes.*\"}[10m]))",
+          "legendFormat": "Detección faltantes (%)",
+          "refId": "A"
+        }
+      ],
+      "title": "RNF-12: Detección de insumos faltantes (meta ≥ 98%)",
+      "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "RNF-13: Top 5 insumos con mayor consumo acumulado en producción. Identifica el insumo de mayor rotación para planificar compras. Meta: exactitud del reporte ≥ 95%.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineWidth": 1
+          },
+          "mappings": [ { "options": { "match": "nan", "result": { "text": "Sin consumos aún" } }, "type": "special" } ],
+          "unit": "short",
+          "displayName": "${__field.labels.nombre_insumo}"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 48 },
+      "id": 17,
+      "options": {
+        "barRadius": 0.05,
+        "barWidth": 0.7,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": { "calcs": ["sum"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "orientation": "horizontal",
+        "showValue": "always",
+        "stacking": "none",
+        "tooltip": { "mode": "single", "sort": "desc" },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 200
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "editorMode": "code",
+          "expr": "topk(5, sum by (nombre_insumo) (unisof_insumo_consumo_total))",
+          "legendFormat": "{{nombre_insumo}}",
+          "range": false,
+          "refId": "A",
+          "instant": true
+        }
+      ],
+      "title": "RNF-13: Insumo más consumido en producción — Top 5",
+      "type": "barchart"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "RNF-14: Tiempo promedio de respuesta para generación del reporte de insumos faltantes. Meta: ≤ 5 segundos. NOTA: se usa avg() para consolidar todas las URIs en una sola línea.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 10, "thresholdsStyle": { "mode": "line+area" } },
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 5 } ] },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 56 },
+      "id": 13,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "avg(rate(http_server_requests_seconds_sum{job=~\".*insumos.*\", uri=~\".*calcular-faltantes.*|.*con-faltantes.*\"}[5m]) / rate(http_server_requests_seconds_count{job=~\".*insumos.*\", uri=~\".*calcular-faltantes.*|.*con-faltantes.*\"}[5m]))",
+          "legendFormat": "Tiempo promedio reporte faltantes",
+          "refId": "A"
+        }
+      ],
+      "title": "RNF-14: Tiempo generación reporte de faltantes (meta ≤ 5s)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "RNF-15: Porcentaje de reportes y consultas de análisis sin error (no 4xx/5xx). Meta: ≥ 98%.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [ { "options": { "match": "nan", "result": { "text": "Sin datos aún" } }, "type": "special" } ],
+          "min": 0, "max": 100,
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "yellow", "value": 90 }, { "color": "green", "value": 98 } ] },
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 56 },
+      "id": 14,
+      "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showThresholdLabels": true, "showThresholdMarkers": true },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(http_server_requests_seconds_count{job=~\".*insumos.*\", status=~\"200|201|206\", uri=~\".*faltantes.*|.*reportes.*|.*analisis.*|.*compras.*\"}[10m])) / sum(rate(http_server_requests_seconds_count{job=~\".*insumos.*\", uri=~\".*faltantes.*|.*reportes.*|.*analisis.*|.*compras.*\"}[10m]))",
+          "legendFormat": "Reportes sin errores (%)",
+          "refId": "A"
+        }
+      ],
+      "title": "RNF-15: Generación correcta de reportes — Ausencia de fallos (meta ≥ 98%)",
+      "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 10 },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 64 },
+      "id": 15,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "increase(http_server_requests_seconds_count{job=~\".*insumos.*\", method=\"POST\", status=~\"200|201\", uri=~\".*usuarios.*\"}[$__range])",
+          "legendFormat": "Usuarios creados",
+          "refId": "A"
+        }
+      ],
+      "title": "Operacional: Usuarios creados (POST /api/usuarios)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "fillOpacity": 10 },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 64 },
+      "id": 16,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "increase(http_server_requests_seconds_count{job=~\".*insumos.*\", method=\"POST\", status=~\"200|201\", uri=~\".*clientes.*\"}[$__range])",
+          "legendFormat": "Clientes creados",
+          "refId": "A"
+        }
+      ],
+      "title": "Operacional: Clientes creados (POST /api/clientes)",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["insumos", "negocio", "rnf"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": true, "text": "Prometheus", "value": "Prometheus" },
+        "hide": 0,
+        "includeAll": false,
+        "name": "datasource",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "type": "datasource"
+      }
+    ]
+  },
+  "time": { "from": "now-24h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Insumos - Métricas de negocio (RNF 01-15)",
+  "uid": "insumos-metricas-negocio",
+  "version": 4,
+  "weekStart": ""
+}
