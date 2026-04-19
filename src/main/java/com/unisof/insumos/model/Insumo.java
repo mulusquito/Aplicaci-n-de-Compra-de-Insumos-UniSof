@@ -2,6 +2,7 @@ package com.unisof.insumos.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import org.hibernate.annotations.ColumnDefault;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
@@ -58,6 +59,7 @@ public class Insumo {
     private String productosCatalogo;
 
     /** Soft-delete: false = insumo desactivado, no aparece en inventario ni cálculos. */
+    @ColumnDefault("true")
     @Column(nullable = false)
     private boolean activo = true;
 }
