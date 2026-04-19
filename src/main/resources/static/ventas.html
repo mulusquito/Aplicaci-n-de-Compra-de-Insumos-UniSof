@@ -662,6 +662,12 @@
         }
 
         (async () => {
+            // Guardar URL de retorno ANTES de verificar auth, por si el token expiró durante Stripe
+            const _paymentParam = new URLSearchParams(window.location.search).get('payment');
+            if (_paymentParam) {
+                localStorage.setItem('unisof_return_url', window.location.pathname + window.location.search);
+            }
+
             let result;
             try {
                 result = await authApi.getMe();
@@ -673,10 +679,6 @@
             if (!result.ok) {
                 if (result.mensaje && result.mensaje.includes('conexión')) {
                     Toast.error(result.mensaje);
-                }
-                const paymentParam = new URLSearchParams(window.location.search).get('payment');
-                if (paymentParam) {
-                    localStorage.setItem('unisof_return_url', window.location.pathname + window.location.search);
                 }
                 window.location.href = '/login.html';
                 return;

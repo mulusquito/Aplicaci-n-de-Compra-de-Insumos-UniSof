@@ -244,6 +244,13 @@
             }).join(', ');
         }
 
+        /** Mapea siglas de unidad de medida a nombres completos para la vista. */
+        function formatUnidad(u) {
+            if (!u) return '—';
+            var MAP = { 'ud': 'Unidad', 'm': 'Metro', 'm_lineal': 'Metro lineal', 'kg': 'Kilogramo', 'g': 'Gramo', 'cono': 'Cono', 'rollo': 'Rollo', 'docena': 'Docena' };
+            return MAP[String(u).toLowerCase()] || u;
+        }
+
         function renderTablaAnalisis(rows) {
             var tbody = document.getElementById('cj-analisis-tbody');
             if (!tbody) return;
@@ -260,7 +267,7 @@
                     '<td>' + fmtNum(r.stockDisponible) + '</td>' +
                     '<td>' + fmtNum(r.stockMinimo) + '</td>' +
                     '<td>' + (precio != null ? precio : '—') + '</td>' +
-                    '<td>' + escapeHtml(r.unidadMedida || '—') + '</td>' +
+                    '<td>' + escapeHtml(formatUnidad(r.unidadMedida)) + '</td>' +
                     '<td>' + escapeHtml(r.referenciaTela || '—') + '</td>' +
                     '<td>' + escapeHtml(r.color || '—') + '</td>' +
                     '<td class="cj-cell-catalogo">' + getPrendasText(r.id) + '</td>' +
