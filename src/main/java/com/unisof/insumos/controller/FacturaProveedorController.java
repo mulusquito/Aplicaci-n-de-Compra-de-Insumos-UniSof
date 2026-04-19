@@ -86,6 +86,10 @@ public class FacturaProveedorController {
             ReporteConsolidado reporte = reporteRepo.findById(rId).orElse(null);
             if (reporte == null || reporte.getInsumosJson() == null) continue;
 
+            // Marcar el reporte como procesado (facturas ya generadas)
+            reporte.setFacturasGeneradas(true);
+            reporteRepo.save(reporte);
+
             Map<String, Object> ri = new LinkedHashMap<>();
             ri.put("reporteId", reporte.getId());
             ri.put("fecha", reporte.getFecha().toString());
@@ -188,6 +192,99 @@ public class FacturaProveedorController {
                 "total", resultado.size(),
                 "mensaje", "Se generaron " + resultado.size() + " factura(s) a proveedores correctamente"
         ));
+    }
+
+    // ─── Consolidar varias facturas en una ───────────────────────────────────
+
+    @PostMapping("/consolidar")
+    @Transactional
+    public ResponseEntity<?> consolidar(@RequestBody Map<String, Object> body) {
+
+        Object rawIds = body.get("facturaIds");
+        if (rawIds == null)
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "facturaIds requerido"));
+
+        List<Long> ids;
+        try {
+            ids = ((List<?>) rawIds).stream()
+                    .map(v -> Long.valueOf(v.toString()))
+                    .toList();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "facturaIds inválido"));
+        }
+        if (ids.size() < 2)
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "Selecciona al menos 2 facturas para consolidar"));
+
+        List<FacturaProveedor> facturas = facturaRepo.findAllById(ids);
+        if (facturas.size() != ids.size())
+            return ResponseEntity.badRequest().body(Map.of("mensaje", "Una o más facturas no fueron encontradas"));
+
+        // Validar que todas sean BORRADOR y del mismo proveedor
+        for (FacturaProveedor f : facturas) {
+            if (!"BORRADOR".equals(f.getEstado()))
+                return ResponseEntity.badRequest().body(
+                        Map.of("mensaje", "Solo se pueden consolidar facturas en estado «Por revisar» (borrador). La factura " + f.getNumeroFactura() + " ya fue enviada."));
+        }
+        Long proveedorId = facturas.get(0).getProveedor().getId();
+        for (FacturaProveedor f : facturas) {
+            if (!proveedorId.equals(f.getProveedor().getId()))
+                return ResponseEntity.badRequest().body(
+                        Map.of("mensaje", "Solo se pueden consolidar facturas del mismo proveedor"));
+        }
+
+        // Mezclar detalles sumando cantidades del mismo insumo
+        Map<String, DetalleFacturaProveedor> merged = new LinkedHashMap<>();
+        for (FacturaProveedor f : facturas) {
+            List<DetalleFacturaProveedor> detalles =
+                    detalleRepo.findByFacturaProveedor_IdOrderByInsumoNombreAsc(f.getId());
+            for (DetalleFacturaProveedor d : detalles) {
+                String key = d.getInsumoNombre().trim().toLowerCase();
+                if (merged.containsKey(key)) {
+                    DetalleFacturaProveedor existing = merged.get(key);
+                    existing.setCantidadMinima(existing.getCantidadMinima().add(d.getCantidadMinima()));
+                    existing.setCantidadAPedir(existing.getCantidadAPedir().add(d.getCantidadAPedir()));
+                } else {
+                    DetalleFacturaProveedor copia = new DetalleFacturaProveedor();
+                    copia.setInsumoNombre(d.getInsumoNombre());
+                    copia.setUnidadMedida(d.getUnidadMedida());
+                    copia.setCantidadMinima(d.getCantidadMinima() != null ? d.getCantidadMinima() : BigDecimal.ZERO);
+                    copia.setCantidadAPedir(d.getCantidadAPedir() != null ? d.getCantidadAPedir() : BigDecimal.ZERO);
+                    merged.put(key, copia);
+                }
+            }
+        }
+
+        // Crear nueva factura consolidada
+        Proveedor prov = facturas.get(0).getProveedor();
+        FacturaProveedor nueva = new FacturaProveedor();
+        nueva.setProveedor(prov);
+        nueva.setFechaGeneracion(Instant.now());
+        nueva.setEstado("BORRADOR");
+        // Unir los reportesOrigenJson de origen
+        nueva.setReportesOrigenJson(facturas.stream()
+                .map(FacturaProveedor::getReportesOrigenJson)
+                .filter(j -> j != null && !j.isBlank())
+                .collect(Collectors.joining(",")));
+        nueva = facturaRepo.save(nueva);
+        nueva.setNumeroFactura("FAC-%05d".formatted(nueva.getId()));
+        facturaRepo.save(nueva);
+
+        List<DetalleFacturaProveedor> nuevosDetalles = new ArrayList<>();
+        for (DetalleFacturaProveedor d : merged.values()) {
+            d.setFacturaProveedor(nueva);
+            nuevosDetalles.add(d);
+        }
+        detalleRepo.saveAll(nuevosDetalles);
+
+        // Eliminar las facturas originales (detalles primero por FK)
+        for (FacturaProveedor f : facturas) {
+            detalleRepo.deleteByFacturaProveedor_Id(f.getId());
+            facturaRepo.delete(f);
+        }
+
+        Map<String, Object> res = toSummary(nueva);
+        res.put("mensaje", "Se consolidaron " + ids.size() + " facturas en " + nueva.getNumeroFactura());
+        return ResponseEntity.ok(res);
     }
 
     // ─── Listar agrupadas por proveedor ───────────────────────────────────────

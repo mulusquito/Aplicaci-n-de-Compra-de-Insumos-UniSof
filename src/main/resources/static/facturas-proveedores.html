@@ -56,21 +56,43 @@
             overflow: hidden;
         }
         .fp-factura-header {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
             align-items: center;
-            justify-content: space-between;
             padding: 14px 18px;
             cursor: pointer;
             transition: background 0.15s;
-            flex-wrap: wrap;
             gap: 8px;
         }
         .fp-factura-header:hover { background: #1e1e1e; }
-        .fp-factura-num  { font-size: 14px; font-weight: 700; color: #f5a623; }
+        .fp-header-left   { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .fp-header-center { display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .fp-header-right  { display: flex; justify-content: flex-end; align-items: center; }
+        .fp-factura-num   { font-size: 14px; font-weight: 700; color: #f5a623; }
         .fp-factura-fecha { font-size: 12px; color: #888; }
-        .fp-factura-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .fp-factura-meta  { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .badge-borrador { background: #2a2a2a; color: #aaa; border: 1px solid #444; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 12px; }
         .badge-enviada  { background: rgba(39,174,96,0.15); color: #27ae60; border: 1px solid #27ae60; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 12px; }
+
+        /* ── Barra de consolidación ── */
+        .fp-consolidar-bar {
+            display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+            background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px;
+            padding: 12px 16px; margin-bottom: 16px;
+        }
+        .fp-check-selall { display: flex; align-items: center; gap: 8px; cursor: pointer; color: #bbb; font-size: 13px; user-select: none; }
+        .fp-check-selall input[type="checkbox"] { accent-color: #f5a623; width: 16px; height: 16px; cursor: pointer; }
+        .fp-consolidar-count { font-size: 12px; color: #888; margin-right: auto; }
+        .fp-btn-consolidar {
+            background: #f5a623; color: #1a1a1a; border: none; border-radius: 8px;
+            padding: 8px 18px; font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.15s;
+        }
+        .fp-btn-consolidar:hover { background: #e09520; }
+        .fp-btn-consolidar:disabled { opacity: 0.4; cursor: not-allowed; background: #555; color: #999; }
+
+        /* ── Checkbox en card header ── */
+        .fp-factura-check { accent-color: #f5a623; width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; }
+        .fp-factura-card.seleccionada { border-color: #f5a623; box-shadow: 0 0 0 2px rgba(245,166,35,0.2); }
         .fp-toggle-icon { font-size: 16px; color: #f5a623; transition: transform 0.3s ease; flex-shrink: 0; }
         .fp-toggle-icon.abierto { transform: rotate(180deg); }
 
@@ -292,6 +314,12 @@
             const r = (rol || '').toUpperCase();
             return r === 'JEFE DE COMPRAS' || r === 'JEFE DE VENTAS' || r === 'ADMINISTRADOR';
         }
+        function formatUnidad(u) {
+            if (!u) return '—';
+            const MAP = { 'ud': 'Unidad', 'm': 'Metro', 'm_lineal': 'Metro lineal' };
+            return MAP[String(u).toLowerCase()] || u;
+        }
+
         function escHtml(s) {
             if (s == null) return '';
             const d = document.createElement('div');
@@ -318,6 +346,10 @@
         const detalleCache = {};
         // Factura actualmente con body abierto
         let facturaAbiertoId = null;
+        // IDs de facturas "Por revisar" seleccionadas para consolidar
+        let seleccionadas = new Set();
+        // Proveedor actualmente seleccionado
+        let proveedorActualId = null;
 
         /* ══════════════════════════════════════════════════════════════════ */
         /* Cargar agrupación proveedor → facturas                           */
@@ -369,12 +401,13 @@
         /* Seleccionar proveedor y mostrar sus facturas                      */
         /* ══════════════════════════════════════════════════════════════════ */
         function seleccionarProveedor(provId) {
-            // Marcar card activa
             document.querySelectorAll('.fp-prov-card').forEach(c => c.classList.toggle('active', parseInt(c.dataset.provId) === provId));
 
             const grupo = grupos.find(g => g.proveedorId === provId);
             if (!grupo) return;
 
+            proveedorActualId = provId;
+            seleccionadas.clear();
             const panel = document.getElementById('fp-facturas-panel');
             panel.classList.add('visible');
             document.getElementById('fp-panel-title').textContent = `Facturas — ${grupo.proveedorNombre}`;
@@ -393,17 +426,46 @@
                 lista.innerHTML = '<p style="color:#666;font-size:13px;">Sin facturas.</p>';
                 return;
             }
-            lista.innerHTML = facturas.map(f => `
-                <div class="fp-factura-card" id="card-${f.id}">
+
+            const borradores = facturas.filter(f => f.estado !== 'ENVIADA');
+            const mostrarBarra = !modoAdmin && borradores.length >= 2;
+
+            const barraHtml = mostrarBarra ? `
+                <div class="fp-consolidar-bar" id="fp-consolidar-bar">
+                    <label class="fp-check-selall">
+                        <input type="checkbox" id="chk-sel-todas">
+                        Seleccionar todas las «Por revisar»
+                    </label>
+                    <span class="fp-consolidar-count" id="fp-consolidar-count">0 seleccionadas</span>
+                    <button type="button" class="fp-btn-consolidar" id="btn-consolidar" disabled>
+                        🔗 Consolidar seleccionadas
+                    </button>
+                </div>` : '';
+
+            lista.innerHTML = barraHtml + facturas.map(f => {
+                const esBorrador = f.estado !== 'ENVIADA';
+                const esSel = seleccionadas.has(f.id);
+                return `
+                <div class="fp-factura-card${esSel ? ' seleccionada' : ''}" id="card-${f.id}">
                     <div class="fp-factura-header" data-factura-id="${f.id}">
-                        <div>
-                            <div class="fp-factura-num">${escHtml(f.numeroFactura)}</div>
-                            <div class="fp-factura-fecha">${formatFecha(f.fechaGeneracion)}</div>
+                        <div class="fp-header-left">
+                            ${!modoAdmin && esBorrador
+                                ? `<input type="checkbox" class="fp-factura-check" data-fid="${f.id}"
+                                       ${esSel ? 'checked' : ''}
+                                       title="Seleccionar para consolidar"
+                                       onclick="event.stopPropagation();">`
+                                : ''}
+                            <div>
+                                <div class="fp-factura-num">${escHtml(f.numeroFactura)}</div>
+                                <div class="fp-factura-fecha">${formatFecha(f.fechaGeneracion)}</div>
+                            </div>
                         </div>
-                        <div class="fp-factura-meta">
-                            ${f.estado === 'ENVIADA'
-                                ? `<span class="badge-enviada">✓ Enviada</span>`
-                                : `<span class="badge-borrador">Borrador</span>`}
+                        <div class="fp-header-center">
+                            ${esBorrador
+                                ? `<span class="badge-borrador">Por revisar</span>`
+                                : `<span class="badge-enviada">✓ Enviada</span>`}
+                        </div>
+                        <div class="fp-header-right">
                             <span class="fp-toggle-icon" id="toggle-icon-${f.id}">▼</span>
                         </div>
                     </div>
@@ -412,15 +474,110 @@
                             <em style="color:#666;font-size:13px;">Cargando detalle…</em>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
 
+            // Eventos de toggle de cada card (clic en header)
             lista.querySelectorAll('.fp-factura-header').forEach(header => {
-                header.addEventListener('click', () => {
+                header.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('fp-factura-check')) return;
                     const fid = parseInt(header.dataset.facturaId);
                     toggleFactura(fid, facturas.find(f => f.id === fid));
                 });
             });
+
+            // Checkboxes individuales
+            lista.querySelectorAll('.fp-factura-check').forEach(chk => {
+                chk.addEventListener('change', () => {
+                    const fid = parseInt(chk.dataset.fid);
+                    if (chk.checked) seleccionadas.add(fid);
+                    else seleccionadas.delete(fid);
+                    const card = document.getElementById(`card-${fid}`);
+                    if (card) card.classList.toggle('seleccionada', chk.checked);
+                    actualizarBarraConsolidar(borradores);
+                });
+            });
+
+            // Checkbox "seleccionar todas"
+            const chkTodas = document.getElementById('chk-sel-todas');
+            if (chkTodas) {
+                chkTodas.addEventListener('change', () => {
+                    borradores.forEach(f => {
+                        if (chkTodas.checked) seleccionadas.add(f.id);
+                        else seleccionadas.delete(f.id);
+                        const card = document.getElementById(`card-${f.id}`);
+                        const chk = lista.querySelector(`.fp-factura-check[data-fid="${f.id}"]`);
+                        if (card) card.classList.toggle('seleccionada', chkTodas.checked);
+                        if (chk) chk.checked = chkTodas.checked;
+                    });
+                    actualizarBarraConsolidar(borradores);
+                });
+            }
+
+            // Botón consolidar
+            const btnConsolidar = document.getElementById('btn-consolidar');
+            if (btnConsolidar) {
+                btnConsolidar.addEventListener('click', () => consolidarSeleccionadas(grupo));
+            }
+
+            actualizarBarraConsolidar(borradores);
+        }
+
+        function actualizarBarraConsolidar(borradores) {
+            const count = seleccionadas.size;
+            const countEl = document.getElementById('fp-consolidar-count');
+            const btnEl   = document.getElementById('btn-consolidar');
+            const chkTodas = document.getElementById('chk-sel-todas');
+            if (countEl) countEl.textContent = count === 0
+                ? '0 seleccionadas'
+                : `${count} seleccionada${count !== 1 ? 's' : ''}`;
+            if (btnEl) {
+                btnEl.disabled = count < 2;
+                btnEl.textContent = count >= 2
+                    ? `🔗 Consolidar seleccionadas (${count})`
+                    : '🔗 Consolidar seleccionadas';
+            }
+            if (chkTodas) {
+                chkTodas.checked   = borradores.length > 0 && borradores.every(f => seleccionadas.has(f.id));
+                chkTodas.indeterminate = !chkTodas.checked && count > 0;
+            }
+        }
+
+        /* ══════════════════════════════════════════════════════════════════ */
+        /* Consolidar facturas seleccionadas                                 */
+        /* ══════════════════════════════════════════════════════════════════ */
+        async function consolidarSeleccionadas(grupo) {
+            if (seleccionadas.size < 2) return;
+            const ids = [...seleccionadas];
+            const nums = (grupo.facturas || [])
+                .filter(f => ids.includes(f.id))
+                .map(f => f.numeroFactura)
+                .join(', ');
+            if (!confirm(`¿Consolidar las facturas ${nums} en una sola?\n\nSus insumos se unirán sumando cantidades y las facturas originales desaparecerán.`)) return;
+
+            const btnConsolidar = document.getElementById('btn-consolidar');
+            if (btnConsolidar) { btnConsolidar.disabled = true; btnConsolidar.textContent = '⏳ Consolidando…'; }
+
+            try {
+                const res  = await fetch('/api/facturas-proveedor/consolidar', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ facturaIds: ids })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.mensaje || 'Error al consolidar');
+
+                Toast.success(data.mensaje || 'Facturas consolidadas correctamente');
+                seleccionadas.clear();
+                // Recargar y re-renderizar
+                await cargarGrupos();
+                // Volver a seleccionar el mismo proveedor
+                if (proveedorActualId) seleccionarProveedor(proveedorActualId);
+            } catch (err) {
+                Toast.error(err.message || 'Error al consolidar');
+                if (btnConsolidar) { btnConsolidar.disabled = false; btnConsolidar.textContent = '🔗 Consolidar seleccionadas'; }
+            }
         }
 
         /* ══════════════════════════════════════════════════════════════════ */
@@ -479,7 +636,7 @@
             const filasHtml = detalles.map(d => `
                 <tr>
                     <td>${escHtml(d.insumoNombre)}</td>
-                    <td>${escHtml(d.unidadMedida || '—')}</td>
+                    <td>${escHtml(formatUnidad(d.unidadMedida))}</td>
                     <td style="text-align:right;color:#aaa;">${formatNum(d.cantidadMinima)}</td>
                     <td>
                         ${modoAdmin
@@ -511,7 +668,7 @@
                        <button type="button" class="fp-btn fp-btn-pdf" data-fid="${fid}">🖨 Generar PDF</button>
                        ${enviada
                            ? `<span class="badge-ya-enviada">✓ Enviada${data.enviadaAt ? ` <span style="font-weight:400;color:#666;">(${formatFecha(data.enviadaAt)})</span>` : ''}</span>`
-                           : `<span class="badge-borrador">Borrador</span>`}
+                           : `<span class="badge-borrador">Por revisar</span>`}
                    </div>`
                 : enviada
                 ? `<div class="fp-factura-actions">
@@ -668,7 +825,7 @@
             const detalles = detalleCache[fid]?.detalles || data.detalles || [];
             const body = detalles.map(d => [
                 d.insumoNombre || '—',
-                d.unidadMedida || '—',
+                formatUnidad(d.unidadMedida),
                 formatNum(d.cantidadMinima),
                 formatNum(d.cantidadAPedir)
             ]);
@@ -742,9 +899,9 @@
         function actualizarBadgeHeader(fid, estado, enviadaAt) {
             const card = document.getElementById(`card-${fid}`);
             if (!card) return;
-            const metaDiv = card.querySelector('.fp-factura-meta');
-            if (!metaDiv) return;
-            const badgeSpan = metaDiv.querySelector('.badge-borrador, .badge-enviada');
+            const centerDiv = card.querySelector('.fp-header-center');
+            if (!centerDiv) return;
+            const badgeSpan = centerDiv.querySelector('.badge-borrador, .badge-enviada');
             if (badgeSpan) badgeSpan.outerHTML = `<span class="badge-enviada">✓ Enviada</span>`;
         }
 

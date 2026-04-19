@@ -56,4 +56,8 @@ public class Insumo {
 
     @Column(columnDefinition = "TEXT")
     private String productosCatalogo;
+
+    /** Soft-delete: false = insumo desactivado, no aparece en inventario ni cálculos. */
+    @Column(nullable = false)
+    private boolean activo = true;
 }

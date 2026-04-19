@@ -180,6 +180,7 @@ public class ReporteConsolidadoController {
         m.put("id",                    r.getId());
         m.put("fecha",                 r.getFecha().toString());
         m.put("totalInsumosDistintos", r.getTotalInsumosDistintos());
+        m.put("facturasGeneradas",     r.isFacturasGeneradas());
         // Extraer números de orden de ordenesJson
         try {
             @SuppressWarnings("unchecked")

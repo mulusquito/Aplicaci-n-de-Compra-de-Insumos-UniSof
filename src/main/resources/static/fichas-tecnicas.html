@@ -289,6 +289,12 @@
             return TALLAS_SUP;
         }
 
+        function formatUnidad(u) {
+            if (!u) return '—';
+            const MAP = { 'ud': 'Unidad', 'm': 'Metro', 'm_lineal': 'Metro lineal' };
+            return MAP[String(u).toLowerCase()] || u;
+        }
+
         function escapeHtml(s) {
             if (s == null) return '';
             const d = document.createElement('div');
@@ -398,7 +404,7 @@
 
             let html = '<table class="ft-tabla"><thead><tr><th class="ft-th-talla">Talla</th>';
             insumosCols.forEach(ins => {
-                html += `<th title="${escapeHtml(ins.codigo)}">${escapeHtml(ins.nombre)}<br><span style="font-size:10px;color:#888;">(${escapeHtml(ins.unidad)})</span></th>`;
+                html += `<th title="${escapeHtml(ins.codigo)}">${escapeHtml(ins.nombre)}<br><span style="font-size:10px;color:#888;">(${escapeHtml(formatUnidad(ins.unidad))})</span></th>`;
             });
             html += '</tr></thead><tbody>';
 
@@ -414,7 +420,7 @@
                                        data-id="${linea.id}"
                                        data-orig="${fmtNum(linea.cantidadRequerida)}"
                                        class="ft-cantidad-input">
-                                <span class="ft-unit">${escapeHtml(ins.unidad)}</span>
+                                <span class="ft-unit">${escapeHtml(formatUnidad(ins.unidad))}</span>
                                 <button type="button" class="ft-save-btn" data-id="${linea.id}">Guardar</button>
                             </div>
                         </td>`;
@@ -483,7 +489,7 @@
             const selInsumo = document.getElementById('modal-insumo');
             selInsumo.innerHTML = todosLosInsumos
                 .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''))
-                .map(i => `<option value="${i.id}">${escapeHtml(i.nombre)} (${escapeHtml(i.unidadMedida)})</option>`)
+                .map(i => `<option value="${i.id}">${escapeHtml(i.nombre)} (${escapeHtml(formatUnidad(i.unidadMedida))})</option>`)
                 .join('');
 
             document.getElementById('modal-cantidad').value = '';

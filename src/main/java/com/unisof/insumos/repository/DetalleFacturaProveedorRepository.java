@@ -8,4 +8,6 @@ import java.util.List;
 public interface DetalleFacturaProveedorRepository extends JpaRepository<DetalleFacturaProveedor, Long> {
 
     List<DetalleFacturaProveedor> findByFacturaProveedor_IdOrderByInsumoNombreAsc(Long facturaId);
+
+    void deleteByFacturaProveedor_Id(Long facturaId);
 }

@@ -152,7 +152,7 @@ public class ComprasInsumoController {
             String[] ui = auditoriaService.obtenerUsuarioInfo();
             auditoriaService.registrar(
                     AuditoriaService.ACC_ELIMINAR, AuditoriaService.MOD_INSUMOS,
-                    "Insumo eliminado del inventario",
+                    "Insumo desactivado del inventario (soft-delete)",
                     ui[0], ui[1], auditoriaService.obtenerIp(httpRequest),
                     AuditoriaService.RES_EXITOSO, "ID=" + id
             );

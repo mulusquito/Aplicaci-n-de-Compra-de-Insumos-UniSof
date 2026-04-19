@@ -149,7 +149,9 @@
                         setTimeout(() => { window.location.href = '/verificar-token.html'; }, 1500);
                     } else {
                         Toast.success('Inicio de sesión exitoso');
-                        setTimeout(() => { window.location.href = '/'; }, 800);
+                        const returnUrl = localStorage.getItem('unisof_return_url');
+                        if (returnUrl) { localStorage.removeItem('unisof_return_url'); }
+                        setTimeout(() => { window.location.href = returnUrl || '/'; }, 800);
                     }
                 } else {
                     setLoading(false);

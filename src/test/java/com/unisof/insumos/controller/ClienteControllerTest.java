@@ -4,6 +4,7 @@ import com.unisof.insumos.model.Cliente;
 import com.unisof.insumos.repository.ClienteRepository;
 import com.unisof.insumos.service.AuditoriaService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,6 +38,12 @@ class ClienteControllerTest {
 
     @InjectMocks
     private ClienteController controller;
+
+    @BeforeEach
+    void stubAuditoria() {
+        lenient().when(auditoriaService.obtenerUsuarioInfo()).thenReturn(new String[]{"testuser", "ADMIN"});
+        lenient().when(auditoriaService.obtenerIp(any())).thenReturn("127.0.0.1");
+    }
 
     @Test
     @DisplayName("Listar todos los clientes retorna lista con nombre y cédula")

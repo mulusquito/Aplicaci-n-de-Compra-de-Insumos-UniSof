@@ -15,6 +15,19 @@ import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Servicio de gestión del inventario de insumos textiles — Proceso 3.
+ *
+ * <p>Expone operaciones CRUD sobre {@link com.unisof.insumos.model.Insumo}:
+ * listar con filtros por categoría o criterio, crear, actualizar y eliminar
+ * mediante soft-delete (campo {@code activo = false}).</p>
+ *
+ * <p>También provee métodos de consulta agregada útiles para el dashboard
+ * del Jefe de Compras: {@link #sumaStockDisponible()}, {@link #sumaStockMinimo()}
+ * y {@link #contarBajoMinimo()}.</p>
+ *
+ * @see com.unisof.insumos.controller.ComprasInsumoController
+ */
 @Service
 @RequiredArgsConstructor
 public class ComprasInsumoService {
@@ -35,16 +48,17 @@ public class ComprasInsumoService {
         boolean busca = criterio != null && !criterio.isBlank();
         String tipoNorm = tipo != null ? tipo.trim().toLowerCase() : "nombre";
 
+        // Solo insumos activos (soft-delete)
         if (busca) {
             if ("codigo".equals(tipoNorm)) {
-                base = insumoRepository.findByCodigoContainingIgnoreCaseOrderByCategoria_CodigoAscNombreAsc(criterio.trim());
+                base = insumoRepository.findByActivoTrueAndCodigoContainingIgnoreCaseOrderByCategoria_CodigoAscNombreAsc(criterio.trim());
             } else {
-                base = insumoRepository.findByNombreContainingIgnoreCaseOrderByCategoria_CodigoAscNombreAsc(criterio.trim());
+                base = insumoRepository.findByActivoTrueAndNombreContainingIgnoreCaseOrderByCategoria_CodigoAscNombreAsc(criterio.trim());
             }
         } else if (filtroCat) {
-            base = insumoRepository.findByCategoria_CodigoOrderByNombreAsc(categoriaCodigo.trim());
+            base = insumoRepository.findByActivoTrueAndCategoria_CodigoOrderByNombreAsc(categoriaCodigo.trim());
         } else {
-            base = insumoRepository.findAllByOrderByCategoria_CodigoAscNombreAsc();
+            base = insumoRepository.findByActivoTrueOrderByCategoria_CodigoAscNombreAsc();
         }
 
         if (filtroCat && busca) {
@@ -88,12 +102,13 @@ public class ComprasInsumoService {
         return toInsumoResponse(insumoRepository.save(i));
     }
 
+    /** Soft-delete: marca el insumo como inactivo sin borrar el registro. */
     @Transactional
     public void eliminar(Long id) {
-        if (!insumoRepository.existsById(id)) {
-            throw new IllegalArgumentException("Insumo no encontrado.");
-        }
-        insumoRepository.deleteById(id);
+        Insumo i = insumoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Insumo no encontrado."));
+        i.setActivo(false);
+        insumoRepository.save(i);
     }
 
     private void aplicarCampos(Insumo i, InsumoRequest req, CategoriaInsumo cat) {
@@ -161,7 +176,7 @@ public class ComprasInsumoService {
     }
 
     public List<Insumo> todosOrdenados() {
-        return insumoRepository.findAllByOrderByCategoria_CodigoAscNombreAsc();
+        return insumoRepository.findByActivoTrueOrderByCategoria_CodigoAscNombreAsc();
     }
 
     /** Suma de stock mínimo donde está definido (proxy de “requerido” hasta exista BOM/pedidos). */

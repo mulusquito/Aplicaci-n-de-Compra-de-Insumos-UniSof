@@ -370,6 +370,13 @@
             if (t) t.textContent = 'Consultar inventario';
             if (typeof window.__a11yReapplyLanguage === 'function') window.__a11yReapplyLanguage();
         }
+        /** Mapea siglas de unidad de medida a nombres completos para la vista. */
+        function formatUnidad(u) {
+            if (!u) return '—';
+            var MAP = { 'ud': 'Unidad', 'm': 'Metro', 'm_lineal': 'Metro lineal' };
+            return MAP[u.toLowerCase()] || u;
+        }
+
         function fmtQty(v) {
             if (v == null || v === '') return '—';
             var n = typeof v === 'number' ? v : Number(v);
@@ -453,7 +460,7 @@
                     '<td>' + fmtQty(r.stockDisponible) + '</td>' +
                     '<td>' + fmtQty(r.stockMinimo) + '</td>' +
                     '<td>' + fmtCop(r.precioUnitario) + '</td>' +
-                    '<td>' + escapeHtml(r.unidadMedida || '—') + '</td>' +
+                    '<td>' + escapeHtml(formatUnidad(r.unidadMedida)) + '</td>' +
                     '<td>' + escapeHtml(r.referenciaTela || '—') + '</td>' +
                     '<td>' + escapeHtml(r.color || '—') + '</td>' +
                     '<td class="compras-cell-catalogo">' + getPrendasText(r.id) + '</td>' +
@@ -762,6 +769,16 @@
                     if (typeof window.__a11yReapplyLanguage === 'function') window.__a11yReapplyLanguage();
                 }
             }
+            // ARREGLO 1: Inventario de Jefe de Compras es solo lectura
+            if (rolUp !== 'ADMINISTRADOR') {
+                var btnNuevo = document.getElementById('btn-nuevo-insumo');
+                var btnActualizar = document.getElementById('btn-actualizar-insumo');
+                var btnEliminar = document.getElementById('btn-eliminar-insumo');
+                if (btnNuevo)     btnNuevo.style.display     = 'none';
+                if (btnActualizar) btnActualizar.style.display = 'none';
+                if (btnEliminar)  btnEliminar.style.display  = 'none';
+            }
+
             await cargarCategoriasFiltro();
             await cargarPrendasMap();
             actualizarPlaceholderBusqueda();
