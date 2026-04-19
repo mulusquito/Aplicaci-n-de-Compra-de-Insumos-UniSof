@@ -72,6 +72,62 @@
         .oc-modal-btn-secondary:hover { background: #333; }
         .oc-page-title { font-size: 20px; font-weight: 700; color: #f5a623; margin: 0 0 24px; display: flex; align-items: center; gap: 10px; }
 
+        /* Cabecera: escritorio en una fila; móvil (menú ☰ fijo): título centrado en el ancho útil sin solapar el botón */
+        .oc-page-heading-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .oc-page-heading-row .oc-page-title { margin-bottom: 0; }
+        .oc-fichas-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 18px;
+            border-radius: 8px;
+            background: #2a2a2a;
+            border: 1px solid #f5a623;
+            color: #f5a623;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: background 0.15s;
+        }
+        .oc-fichas-btn:hover { background: #333; }
+
+        /* Móvil jefe de compras: mismo ancho reservado a izq./der. que el ☰ (~60px) para centrar el título en pantalla */
+        @media (max-width: 900px) {
+            .oc-page-heading-row {
+                display: grid;
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto;
+                row-gap: 12px;
+                align-items: center;
+                margin-bottom: 20px;
+                padding-left: 58px;
+                padding-right: 58px;
+                box-sizing: border-box;
+            }
+            .oc-page-heading-row .oc-page-title {
+                grid-column: 1;
+                grid-row: 1;
+                width: 100%;
+                text-align: center;
+                margin: 0;
+                padding: 0;
+                line-height: 1.25;
+                display: block;
+            }
+            .oc-page-heading-row .oc-fichas-btn {
+                grid-column: 1;
+                grid-row: 2;
+                justify-self: center;
+            }
+        }
+
         @media (max-width: 768px) {
             .oc-toolbar { max-width: 100%; }
             .oc-search-row { flex-direction: column; align-items: stretch; }
@@ -169,12 +225,9 @@
         <div class="compras-jefe-content">
             <div class="oc-section">
 
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
-                    <h1 class="oc-page-title" style="margin-bottom:0;">Pedidos de clientes</h1>
-                    <a href="/fichas-tecnicas.html"
-                       style="display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border-radius:8px;background:#2a2a2a;border:1px solid #f5a623;color:#f5a623;font-size:13px;font-weight:700;text-decoration:none;transition:background 0.15s;"
-                       onmouseover="this.style.background='#333'"
-                       onmouseout="this.style.background='#2a2a2a'">
+                <div class="oc-page-heading-row">
+                    <h1 class="oc-page-title">Pedidos de clientes</h1>
+                    <a href="/fichas-tecnicas.html" class="oc-fichas-btn">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                             <polyline points="14 2 14 8 20 8"/>

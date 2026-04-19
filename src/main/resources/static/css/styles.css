@@ -1949,6 +1949,17 @@ body.inventario-modal-open .a11y-widget-panel {
     .compras-jefe-topbar {
         padding-left: 0;
     }
+    /* ☰ compras: left 14px + ancho 46px + margen — mismo problema de solape que panel admin */
+    .compras-jefe-body #compras-jefe-sidebar.admin-sidebar .admin-sidebar-header {
+        padding-left: 76px;
+        box-sizing: border-box;
+    }
+    /* Evita que el primer bloque del contenido quede bajo el ☰ fijo (top 14px + 46px alto) */
+    .compras-jefe-content {
+        padding-top: 72px;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
 }
 
 .dashboard-toolbar {
@@ -2353,6 +2364,11 @@ body.inventario-modal-open .a11y-widget-panel {
     }
     .admin-sidebar-toggle {
         display: flex;
+    }
+    /* El ☰ fijo (izq. ~16px + 44px) queda por encima del drawer (z-index); deja hueco al logo UNISOF */
+    .admin-sidebar .admin-sidebar-header {
+        padding-left: 72px;
+        box-sizing: border-box;
     }
     .dashboard-cards {
         grid-template-columns: 1fr;

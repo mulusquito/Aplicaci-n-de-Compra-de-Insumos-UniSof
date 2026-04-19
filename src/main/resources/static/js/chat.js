@@ -9,11 +9,32 @@
     var API_CHAT = '/api/chat';
     var AVATAR_SRC = '/images/robot-avatar.png';
     /**
-     * LSV del chatbot Nova: hover a la izquierda del lanzador (chat.css). Clip en /videos/lsv/.
+     * LSV del chatbot Nova: a la izquierda del lanzador (chat.css). En escritorio, hover muestra el video;
+     * en móvil/tablet (misma regla que sign-language-bubble.js), 1.er toque muestra el video y el 2.º abre el chat.
      */
     var CHAT_LAUNCHER_LSV_CANDIDATES = ['/videos/lsv/0417 (1)(3).mp4'];
 
     var LSV_ROW_HOVER_CLASS = 'chat-widget-launcher-row--lsv-hover';
+
+    /**
+     * Misma regla que sign-language-bubble.js (useSignHoverUi / useSignTouchSequence):
+     * viewport ≤768px o sin puntero fino → modo táctil con doble toque en el lanzador.
+     */
+    function useChatHoverLauncherUi() {
+        if (!window.matchMedia) return true;
+        if (window.matchMedia('(max-width: 768px)').matches) return false;
+        if (window.matchMedia('(hover: hover)').matches) return true;
+        var anyFine = window.matchMedia('(any-pointer: fine)').matches;
+        var fine = window.matchMedia('(pointer: fine)').matches;
+        var coarse = window.matchMedia('(pointer: coarse)').matches;
+        if (fine || anyFine) return true;
+        if (coarse && !anyFine) return false;
+        return true;
+    }
+
+    function useChatTouchLsvTwoStep() {
+        return !useChatHoverLauncherUi();
+    }
 
     /**
      * Codifica cada segmento del path (p. ej. 0417 (1)(3).mp4 → espacios y paréntesis en %XX).
@@ -319,9 +340,16 @@
         appendBotMessage(messages, welcomeMsg);
         updateSendState(input, sendBtn);
 
-        function openPanel() {
+        var chatTouchLsvArmed = false;
+
+        function resetChatTouchLsvPreview() {
+            chatTouchLsvArmed = false;
             if (launcherRow) launcherRow.classList.remove(LSV_ROW_HOVER_CLASS);
             pauseLauncherHoverPreview();
+        }
+
+        function openPanel() {
+            resetChatTouchLsvPreview();
             if (panel) panel.classList.add('open');
             var w = document.getElementById('chat-widget');
             if (w) w.classList.add('chat-panel-open');
@@ -331,24 +359,72 @@
             if (panel) panel.classList.remove('open');
             var w = document.getElementById('chat-widget');
             if (w) w.classList.remove('chat-panel-open');
+            resetChatTouchLsvPreview();
         }
         function togglePanel() {
             if (panel && panel.classList.contains('open')) closePanel();
             else openPanel();
         }
 
+        function onLauncherRowClickCapture(e) {
+            if (!launcherRow || !useChatTouchLsvTwoStep()) return;
+            if (!launcherRow.contains(e.target)) return;
+            e.preventDefault();
+            e.stopPropagation();
+            if (panel && panel.classList.contains('open')) {
+                togglePanel();
+                return;
+            }
+            if (!chatTouchLsvArmed) {
+                chatTouchLsvArmed = true;
+                launcherRow.classList.add(LSV_ROW_HOVER_CLASS);
+                playLauncherHoverPreview();
+                return;
+            }
+            chatTouchLsvArmed = false;
+            togglePanel();
+        }
+
+        function onDocPointerDownDismissChatLsv(e) {
+            if (!useChatTouchLsvTwoStep() || !chatTouchLsvArmed || !launcherRow) return;
+            if (launcherRow.contains(e.target)) return;
+            if (panel && panel.contains(e.target)) return;
+            resetChatTouchLsvPreview();
+        }
+
+        if (launcherRow) {
+            launcherRow.addEventListener('click', onLauncherRowClickCapture, true);
+        }
+        document.addEventListener('pointerdown', onDocPointerDownDismissChatLsv, true);
+        window.addEventListener(
+            'resize',
+            function () {
+                if (!useChatTouchLsvTwoStep()) resetChatTouchLsvPreview();
+            },
+            { passive: true }
+        );
+
         if (launcherRow && launcherLsvVideo) {
-            launcherRow.addEventListener('pointerenter', function () {
+            launcherRow.addEventListener('pointerenter', function (e) {
+                if (!useChatHoverLauncherUi()) return;
+                if (e.pointerType === 'touch') return;
                 launcherRow.classList.add(LSV_ROW_HOVER_CLASS);
                 playLauncherHoverPreview();
             });
-            launcherRow.addEventListener('pointerleave', function () {
+            launcherRow.addEventListener('pointerleave', function (e) {
+                if (!useChatHoverLauncherUi()) return;
+                if (e.pointerType === 'touch') return;
                 launcherRow.classList.remove(LSV_ROW_HOVER_CLASS);
                 pauseLauncherHoverPreview();
             });
         }
 
-        if (btn) btn.addEventListener('click', togglePanel);
+        if (btn) {
+            btn.addEventListener('click', function () {
+                if (useChatTouchLsvTwoStep()) return;
+                togglePanel();
+            });
+        }
         if (closeBtn) closeBtn.addEventListener('click', closePanel);
         if (input) {
             input.addEventListener('input', function () {
