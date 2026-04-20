@@ -368,6 +368,14 @@
             }
         }
 
+        /* Normaliza el nombre visible del proveedor (solo visual, sin tocar BD) */
+        function formatProvNombre(nombre) {
+            if (!nombre) return '—';
+            if (nombre === 'Proveedor demo - Botones') return nombre;
+            if (/prueba/i.test(nombre)) return 'Proveedores - Botones';
+            return nombre.replace(/\s*\bdemo\b\s*/gi, ' ').trim();
+        }
+
         /* ══════════════════════════════════════════════════════════════════ */
         /* Renderizar tarjetas de proveedores                                */
         /* ══════════════════════════════════════════════════════════════════ */
@@ -384,8 +392,8 @@
             grid.innerHTML = grupos.map(g => {
                 const n = (g.facturas || []).length;
                 return `<div class="fp-prov-card" data-prov-id="${g.proveedorId}" tabindex="0" role="button"
-                              aria-label="${escHtml(g.proveedorNombre)} — ${n} factura${n !== 1 ? 's' : ''}">
-                    <div class="fp-prov-nombre">${escHtml(g.proveedorNombre)}</div>
+                              aria-label="${escHtml(formatProvNombre(g.proveedorNombre))} — ${n} factura${n !== 1 ? 's' : ''}">
+                    <div class="fp-prov-nombre">${escHtml(formatProvNombre(g.proveedorNombre))}</div>
                     <div class="fp-prov-nit">NIT: ${escHtml(g.proveedorNit || '—')}</div>
                     <span class="fp-prov-badge">${n} factura${n !== 1 ? 's' : ''}</span>
                 </div>`;
